@@ -4384,6 +4384,7 @@ function mobSaveAttendance(present) {
   saveData();
   showSaveToast();
   renderTrainingContent(); renderKaderContent(); renderUebersicht(); renderDashboard();
+  mobRenderUpcoming();
 
   var ev = events.find(function(e){ return e.id === eid; });
   var pl = players.find(function(p){ return p.id === pid; });
@@ -4439,6 +4440,7 @@ function renderAll() {
   renderStatistik();
   renderSaison();
   renderSettings();
+  mobInit();
 }
 
 // ═══════════════════════════════════════════════
