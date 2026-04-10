@@ -4381,7 +4381,10 @@ function mobSaveAttendance(present) {
   }
   if(!attendance[eid]) attendance[eid] = {};
   attendance[eid][pid] = { present: present, reason: (!present && rid) ? parseInt(rid) : null };
-  saveData();
+  saveDataLocal(); // save locally first
+  // Immediately sync to Supabase – don't wait for the 3s debounce
+  if(_syncTimer) clearTimeout(_syncTimer);
+  syncToSupabase();
   showSaveToast();
   renderTrainingContent(); renderKaderContent(); renderUebersicht(); renderDashboard();
   mobRenderUpcoming();
@@ -4422,6 +4425,12 @@ function showPage(id) {
   if(ptEl) ptEl.textContent=found?found.label:'';
   var mobTitle=document.getElementById('mob-page-title');
   if(mobTitle) mobTitle.textContent=found?found.label:'';
+  // Auto-select current period when opening Langzeitplanung
+  if(id==='uebersicht') {
+    var curR = currentRunde ? currentRunde() : 'vorrunde';
+    setUebersichtType(curR);
+    return; // setUebersichtType calls renderUebersicht already
+  }
   buildNav();
   renderAll();
 }
@@ -4862,7 +4871,8 @@ function setUebersichtType(t) {
     var el=document.getElementById('ub-tab-'+id);
     if(el) el.classList.toggle('active',id===t);
   });
-  renderUebersicht();
+  buildNav();
+  renderAll();
 }
 function renderUebersicht() {
   var container = document.getElementById('uebersicht-content');
