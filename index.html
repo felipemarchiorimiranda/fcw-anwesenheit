@@ -242,6 +242,14 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       </div>
     </div>
 
+    <!-- Trainingsquoten -->
+    <div>
+      <div class="mob-section-title" id="mob-quotes-title">Trainingsquote Rückrunde</div>
+      <div class="mob-upcoming" id="mob-quotes-list">
+        <div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Lädt...</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -4401,10 +4409,58 @@ function mobSaveAttendance(present) {
   document.getElementById('mob-reason-sel').value = '';
 }
 
+function mobRenderQuotes() {
+  var el = document.getElementById('mob-quotes-list');
+  var titleEl = document.getElementById('mob-quotes-title');
+  if(!el) return;
+
+  var runde = currentRunde();
+  var label = runde === 'vorrunde' ? 'Vorrunde' : 'Rückrunde';
+  if(titleEl) titleEl.textContent = 'Trainingsquote ' + label;
+
+  var pl = players.filter(function(p){ return !p.isStaff; })
+    .map(function(p){
+      var r = playerRate(p.id, 'training', runde);
+      return { name: p.name, pct: r ? r.pct : null, att: r ? r.att : 0, total: r ? r.total : 0 };
+    })
+    .sort(function(a, b){
+      if(b.pct === null && a.pct === null) return a.name.localeCompare(b.name);
+      if(b.pct === null) return -1;
+      if(a.pct === null) return 1;
+      return b.pct - a.pct;
+    });
+
+  if(!pl.length) {
+    el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine Daten</div>';
+    return;
+  }
+
+  el.innerHTML = pl.map(function(p) {
+    var pct = p.pct;
+    var color = pct === null ? '#9ca3af' : pct >= 75 ? '#15803d' : pct >= 50 ? '#b45309' : '#dc2626';
+    var bg    = pct === null ? '#f3f4f6' : pct >= 75 ? '#dcfce7' : pct >= 50 ? '#fef9c3' : '#fee2e2';
+    var barW  = pct !== null ? pct : 0;
+    var firstName = p.name.split(' ')[0];
+    var lastName  = p.name.split(' ').slice(1).join(' ');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.06)">' +
+      '<div style="min-width:110px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+        firstName + ' <span style="color:#6b6b67;font-weight:400">' + lastName + '</span>' +
+      '</div>' +
+      '<div style="flex:1;height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden">' +
+        '<div style="height:100%;width:'+barW+'%;background:'+color+';border-radius:99px;transition:width 0.3s"></div>' +
+      '</div>' +
+      '<div style="min-width:42px;text-align:right;font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+color+';background:'+bg+';padding:2px 7px;border-radius:6px">' +
+        (pct !== null ? pct + '%' : '—') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
 function mobInit() {
   if(window.innerWidth > 900) return;
   mobRenderUpcoming();
   mobRenderSelects();
+  mobRenderQuotes();
 }
 
 function buildNav() {
