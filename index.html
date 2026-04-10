@@ -4131,7 +4131,7 @@ var trainSelectedEid = null;
 var spielView = 'past';
 var spielSelectedEid = null;
 var statRunde = 'total';
-var uebersichtType = 'vorrunde';
+var uebersichtType = 'vorrunde'; // will be overridden at startup by currentRunde()
 var sortState = {};
 var saveToastTimer = null;
 var ZONES_ALL = ['Staff','Torwart','Abwehr','Mittelfeld','Angriff'];
@@ -6200,6 +6200,7 @@ settings.teamLogo='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1
 loadData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
+uebersichtType = currentRunde(); // set correct period before any render
 buildNav();
 // Desktop: show dashboard; mobile app handles itself
 if(window.innerWidth > 900) {
@@ -6423,6 +6424,7 @@ try{
 loadData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
+uebersichtType = currentRunde(); // set correct period before any render
 buildNav();
 // Desktop: show dashboard; mobile app handles itself
 if(window.innerWidth > 900) {
