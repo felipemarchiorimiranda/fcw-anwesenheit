@@ -119,32 +119,39 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
   .grid2,.grid32{grid-template-columns:1fr}
   .content{padding:0.75rem}
   .topbar{padding:0 1rem}
+  /* Hide all pages except Langzeitplanung on mobile */
+  .page:not(#pg-uebersicht){display:none!important}
+  #pg-uebersicht{display:block!important}
+  /* Hide desktop topbar */
+  .main>.topbar{display:none}
 }
 
-/* Mobile drawer */
-.mob-topbar{display:none;align-items:center;justify-content:space-between;background:var(--pitch);height:52px;padding:0 1rem;flex-shrink:0;position:sticky;top:0;z-index:150}
-.mob-topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:0.02em}
-.mob-burger{background:none;border:none;cursor:pointer;padding:6px;color:#fff;display:flex;flex-direction:column;gap:4px;justify-content:center}
-.mob-burger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s}
-.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;transition:opacity 0.25s}
-.mob-overlay.open{display:block;opacity:1}
-.mob-drawer{position:fixed;top:0;left:0;height:100%;width:280px;background:var(--pitch);z-index:201;transform:translateX(-100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto}
-.mob-drawer.open{transform:translateX(0)}
-.mob-drawer-header{padding:1rem 1rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:space-between}
-.mob-drawer-logo{display:flex;align-items:center;gap:10px}
-.mob-drawer-logo img{width:36px;height:36px;object-fit:contain}
-.mob-drawer-club{font-size:13px;font-weight:700;color:#fff}
-.mob-drawer-sub{font-size:10px;color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace}
-.mob-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);font-size:22px;line-height:1;padding:4px 6px}
-.mob-nav{display:flex;flex-direction:column;gap:2px;padding:10px 10px;flex:1}
-.mob-ni{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.55);cursor:pointer;font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Barlow',sans-serif;transition:all 0.12s}
-.mob-ni.active{background:#fff;color:#111;font-weight:600}
-.mob-ni:active{opacity:0.7}
-.mob-drawer-footer{padding:0.75rem 1.25rem;font-size:10px;color:rgba(255,255,255,0.25);font-family:'DM Mono',monospace}
+/* ── MOBILE TOPBAR ─────────────────────────────── */
+.mob-topbar{display:none;align-items:center;justify-content:space-between;background:var(--pitch);height:52px;padding:0 1rem;flex-shrink:0;position:sticky;top:0;z-index:150;gap:8px}
+.mob-topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:0.02em;flex:1;text-align:center}
+.mob-tabs{display:flex;gap:4px}
+.mob-tab{padding:5px 11px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.25);background:transparent;color:rgba(255,255,255,0.6);font-family:'DM Mono',monospace;transition:all 0.12s;white-space:nowrap}
+.mob-tab.active{background:#fff;color:#111;border-color:#fff}
 
+/* ── MOBILE LANGZEIT TABLE ─────────────────────── */
 @media(max-width:900px){
   .mob-topbar{display:flex}
-  .main>.topbar{display:none}
+  /* Bigger tap targets in Langzeitplanung */
+  #uebersicht-content td div[onclick]{
+    min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;font-size:15px
+  }
+  #uebersicht-content table{font-size:12px}
+  #uebersicht-content th,#uebersicht-content td{padding:3px 1px}
+  /* Sticky name column wider on mobile */
+  #uebersicht-content td:first-child,
+  #uebersicht-content th:first-child{min-width:110px!important;width:110px!important;font-size:11px}
+  /* Reason dropdown full width */
+  #uebersicht-content select{font-size:14px!important;height:32px!important}
+  /* Hide scroll hint on mobile (native scroll works fine) */
+  .scroll-hint{display:none}
+  /* Card padding tighter */
+  #pg-uebersicht .card-header{flex-wrap:wrap;gap:6px;padding:0.6rem 0.75rem}
+  #pg-uebersicht .card-header .card-title{display:none}
 }
 .zTorwart{background:#f59e0b;color:#7c2d00}
 .zStaff{background:#7c3aed;color:#fff}
@@ -182,37 +189,16 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 </style>
 </head>
 <body>
-<!-- MOBILE OVERLAY -->
-<div class="mob-overlay" id="mob-overlay" onclick="closeMobDrawer()"></div>
-
-<!-- MOBILE DRAWER -->
-<div class="mob-drawer" id="mob-drawer">
-  <div class="mob-drawer-header">
-    <div class="mob-drawer-logo">
-      <img id="mob-verein-logo" alt="FCW">
-      <div>
-        <div class="mob-drawer-club" id="mob-club-name">FC Wiesendangen</div>
-        <div class="mob-drawer-sub" id="mob-club-sub">2. Mannschaft</div>
-      </div>
-    </div>
-    <button class="mob-close" onclick="closeMobDrawer()">×</button>
-  </div>
-  <div class="mob-nav" id="mob-nav"></div>
-  <div class="mob-drawer-footer" id="mob-saison-footer">Saison 2025/26</div>
-</div>
-
 <div class="shell">
 
-<!-- MOBILE TOPBAR (only visible on mobile) -->
-<div class="mob-topbar">
-  <button class="mob-burger" onclick="openMobDrawer()" aria-label="Menü öffnen">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="mob-topbar-title" id="mob-page-title">Dashboard</div>
-  <button class="btn" onclick="openModal('add')" style="background:#fff;color:#111;border-color:#fff;font-size:12px;padding:5px 10px">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Neu
-  </button>
+<!-- MOBILE TOPBAR (only on mobile, shows Langzeitplanung tabs) -->
+<div class="mob-topbar" id="mob-topbar">
+  <div class="mob-topbar-title">FCW</div>
+  <div class="mob-tabs">
+    <button class="mob-tab active" id="mob-tab-vorrunde" onclick="mobSetRunde('vorrunde')">VR</button>
+    <button class="mob-tab" id="mob-tab-rueckrunde" onclick="mobSetRunde('rueckrunde')">RR</button>
+    <button class="mob-tab" id="mob-tab-all" onclick="mobSetRunde('all')">Alle</button>
+  </div>
 </div>
 <nav class="sb">
   <div class="sb-logo">
@@ -4249,37 +4235,17 @@ var PAGES = [
   {id:'einstellungen',label:'Einstellungen'}
 ];
 
-function openMobDrawer() {
-  document.getElementById('mob-drawer').classList.add('open');
-  document.getElementById('mob-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function mobSetRunde(runde) {
+  ['vorrunde','rueckrunde','all'].forEach(function(r){
+    var el=document.getElementById('mob-tab-'+r);
+    if(el) el.classList.toggle('active', r===runde);
+  });
+  setUebersichtType(runde);
 }
-function closeMobDrawer() {
-  document.getElementById('mob-drawer').classList.remove('open');
-  document.getElementById('mob-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-function buildMobNav() {
-  var nav = document.getElementById('mob-nav');
-  if(!nav) return;
-  // Sync logo/name
-  var logo = document.getElementById('sb-verein-logo');
-  var mobLogo = document.getElementById('mob-verein-logo');
-  if(logo && mobLogo) mobLogo.src = logo.src;
-  var clubName = document.getElementById('sb-club-name');
-  var mobClub = document.getElementById('mob-club-name');
-  if(clubName && mobClub) mobClub.textContent = clubName.textContent;
-  var clubSub = document.getElementById('sb-club-sub');
-  var mobSub = document.getElementById('mob-club-sub');
-  if(clubSub && mobSub) mobSub.textContent = clubSub.textContent;
-  var saison = document.getElementById('sb-saison');
-  var mobSaison = document.getElementById('mob-saison-footer');
-  if(saison && mobSaison) mobSaison.textContent = saison.textContent;
 
-  nav.innerHTML = PAGES.map(function(p) {
-    return '<button class="mob-ni'+(currentPage===p.id?' active':'')+'" onclick="showPage(\''+p.id+'\');closeMobDrawer()">'+p.label+'</button>';
-  }).join('');
-}
+function openMobDrawer(){}
+function closeMobDrawer(){}
+function buildMobNav(){}
 
 function buildNav() {
   var nav=document.getElementById('nav');
@@ -6061,7 +6027,13 @@ loadData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
 buildNav();
-showPage('dashboard');
+// On mobile: show Langzeitplanung directly
+if(window.innerWidth <= 900) {
+  showPage('uebersicht');
+  mobSetRunde('vorrunde');
+} else {
+  showPage('dashboard');
+}
 // Try to load fresh data from Google on startup
 
 function renderMinuten() {
@@ -6279,7 +6251,13 @@ loadData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
 buildNav();
-showPage('dashboard');
+// On mobile: show Langzeitplanung directly
+if(window.innerWidth <= 900) {
+  showPage('uebersicht');
+  mobSetRunde('vorrunde');
+} else {
+  showPage('dashboard');
+}
 // Try to load fresh data from Google on startup
 // Auto-connect on startup
 setTimeout(supabaseInit, 800);
