@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="FCW Anwesenheit">
   <meta name="application-name" content="FCW Anwesenheit">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="theme-color" content="#111111">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anwesenheitsverwaltung FC Wiesendangen</title>
@@ -113,13 +114,37 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:3px}
 @media(max-width:900px){
-  .sb{width:58px}
-  .ni span,.club-name,.club-sub,.sb-footer,.sb-team-row div{display:none}
-  .sb-logo img.club{width:38px;height:38px}
-  .sb-logo img.team{display:none}
-  .stat-row{grid-template-columns:repeat(3,1fr)}
+  .sb{display:none}
+  .stat-row{grid-template-columns:repeat(2,1fr)}
   .grid2,.grid32{grid-template-columns:1fr}
-  .content{padding:1rem}
+  .content{padding:0.75rem}
+  .topbar{padding:0 1rem}
+}
+
+/* Mobile drawer */
+.mob-topbar{display:none;align-items:center;justify-content:space-between;background:var(--pitch);height:52px;padding:0 1rem;flex-shrink:0;position:sticky;top:0;z-index:150}
+.mob-topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:0.02em}
+.mob-burger{background:none;border:none;cursor:pointer;padding:6px;color:#fff;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.mob-burger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;transition:opacity 0.25s}
+.mob-overlay.open{display:block;opacity:1}
+.mob-drawer{position:fixed;top:0;left:0;height:100%;width:280px;background:var(--pitch);z-index:201;transform:translateX(-100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto}
+.mob-drawer.open{transform:translateX(0)}
+.mob-drawer-header{padding:1rem 1rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:space-between}
+.mob-drawer-logo{display:flex;align-items:center;gap:10px}
+.mob-drawer-logo img{width:36px;height:36px;object-fit:contain}
+.mob-drawer-club{font-size:13px;font-weight:700;color:#fff}
+.mob-drawer-sub{font-size:10px;color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace}
+.mob-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);font-size:22px;line-height:1;padding:4px 6px}
+.mob-nav{display:flex;flex-direction:column;gap:2px;padding:10px 10px;flex:1}
+.mob-ni{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.55);cursor:pointer;font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Barlow',sans-serif;transition:all 0.12s}
+.mob-ni.active{background:#fff;color:#111;font-weight:600}
+.mob-ni:active{opacity:0.7}
+.mob-drawer-footer{padding:0.75rem 1.25rem;font-size:10px;color:rgba(255,255,255,0.25);font-family:'DM Mono',monospace}
+
+@media(max-width:900px){
+  .mob-topbar{display:flex}
+  .main>.topbar{display:none}
 }
 .zTorwart{background:#f59e0b;color:#7c2d00}
 .zStaff{background:#7c3aed;color:#fff}
@@ -157,7 +182,38 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 </style>
 </head>
 <body>
+<!-- MOBILE OVERLAY -->
+<div class="mob-overlay" id="mob-overlay" onclick="closeMobDrawer()"></div>
+
+<!-- MOBILE DRAWER -->
+<div class="mob-drawer" id="mob-drawer">
+  <div class="mob-drawer-header">
+    <div class="mob-drawer-logo">
+      <img id="mob-verein-logo" alt="FCW">
+      <div>
+        <div class="mob-drawer-club" id="mob-club-name">FC Wiesendangen</div>
+        <div class="mob-drawer-sub" id="mob-club-sub">2. Mannschaft</div>
+      </div>
+    </div>
+    <button class="mob-close" onclick="closeMobDrawer()">×</button>
+  </div>
+  <div class="mob-nav" id="mob-nav"></div>
+  <div class="mob-drawer-footer" id="mob-saison-footer">Saison 2025/26</div>
+</div>
+
 <div class="shell">
+
+<!-- MOBILE TOPBAR (only visible on mobile) -->
+<div class="mob-topbar">
+  <button class="mob-burger" onclick="openMobDrawer()" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mob-topbar-title" id="mob-page-title">Dashboard</div>
+  <button class="btn" onclick="openModal('add')" style="background:#fff;color:#111;border-color:#fff;font-size:12px;padding:5px 10px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Neu
+  </button>
+</div>
 <nav class="sb">
   <div class="sb-logo">
     <img class="club" id="sb-verein-logo" alt="Verein">
@@ -191,7 +247,17 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheitsübersicht</span></div>
           <table class="tbl"><thead><tr><th>Spieler</th><th id="dh1" class="c"></th><th id="dh2" class="c"></th><th id="dh3" class="c"></th><th>Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'dashboard_quote')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1">i</span></th></tr></thead><tbody id="dash-att"></tbody></table>
         </div>
-        <div class="card"><div class="card-header"><span class="card-title">Nächste Einheiten</span></div><div id="dash-upcoming"></div></div>
+        <div style="display:flex;flex-direction:column;gap:1.1rem">
+          <div class="card"><div class="card-header"><span class="card-title">Nächste Einheiten</span></div><div id="dash-upcoming"></div></div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">To-do</span>
+              <span style="font-size:11px;color:var(--muted)" id="dash-todo-count"></span>
+              <button class="btn sm" onclick="openTodoModal()" style="margin-left:auto">+ Neue Aufgabe</button>
+            </div>
+            <div id="dash-todos-list" style="padding:0 0.5rem"></div>
+          </div>
+        </div>
       </div>
       <div class="grid2">
         <div class="card"><div class="card-header"><span class="card-title">Top Spielminuten</span></div><table class="tbl" id="dash-minutes"></table></div>
@@ -309,7 +375,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
               <th style="text-align:right;cursor:pointer">Anw.</th>
               <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'training')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
+              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'training_total')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
             </tr></thead><tbody id="stat-train-tbody"></tbody></table></div>
         </div>
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Spiele</span></div>
@@ -319,7 +385,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
               <th style="text-align:right;cursor:pointer">Anw.</th>
               <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'training')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
+              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'spiel_total')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
             </tr></thead><tbody id="stat-spiel-tbody"></tbody></table></div>
         </div>
       </div>
@@ -401,6 +467,44 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 </div>
 </div>
 
+<!-- MODAL TODO -->
+<div class="modal-bg" id="modal-todo" onclick="if(event.target===this)closeModal('todo')">
+  <div class="modal" style="width:500px">
+    <div class="modal-header">
+      <span class="modal-title" id="todo-modal-title">Neue Aufgabe</span>
+      <button class="btn" onclick="closeModal('todo')" style="border:none;font-size:17px;padding:2px 8px">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="todo-edit-id">
+      <div class="field"><label>Aufgabe</label><input type="text" id="todo-text" class="inp" style="width:100%" placeholder="Was muss erledigt werden?"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="field"><label>Verantwortlich</label>
+          <select id="todo-owner" class="inp" style="width:100%">
+            <option value="">– Niemand –</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="todo-status" class="inp" style="width:100%">
+            <option value="offen">Offen</option>
+            <option value="in_bearbeitung">In Bearbeitung</option>
+            <option value="erledigt">Erledigt</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="field"><label>Fällig bis</label><input type="date" id="todo-due" class="inp" style="width:100%"></div>
+        <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="todo-prio"> <span>Priorität</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('todo')">Abbrechen</button>
+      <button class="btn pri" onclick="saveTodoModal()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ADD -->
 <div class="modal-bg" id="modal-add" onclick="if(event.target===this)closeModal('add')">
   <div class="modal">
@@ -451,6 +555,9 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 
           
 <script>
+
+
+
 
 
 
@@ -2221,6 +2328,8 @@ var attendance={
   19:{present:false,reason:'V'}
 }
 };
+var todos = [];
+var nextTid = 1;
 var nextEid=99,nextPid=30,nextSid=2,nextRid=6;
 
 
@@ -3964,6 +4073,8 @@ var attendance={
   19:{present:false,reason:'V'}
 }
 };
+var todos = [];
+var nextTid = 1;
 var nextEid=99,nextPid=30,nextSid=2,nextRid=6;
 
 
@@ -4138,12 +4249,45 @@ var PAGES = [
   {id:'einstellungen',label:'Einstellungen'}
 ];
 
+function openMobDrawer() {
+  document.getElementById('mob-drawer').classList.add('open');
+  document.getElementById('mob-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobDrawer() {
+  document.getElementById('mob-drawer').classList.remove('open');
+  document.getElementById('mob-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function buildMobNav() {
+  var nav = document.getElementById('mob-nav');
+  if(!nav) return;
+  // Sync logo/name
+  var logo = document.getElementById('sb-verein-logo');
+  var mobLogo = document.getElementById('mob-verein-logo');
+  if(logo && mobLogo) mobLogo.src = logo.src;
+  var clubName = document.getElementById('sb-club-name');
+  var mobClub = document.getElementById('mob-club-name');
+  if(clubName && mobClub) mobClub.textContent = clubName.textContent;
+  var clubSub = document.getElementById('sb-club-sub');
+  var mobSub = document.getElementById('mob-club-sub');
+  if(clubSub && mobSub) mobSub.textContent = clubSub.textContent;
+  var saison = document.getElementById('sb-saison');
+  var mobSaison = document.getElementById('mob-saison-footer');
+  if(saison && mobSaison) mobSaison.textContent = saison.textContent;
+
+  nav.innerHTML = PAGES.map(function(p) {
+    return '<button class="mob-ni'+(currentPage===p.id?' active':'')+'" onclick="showPage(\''+p.id+'\');closeMobDrawer()">'+p.label+'</button>';
+  }).join('');
+}
+
 function buildNav() {
   var nav=document.getElementById('nav');
   if(!nav) return;
   nav.innerHTML=PAGES.map(function(p){
     return '<button class="ni'+(currentPage===p.id?' active':'')+'" onclick="showPage(\''+p.id+'\')"><span>'+p.label+'</span></button>';
   }).join('');
+  buildMobNav();
 }
 function showPage(id) {
   currentPage=id;
@@ -4153,6 +4297,8 @@ function showPage(id) {
   var found=PAGES.find(function(p){return p.id===id;});
   var ptEl=document.getElementById('page-title');
   if(ptEl) ptEl.textContent=found?found.label:'';
+  var mobTitle=document.getElementById('mob-page-title');
+  if(mobTitle) mobTitle.textContent=found?found.label:'';
   buildNav();
   renderAll();
 }
@@ -4348,10 +4494,11 @@ function buildAttZones(eid, type, showRunden) {
         '<td class="c"><button class="att-btn '+(status==='yes'?'yes':status==='no'?'no':'')+'" '+
         (status==='unknown'?'style="background:#f3f4f6;border-color:#d1d5db;color:#6b7280"':'')+
         ' onclick="toggleAttSave('+eid+','+p.id+')">'+(status==='yes'?'✓':status==='no'?'✕':'?')+'</button></td>'+
-        '<td>'+(!entry||entry.present?'':
-          '<select class="inp" style="font-size:11px;height:28px;min-width:120px" onchange="setReasonSave('+eid+','+p.id+',this.value)">'+
-          '<option value="">Grund wählen...</option>'+opts+'</select>')+
-          (entry&&!entry.present?reasonTag(entry.reason):'')+'</td>'+
+        '<td>'+((!entry||entry.present)?'':
+          (entry.reason
+            ? reasonTag(entry.reason)+'<button onclick="clearReasonSave('+eid+','+p.id+')" style="margin-left:5px;border:none;background:none;cursor:pointer;color:var(--muted);font-size:13px;vertical-align:middle;line-height:1" title="Grund löschen">×</button>'
+            : '<select class="inp" style="font-size:11px;height:28px;min-width:120px" onchange="setReasonSave('+eid+','+p.id+',this.value)"><option value="">Grund wählen...</option>'+opts+'</select>'
+          ))+'</td>'+
         quoteCols+'</tr>';
     }).join('');
 
@@ -4410,10 +4557,11 @@ function buildFutureZones(eid, type) {
         '<td class="c"><button class="att-btn '+(status==='yes'?'yes':status==='no'?'no':'')+'" '+
         (status==='unknown'?'style="background:#f3f4f6;border-color:#d1d5db;color:#6b7280"':'')+
         ' onclick="toggleAttSave('+eid+','+p.id+')">'+(status==='yes'?'✓':status==='no'?'✕':'?')+'</button></td>'+
-        '<td>'+(!entry||entry.present?'':
-          '<select class="inp" style="font-size:11px;height:28px;min-width:120px" onchange="setReasonSave('+eid+','+p.id+',this.value)">'+
-          '<option value="">Grund wählen...</option>'+opts+'</select>')+
-          (entry&&!entry.present?reasonTag(entry.reason):'')+'</td>'+
+        '<td>'+((!entry||entry.present)?'':
+          (entry.reason
+            ? reasonTag(entry.reason)+'<button onclick="clearReasonSave('+eid+','+p.id+')" style="margin-left:5px;border:none;background:none;cursor:pointer;color:var(--muted);font-size:13px;vertical-align:middle;line-height:1" title="Grund löschen">×</button>'
+            : '<select class="inp" style="font-size:11px;height:28px;min-width:120px" onchange="setReasonSave('+eid+','+p.id+',this.value)"><option value="">Grund wählen...</option>'+opts+'</select>'
+          ))+'</td>'+
         '<td>'+barHtml(r?r.pct:null,55)+'</td></tr>';
     });
     zonesHtml+='</tbody></table>';
@@ -4688,10 +4836,17 @@ function renderUebersicht() {
           title=reason?reason.label:'Abwesend';
         }
         var dropId='dr-'+e.id+'-'+p.id;
-        var selHtml=(!entry||entry.present)?'':
-          '<select id="'+dropId+'" class="inp" style="font-size:9px;height:20px;padding:0 2px;width:100%;margin-top:2px" '+
-          'onchange="setReasonUebersicht('+e.id+','+p.id+',this.value)">'+opts+
-          (entry.reason?'<option value="'+entry.reason+'" selected>'+reasonKuerzel(entry.reason)+' '+(absenceReasons.find(function(r){return r.id==entry.reason;})||{label:''}).label+'</option>':'')+'</select>';
+        var selHtml='';
+        if(entry && !entry.present) {
+          if(entry.reason) {
+            var rObj=absenceReasons.find(function(x){return x.id==entry.reason;});
+            selHtml='<div style="font-size:9px;font-weight:700;margin-top:2px;color:'+(rObj?rObj.color:'#e53e3e')+'">'+(rObj?reasonKuerzel(entry.reason):'?')+'</div>'+
+              '<div style="cursor:pointer;font-size:9px;color:var(--muted);line-height:1" onclick="clearReasonUebersicht('+e.id+','+p.id+')" title="Grund löschen">×</div>';
+          } else {
+            selHtml='<select id="'+dropId+'" class="inp" style="font-size:9px;height:20px;padding:0 2px;width:100%;margin-top:2px" '+
+              'onchange="setReasonUebersicht('+e.id+','+p.id+',this.value)">'+opts+'</select>';
+          }
+        }
         html+='<td style="text-align:center;background:'+bg+';border:1px solid rgba(0,0,0,0.04);padding:2px;vertical-align:top;width:38px;min-width:38px'+(isToday?';border-left:1px solid var(--amber);border-right:1px solid var(--amber)':'')+'" title="'+title+'">'+
           '<div style="cursor:pointer;font-size:12px;line-height:1.4" onclick="quickToggleAtt('+e.id+','+p.id+')">'+cell+'</div>'+
           selHtml+'</td>';
@@ -4712,7 +4867,22 @@ function quickToggleAtt(eid,pid) {
   if(!attendance[eid]) attendance[eid]={};
   var cur=attendance[eid][pid]||{present:false,reason:null};
   attendance[eid][pid]={present:!cur.present,reason:cur.reason};
-  saveData(); showSaveToast(); renderUebersicht(); renderDashboard();
+  saveData(); showSaveToast();
+  renderUebersicht(); renderDashboard(); renderTrainingContent(); renderKaderContent();
+}
+
+function setReasonUebersicht(eid,pid,rid) {
+  if(!attendance[eid]) attendance[eid]={};
+  if(!attendance[eid][pid]) attendance[eid][pid]={present:false,reason:null};
+  attendance[eid][pid].reason=rid?parseInt(rid):null;
+  saveData(); showSaveToast();
+  renderUebersicht(); renderTrainingContent(); renderKaderContent();
+}
+
+function clearReasonUebersicht(eid,pid) {
+  if(attendance[eid]&&attendance[eid][pid]) attendance[eid][pid].reason=null;
+  saveData(); showSaveToast();
+  renderUebersicht(); renderTrainingContent(); renderKaderContent();
 }
 
 // ═══════════════════════════════════════════════
@@ -4806,25 +4976,32 @@ function renderPlayers() {
 
 
 function showQuoteTooltip(btn, ctx) {
-  // Toggle: click same button again to close
   var existing = document.getElementById('quote-tooltip-pop');
+  // If tooltip open AND same button clicked -> close and stop
   if(existing) {
+    var wasBtn = existing._srcBtn;
+    var wasHandler = existing._closeHandler;
     existing.remove();
-    if(existing._srcBtn === btn) return; // same button = close
+    if(wasHandler) document.removeEventListener('click', wasHandler);
+    if(wasBtn === btn) return;
   }
   var pastT=pastEvts('training'), pastS=pastEvts('spiel');
   var vrT=pastEvtsFiltered('training','vorrunde'), rrT=pastEvtsFiltered('training','rueckrunde');
   var vrS=pastEvtsFiltered('spiel','vorrunde'),    rrS=pastEvtsFiltered('spiel','rueckrunde');
+  var curR = currentRunde ? currentRunde() : null;
+  var curT = curR==='vorrunde' ? vrT : curR==='rueckrunde' ? rrT : pastT;
+  var curTLabel = curR==='vorrunde' ? 'Trainings in Vorrunde' : curR==='rueckrunde' ? 'Trainings in R\u00fcckrunde' : 'Trainings absolviert';
   var infos={
-    'training_total':   {title:'Trainingsquote \u2014 Total',        desc:'Anwesenheit bei allen Trainings der gesamten Saison.',                     basis:pastT.length+' Trainings absolviert',note:'Spiele nicht eingerechnet.'},
-    'training_vr':      {title:'Trainingsquote \u2014 Vorrunde',     desc:'Anwesenheit bei Trainings in der Vorrunde (Jul\u2013Nov 2025).',          basis:vrT.length+' Trainings in Vorrunde', note:'Nur Vorrunden-Trainings.'},
-    'training_rr':      {title:'Trainingsquote \u2014 R\u00fcckrunde',desc:'Anwesenheit bei Trainings in der R\u00fcckrunde (Feb\u2013Jun 2026).',  basis:rrT.length+' Trainings in R\u00fcckrunde',note:'Nur R\u00fcckrunden-Trainings.'},
-    'spiel_total':      {title:'Spielquote \u2014 Total',             desc:'Anwesenheit bei allen Spielen der gesamten Saison.',                       basis:pastS.length+' Spiele absolviert',   note:'Trainings nicht eingerechnet.'},
-    'spiel_vr':         {title:'Spielquote \u2014 Vorrunde',          desc:'Anwesenheit bei Spielen in der Vorrunde.',                                 basis:vrS.length+' Spiele in Vorrunde',    note:'Nur Vorrunden-Spiele.'},
-    'spiel_rr':         {title:'Spielquote \u2014 R\u00fcckrunde',   desc:'Anwesenheit bei Spielen in der R\u00fcckrunde.',                          basis:rrS.length+' Spiele in R\u00fcckrunde',note:'Nur R\u00fcckrunden-Spiele.'},
-    'training_kader':   {title:'Trainingsquote (Kader)',               desc:'Anwesenheit bei allen Trainings. F\u00fcr Staff: Anzahl besuchter Einheiten.',basis:pastT.length+' Trainings absolviert',note:'Zuk\u00fcnftige Einheiten nicht eingerechnet.'},
-    'stat_avg':         {title:'\u00d8 Anwesenheit',                   desc:'Durchschnitt der Trainingsquoten aller Feldspieler (ohne Staff).',          basis:pastT.length+' Trainings als Basis', note:'Perioden-Filter wirkt auf alle Quoten.'},
-    'dashboard_quote':  {title:'Trainingsquote (aktuell)',             desc:'Anwesenheit bei Trainings in der aktuellen Periode (VR oder RR).',          basis:pastT.length+' Trainings absolviert', note:'Wechselt automatisch je nach Datum.'}
+    'training_total':  {title:'Trainingsquote \u2014 Total',         desc:'Anwesenheit bei allen Trainings der gesamten Saison.',             basis:pastT.length+' Trainings (gesamt)',       note:'Spiele nicht eingerechnet.'},
+    'training_vr':     {title:'Trainingsquote \u2014 Vorrunde',      desc:'Anwesenheit bei Trainings, Vorrunde (Jul\u2013Nov 2025).',        basis:vrT.length+' Trainings in Vorrunde',      note:'Nur Vorrunden-Trainings.'},
+    'training_rr':     {title:'Trainingsquote \u2014 R\u00fcckrunde',desc:'Anwesenheit bei Trainings, R\u00fcckrunde (Feb\u2013Jun 2026).', basis:rrT.length+' Trainings in R\u00fcckrunde',note:'Nur R\u00fcckrunden-Trainings.'},
+    'spiel_total':     {title:'Spielquote \u2014 Total',              desc:'Anwesenheit bei allen Spielen der Saison.',                       basis:pastS.length+' Spiele absolviert',         note:'Trainings nicht eingerechnet.'},
+    'spiel_vr':        {title:'Spielquote \u2014 Vorrunde',           desc:'Anwesenheit bei Spielen, Vorrunde.',                              basis:vrS.length+' Spiele in Vorrunde',          note:'Nur Vorrunden-Spiele.'},
+    'spiel_rr':        {title:'Spielquote \u2014 R\u00fcckrunde',    desc:'Anwesenheit bei Spielen, R\u00fcckrunde.',                       basis:rrS.length+' Spiele in R\u00fcckrunde',   note:'Nur R\u00fcckrunden-Spiele.'},
+    'training_kader':  {title:'Trainingsquote (Kader)',                desc:'Anwesenheit bei allen Trainingseinheiten der gesamten Saison (Vor- und Rückrunde).',  basis:pastT.length+' Trainings absolviert (gesamt)',  note:'Zukünftige Einheiten nicht eingerechnet.'},
+    'stat_avg':        {title:'\u00d8 Anwesenheit',                   desc:'Durchschnitt der Trainingsquoten aller Feldspieler (ohne Staff).',basis:curT.length+' '+curTLabel,                 note:'Perioden-Filter wirkt auf alle Quoten.'},
+    'dashboard_quote': {title:'Trainingsquote (aktuelle Periode)',     desc:'Anwesenheit bei Trainings in der aktuellen Periode.',             basis:curT.length+' '+curTLabel,                 note:'Wechselt automatisch je nach Datum.'},
+    'langzeit':        {title:'Anwesenheitsquote \u2014 Langzeit',    desc:'Anwesenheit bei allen vergangenen Einheiten (Trainings und Spiele) im gewählten Zeitraum.', basis:(pastT.length+pastS.length)+' Einheiten absolviert', note:'Zukünftige Einheiten nicht eingerechnet.'}
   };
   var info = infos[ctx] || {title:'Quote', desc:'Anwesenheitsquote.', basis:'', note:''};
   var tip = document.createElement('div');
@@ -4843,7 +5020,7 @@ function showQuoteTooltip(btn, ctx) {
       '<div style="font-size:10px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:2px">Basis</div>'+
       '<div style="color:rgba(255,255,255,0.85)">'+info.basis+'</div></div>':'')+
     (info.note?'<div style="color:rgba(255,255,255,0.45);font-size:11px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;margin-top:4px">'+info.note+'</div>':'')+
-    '<div style="color:rgba(255,255,255,0.25);font-size:10px;margin-top:6px">Klick ausserhalb oder nochmals \u00d7</div>';
+    '<div style="color:rgba(255,255,255,0.25);font-size:10px;margin-top:6px">Nochmals klicken zum Schliessen</div>';
   var rect = btn.getBoundingClientRect();
   var left = Math.min(rect.left, window.innerWidth - 310);
   var top  = rect.bottom + 8;
@@ -4851,16 +5028,19 @@ function showQuoteTooltip(btn, ctx) {
   tip.style.left = Math.max(8, left) + 'px';
   tip.style.top  = top + 'px';
   document.body.appendChild(tip);
-  // Close on outside click
+  // Store close handler on tip so we can remove it later
+  var closeHandler = function(ev) {
+    var t2 = document.getElementById('quote-tooltip-pop');
+    if(t2 && !t2.contains(ev.target)) {
+      t2.remove();
+      document.removeEventListener('click', closeHandler);
+    }
+  };
+  tip._closeHandler = closeHandler;
+  // Small delay so this click doesn't immediately trigger close
   setTimeout(function() {
-    var close = function(ev) {
-      if(!tip.contains(ev.target)) {
-        tip.remove();
-        document.removeEventListener('click', close);
-      }
-    };
-    document.addEventListener('click', close);
-  }, 60);
+    document.addEventListener('click', closeHandler);
+  }, 80);
 }
 
 function showKaderQuoteInfo(btn, isStaff) { showQuoteTooltip(btn, 'training_kader'); }
@@ -5331,6 +5511,11 @@ function setReasonSave(eid,pid,rid) {
   saveData(); showSaveToast();
   renderTrainingContent(); renderKaderContent();
 }
+function clearReasonSave(eid,pid) {
+  if(attendance[eid]&&attendance[eid][pid]) attendance[eid][pid].reason=null;
+  saveData(); showSaveToast();
+  renderTrainingContent(); renderKaderContent();
+}
 function addEvent() {
   var date=document.getElementById('ne-date').value;
   var type=document.getElementById('ne-type').value;
@@ -5688,6 +5873,7 @@ function syncToSupabase() {
       players: players, events: events, attendance: attendance,
       seasons: seasons, settings: settings, absenceReasons: absenceReasons,
       nextEid: nextEid, nextPid: nextPid, nextSid: nextSid, nextRid: nextRid,
+      todos: todos, nextTid: nextTid,
       lastModified: new Date().toISOString(),
       lastModifiedBy: settings.userName || settings.clubName || ''
     })
@@ -5740,7 +5926,9 @@ function loadFromSupabase(silent) {
       if(d.seasons)        seasons        = d.seasons;
       if(d.settings)       Object.assign(settings, d.settings);
       if(d.absenceReasons) absenceReasons = d.absenceReasons;
-      if(d.nextEid) nextEid = d.nextEid;
+      if(d.todos) todos = d.todos;
+    if(d.nextTid) nextTid = d.nextTid;
+    if(d.nextEid) nextEid = d.nextEid;
       if(d.nextPid) nextPid = d.nextPid;
       if(d.nextSid) nextSid = d.nextSid;
       if(d.nextRid) nextRid = d.nextRid;
@@ -5812,7 +6000,8 @@ function saveDataLocal() {
     localStorage.setItem('fcw_v6', JSON.stringify({
       players:players, events:events, attendance:attendance,
       seasons:seasons, settings:settings, absenceReasons:absenceReasons,
-      nextEid:nextEid, nextPid:nextPid, nextSid:nextSid, nextRid:nextRid
+      nextEid:nextEid, nextPid:nextPid, nextSid:nextSid, nextRid:nextRid,
+      todos:todos, nextTid:nextTid
     }));
   } catch(err) { console.error('Save error', err); }
   triggerAutoSync();
@@ -5837,6 +6026,8 @@ function loadData() {
       absenceReasons = d.absenceReasons;
       absenceReasons.forEach(function(r){ if(!r.kuerzel) r.kuerzel = r.label.charAt(0).toUpperCase(); });
     }
+    if(d.todos) todos = d.todos;
+    if(d.nextTid) nextTid = d.nextTid;
     if(d.nextEid) nextEid = d.nextEid;
     if(d.nextPid) nextPid = d.nextPid;
     if(d.nextSid) nextSid = d.nextSid;
@@ -5926,6 +6117,127 @@ function saveEditPlayer() {
   saveData(); closeModal('edit-player'); renderAll();
 }
 
+
+function todoStatusConfig(status) {
+  if(status === 'erledigt') return {label:'Erledigt', bg:'#dcfce7', color:'#15803d'};
+  if(status === 'in_bearbeitung') return {label:'In Bearb.', bg:'#fef9c3', color:'#b45309'};
+  return {label:'Offen', bg:'#f3f4f6', color:'#374151'};
+}
+
+function renderTodos() {
+  var el = document.getElementById('dash-todos-list');
+  if(!el) return;
+  var count = document.getElementById('dash-todo-count');
+  var open = todos.filter(function(t){return (t.status||'offen') !== 'erledigt' && !t.done;}).length;
+  if(count) count.textContent = open ? open + ' offen' : '';
+  if(!todos.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:12px;text-align:center">Keine Aufgaben \u2013 gut gemacht! \u2705</div>';
+    return;
+  }
+  var sorted = todos.slice().sort(function(a,b) {
+    var aD = (a.status||'offen')==='erledigt'?1:0;
+    var bD = (b.status||'offen')==='erledigt'?1:0;
+    if(aD !== bD) return aD - bD;
+    if(a.due && b.due) return a.due.localeCompare(b.due);
+    if(a.due) return -1; if(b.due) return 1;
+    return 0;
+  });
+  var today = new Date().toISOString().slice(0,10);
+  el.innerHTML = sorted.map(function(t) {
+    var sc = todoStatusConfig(t.status || (t.done ? 'erledigt' : 'offen'));
+    var ownerName = '';
+    if(t.owner) { var p = players.find(function(x){return x.id==t.owner;}); if(p) ownerName = p.name.split(' ')[0]; }
+    var overdue = t.due && t.due < today && (t.status||'offen') !== 'erledigt' && !t.done;
+    var dueStr = '';
+    if(t.due) { var parts = t.due.split('-'); dueStr = parts[2]+'.'+parts[1]+'.'+parts[0]; }
+    var isDone = (t.status === 'erledigt') || t.done;
+    return '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border)'+(overdue?';background:#fff7f7':'')+(isDone?';opacity:0.55':'')+'">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
+          (t.prio?'<span style="font-size:9px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;font-weight:700">PRIO</span>':'') +
+          '<span style="font-size:13px;'+(isDone?'text-decoration:line-through;color:var(--muted)':'font-weight:500')+'">'+t.text+'</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+          '<span style="font-size:10px;padding:1px 7px;border-radius:99px;font-weight:600;background:'+sc.bg+';color:'+sc.color+'">'+sc.label+'</span>' +
+          (ownerName?'<span style="font-size:11px;color:var(--muted)">\ud83d\udc64 '+ownerName+'</span>':'') +
+          (dueStr?'<span style="font-size:11px;color:'+(overdue?'var(--red)':'var(--muted)')+'">\ud83d\udcc5 '+dueStr+(overdue?' \u26a0\ufe0f':'')+'</span>':'') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0">' +
+        '<button onclick="editTodo('+t.id+')" style="color:var(--muted);font-size:12px;border:none;background:none;cursor:pointer;padding:2px 4px" title="Bearbeiten">&#9998;</button>' +
+        '<button onclick="deleteTodo('+t.id+')" style="color:var(--muted);font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;line-height:1">&#215;</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openTodoModal(id) {
+  var sel = document.getElementById('todo-owner');
+  if(sel) {
+    var all = players.slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+    sel.innerHTML = '<option value="">\u2013 Niemand \u2013</option>' + all.map(function(p){
+      return '<option value="'+p.id+'">'+p.name+(p.isStaff?' (Staff)':'')+'</option>';
+    }).join('');
+  }
+  var titleEl = document.getElementById('todo-modal-title');
+  var editId = document.getElementById('todo-edit-id');
+  if(id) {
+    var t = todos.find(function(x){return x.id===id;});
+    if(!t) return;
+    if(titleEl) titleEl.textContent = 'Aufgabe bearbeiten';
+    if(editId) editId.value = id;
+    document.getElementById('todo-text').value = t.text || '';
+    document.getElementById('todo-owner').value = t.owner || '';
+    document.getElementById('todo-status').value = t.status || (t.done?'erledigt':'offen');
+    document.getElementById('todo-due').value = t.due || '';
+    document.getElementById('todo-prio').checked = !!t.prio;
+  } else {
+    if(titleEl) titleEl.textContent = 'Neue Aufgabe';
+    if(editId) editId.value = '';
+    document.getElementById('todo-text').value = '';
+    document.getElementById('todo-owner').value = '';
+    document.getElementById('todo-status').value = 'offen';
+    document.getElementById('todo-due').value = '';
+    document.getElementById('todo-prio').checked = false;
+  }
+  openModal('todo');
+}
+
+function editTodo(id) { openTodoModal(id); }
+
+function saveTodoModal() {
+  var text = document.getElementById('todo-text').value.trim();
+  if(!text) return;
+  var editId = document.getElementById('todo-edit-id').value;
+  var owner = document.getElementById('todo-owner').value;
+  var status = document.getElementById('todo-status').value;
+  var due = document.getElementById('todo-due').value;
+  var prio = document.getElementById('todo-prio').checked;
+  if(editId) {
+    var t = todos.find(function(x){return x.id==editId;});
+    if(t) { t.text=text; t.owner=owner||null; t.status=status; t.due=due||null; t.prio=prio; t.done=(status==='erledigt'); }
+  } else {
+    todos.push({id:nextTid++, text:text, owner:owner||null, status:status, due:due||null, prio:prio, done:(status==='erledigt')});
+  }
+  saveData();
+  renderTodos();
+  closeModal('todo');
+}
+
+function toggleTodo(id) {
+  var t = todos.find(function(x){return x.id===id;});
+  if(t) { t.done = !t.done; t.status = t.done?'erledigt':'offen'; saveData(); renderTodos(); }
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(function(x){return x.id!==id;});
+  saveData(); renderTodos();
+}
+
+function todoKeydown(ev) {
+  if(ev.key === 'Enter') saveTodoModal();
+}
+
 function renderStatistik() {
   var topEl=document.getElementById('stat-top');
   if(topEl) {
@@ -5997,7 +6309,13 @@ startAutoRefresh();
 
 
 
+
+
+
 </script>
+
+
+
 
 
 
