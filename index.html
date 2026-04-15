@@ -297,8 +297,8 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <div id="dash-last-sync" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:0.7rem;background:var(--surface);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted)"><span id="dash-sync-dot" style="width:7px;height:7px;border-radius:50%;background:#d1d5db;flex-shrink:0"></span><span id="dash-sync-text">Verbinde mit Cloud...</span><span style="margin-left:auto;cursor:pointer;color:var(--muted)" onclick="loadFromSupabase()" title="Jetzt aktualisieren">&#8635;</span></div>
       <div class="stat-row" id="dash-stats"></div>
       <div class="grid32">
-        <div class="card"><div class="card-header"><span class="card-title">Anwesenheitsübersicht</span></div>
-          <table class="tbl"><thead><tr><th>Spieler</th><th id="dh1" class="c"></th><th id="dh2" class="c"></th><th id="dh3" class="c"></th><th>Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'dashboard_quote')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1">i</span></th></tr></thead><tbody id="dash-att"></tbody></table>
+        <div class="card"><div class="card-header"><span class="card-title">Anwesenheitsübersicht</span><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace" id="dash-quote-label"></span></div>
+          <table class="tbl"><thead><tr><th>Spieler</th><th id="dh1" class="c"></th><th id="dh2" class="c"></th><th id="dh3" class="c"></th><th>Quote</th></tr></thead><tbody id="dash-att"></tbody></table>
         </div>
         <div style="display:flex;flex-direction:column;gap:1.1rem">
           <div class="card"><div class="card-header"><span class="card-title">Nächste Einheiten</span></div><div id="dash-upcoming"></div></div>
@@ -438,7 +438,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
               <th style="text-align:right;cursor:pointer">Anw.</th>
               <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'training_total')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
+              <th style="cursor:pointer">Quote </th>
             </tr></thead><tbody id="stat-train-tbody"></tbody></table></div>
         </div>
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Spiele</span></div>
@@ -448,7 +448,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
               <th style="text-align:right;cursor:pointer">Anw.</th>
               <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote <span onclick="event.stopPropagation();showQuoteTooltip(this,'spiel_total')" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e5e7eb;color:#555;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px">i</span></th>
+              <th style="cursor:pointer">Quote </th>
             </tr></thead><tbody id="stat-spiel-tbody"></tbody></table></div>
         </div>
       </div>
@@ -4732,6 +4732,8 @@ function showPage(id) {
 // RENDER ALL
 // ═══════════════════════════════════════════════
 function renderAll() {
+  // Always close open tooltips – buttons get re-created on every render
+  closeTooltip();
   renderDashboard();
   renderTraining();
   renderKader();
@@ -4776,7 +4778,7 @@ function renderDashboard() {
   // ── Stats row (avg = training only)
   var el=document.getElementById('dash-stats');
   if(el) el.innerHTML=
-    '<div class="stat-card acc"><div class="stat-label">Ø Training-Anwesenheit <span data-ctx="dashboard_quote" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></div><div class="stat-value" style="color:'+(a!=null?(a>=75?'var(--green)':a>=50?'var(--amber)':'var(--red)'):'var(--muted)')+'">'+( a!=null?a+'%':'—')+'</div><div class="stat-sub">'+curRunde.replace('vorrunde','Vorrunde').replace('rueckrunde','Rückrunde')+'</div></div>'+
+    '<div class="stat-card acc"><div class="stat-label">Ø Training-Anwesenheit </div><div class="stat-value" style="color:'+(a!=null?(a>=75?'var(--green)':a>=50?'var(--amber)':'var(--red)'):'var(--muted)')+'">'+( a!=null?a+'%':'—')+'</div><div class="stat-sub">'+curRunde.replace('vorrunde','Vorrunde').replace('rueckrunde','Rückrunde')+'</div></div>'+
     '<div class="stat-card"><div class="stat-label">Spieler</div><div class="stat-value">'+pl.length+'</div><div class="stat-sub">im Kader</div></div>'+
     '<div class="stat-card"><div class="stat-label">Trainings</div><div class="stat-value">'+trainPast.length+'</div><div class="stat-sub">absolviert</div></div>'+
     '<div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">'+spielPast.length+'</div><div class="stat-sub">absolviert</div></div>'+
@@ -4813,6 +4815,8 @@ function renderDashboard() {
   });;
 
   // ── Attendance dots table
+  var qlEl = document.getElementById('dash-quote-label');
+  if(qlEl) qlEl.textContent = 'Training ' + (curRunde==='vorrunde'?'Vorrunde':'Rückrunde');
   var tbody=document.getElementById('dash-att');
   // Sort: present in last event first, then by quote desc
   var lastEv = dash3[0];
@@ -4931,10 +4935,10 @@ function buildAttZones(eid, type, showRunden) {
 
     var curRundeLabel = currentRunde()==='vorrunde'?'VR%':'RR%';
     var theadCols=showRunden
-      ? '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,true)">VR% <span data-ctx="training_vr" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'+
-        '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',4,true)">RR% <span data-ctx="training_rr" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'+
-        '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',5,true)">Total% <span data-ctx="training_total" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'
-      : '<th style="cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,false)">'+curRundeLabel+' <span data-ctx="training_cur" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>';
+      ? '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,true)">VR% </th>'+
+        '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',4,true)">RR% </th>'+
+        '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',5,true)">Total% </th>'
+      : '<th style="cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,false)">'+curRundeLabel+' </th>';
 
     var colsCols = showRunden
       ? '<col style="width:220px"><col style="width:52px"><col style="width:180px"><col style="width:68px"><col style="width:68px"><col style="width:100px">'
@@ -5306,7 +5310,7 @@ function renderUebersicht() {
     html+='<th style="min-width:38px;width:38px;background:'+bg+';writing-mode:vertical-rl;transform:rotate(180deg);height:80px;padding:4px 3px;font-size:9px;font-weight:500;border-bottom:2px solid var(--border);text-align:center;cursor:default;white-space:nowrap'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+fmtDate(e.date)+' — '+e.name+'">'+
       fmtShort(e.date)+'<br>'+(e.type==='spiel'?'S':'T')+'</th>';
   });
-  html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%<span onclick="event.stopPropagation();showQuoteTooltip(this,\'langzeit\')" style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#e5e7eb;color:#555;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:2px">i</span></th></tr>';
+  html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%</th></tr>';
   html += '</thead><tbody>';
 
   ZONES_ALL.forEach(function(zone){
@@ -5386,7 +5390,7 @@ function quickToggleAtt(eid,pid) {
   var cur=attendance[eid][pid]||{present:false,reason:null};
   attendance[eid][pid]={present:!cur.present,reason:cur.reason};
   saveData(); showSaveToast();
-  renderUebersicht(); renderDashboard(); renderTrainingContent(); renderKaderContent();
+  renderUebersichtKeepScroll(); renderDashboard(); renderTrainingContent(); renderKaderContent();
 }
 
 function setReasonUebersicht(eid,pid,rid) {
@@ -5394,13 +5398,31 @@ function setReasonUebersicht(eid,pid,rid) {
   if(!attendance[eid][pid]) attendance[eid][pid]={present:false,reason:null};
   attendance[eid][pid].reason=rid?parseInt(rid):null;
   saveData(); showSaveToast();
-  renderUebersicht(); renderTrainingContent(); renderKaderContent();
+  renderUebersichtKeepScroll(); renderTrainingContent(); renderKaderContent();
 }
 
 function clearReasonUebersicht(eid,pid) {
   if(attendance[eid]&&attendance[eid][pid]) attendance[eid][pid].reason=null;
   saveData(); showSaveToast();
-  renderUebersicht(); renderTrainingContent(); renderKaderContent();
+  renderUebersichtKeepScroll(); renderTrainingContent(); renderKaderContent();
+}
+
+function renderUebersichtKeepScroll() {
+  // Preserve horizontal scroll of table and vertical scroll of page
+  var outer = document.getElementById('uebersicht-content');
+  var scrollEl = outer ? outer.querySelector('div[style*="overflow-x"]') : null;
+  var scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
+  var contentEl = document.querySelector('.content');
+  var scrollTop = contentEl ? contentEl.scrollTop : 0;
+  renderUebersicht();
+  // Restore scroll positions after render
+  requestAnimationFrame(function() {
+    var outer2 = document.getElementById('uebersicht-content');
+    var scrollEl2 = outer2 ? outer2.querySelector('div[style*="overflow-x"]') : null;
+    if(scrollEl2) scrollEl2.scrollLeft = scrollLeft;
+    var contentEl2 = document.querySelector('.content');
+    if(contentEl2) contentEl2.scrollTop = scrollTop;
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -5436,6 +5458,8 @@ function filterEvents(f) {
 function renderPlayers() {
   var el = document.getElementById('players-zones');
   if(!el) return;
+  // Close any open tooltip – buttons get re-created on render
+  closeTooltip();
 
   // ── Kader-Übersicht ─────────────────────────────
   var pl       = players.filter(function(p){ return !p.isStaff; });
@@ -5457,15 +5481,24 @@ function renderPlayers() {
     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:0.6rem">Kadergrösse</div>'+
     '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">'+
       kpiBox('Total', pl.length, 'Feldspieler', null)+
-      kpiBox('Torwart', torwart.length, torwart.map(function(p){return p.name.split(' ')[0];}).join(', ')||'—', '#f59e0b')+
+      kpiBox('Torwart', torwart.length, torwart.length+' Spieler', '#f59e0b')+
       kpiBox('Abwehr', abwehr.length, abwehr.length+' Spieler', '#1a1a1a')+
       kpiBox('Mittelfeld', mittel.length, mittel.length+' Spieler', '#555')+
       kpiBox('Angriff', angriff.length, angriff.length+' Spieler', '#6b6b67')+
-      kpiBox('Staff', staff.length, staff.map(function(p){return p.name.split(' ')[0];}).join(', ')||'—', '#7c3aed')+
+      kpiBox('Staff', staff.length, staff.length+' Personen', '#7c3aed')+
     '</div>'+
   '</div>';
 
-  el.innerHTML = summary + ZONES_ALL.map(function(zone){
+  var curR = currentRunde();
+  var curRLabel = curR === 'vorrunde' ? 'Vorrunde' : 'Rückrunde';
+  var pastTCount = pastEvtsFiltered('training', curR).length;
+
+  var quoteInfo = '<div style="margin:0 0 0.75rem 0;padding:8px 12px;background:#f8f8f8;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px">'+
+    '<span style="font-size:14px">ℹ️</span>'+
+    '<span><strong>Quote</strong> = Trainingsanwesenheit '+curRLabel+' ('+pastTCount+' Trainings). Spiele nicht eingerechnet.</span>'+
+  '</div>';
+
+  el.innerHTML = summary + quoteInfo + ZONES_ALL.map(function(zone){
     var zp = players.filter(function(p){return p.zone===zone;});
     if(!zp.length) return '';
     var isStaffZone = zone==='Staff';
@@ -5487,7 +5520,7 @@ function renderPlayers() {
       '<th>'+(isStaffZone?'Rolle':'Positionen')+'</th>'+
       '<th style="text-align:right;cursor:pointer" onclick="sortKaderZone(this,3,true)">'+(isStaffZone?'Einh.':'Min.')+'</th>'+
       '<th style="cursor:pointer" onclick="sortKaderZone(this,4,false)">'+
-        'Quote <span data-ctx="training_kader" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'+
+        'Quote </th>'+
       '<th></th>'+
     '</tr></thead>';
 
@@ -5522,73 +5555,12 @@ function renderPlayers() {
 }
 
 
-var _tooltipCloseHandler = null;
+// Tooltip removed – quotes explained via static info boxes
+function showQuoteTooltip(btn, ctx) {}
+function closeTooltip() {}
+function showKaderQuoteInfo(btn, isStaff) {}
 
-function showQuoteTooltip(btn, ctx) {
-  var existing = document.getElementById('quote-tooltip-pop');
-  if(existing) {
-    var wasBtn = existing._srcBtn;
-    existing.remove();
-    if(_tooltipCloseHandler) { document.removeEventListener('click', _tooltipCloseHandler); _tooltipCloseHandler = null; }
-    if(wasBtn === btn) return;
-  }
-  var pastT=pastEvts('training'), pastS=pastEvts('spiel');
-  var vrT=pastEvtsFiltered('training','vorrunde'), rrT=pastEvtsFiltered('training','rueckrunde');
-  var vrS=pastEvtsFiltered('spiel','vorrunde'),    rrS=pastEvtsFiltered('spiel','rueckrunde');
-  var curR = currentRunde ? currentRunde() : null;
-  var curT = curR==='vorrunde' ? vrT : curR==='rueckrunde' ? rrT : pastT;
-  var curTLabel = curR==='vorrunde' ? 'Trainings in Vorrunde' : curR==='rueckrunde' ? 'Trainings in R\u00fcckrunde' : 'Trainings absolviert';
-  var curRLabel = curR==='vorrunde' ? 'Vorrunde' : 'R\u00fcckrunde';
-  var infos={
-    'training_total':    {title:'Trainingsquote \u2014 Total',              desc:'Anwesenheit bei allen Trainings der gesamten Saison.',                                    basis:pastT.length+' Trainings (gesamt)',              note:'Spiele nicht eingerechnet.'},
-    'training_vr':       {title:'Trainingsquote \u2014 Vorrunde',           desc:'Anwesenheit bei Trainings, Vorrunde (Jul\u2013Nov 2025).',                                basis:vrT.length+' Trainings in Vorrunde',             note:'Nur Vorrunden-Trainings.'},
-    'training_rr':       {title:'Trainingsquote \u2014 R\u00fcckrunde',     desc:'Anwesenheit bei Trainings, R\u00fcckrunde (Feb\u2013Jun 2026).',                          basis:rrT.length+' Trainings in R\u00fcckrunde',       note:'Nur R\u00fcckrunden-Trainings.'},
-    'training_cur':      {title:'Trainingsquote \u2014 '+curRLabel,         desc:'Anwesenheit bei Trainings in der aktuellen Periode ('+curRLabel+'). Spiele ausgeschlossen.',basis:curT.length+' Trainings in '+curRLabel,         note:'Wechselt automatisch je nach aktuellem Datum.'},
-    'spiel_total':       {title:'Spielquote \u2014 Total',                   desc:'Anwesenheit bei allen Spielen der Saison.',                                               basis:pastS.length+' Spiele absolviert',               note:'Trainings nicht eingerechnet.'},
-    'spiel_vr':          {title:'Spielquote \u2014 Vorrunde',                desc:'Anwesenheit bei Spielen, Vorrunde.',                                                      basis:vrS.length+' Spiele in Vorrunde',                note:'Nur Vorrunden-Spiele.'},
-    'spiel_rr':          {title:'Spielquote \u2014 R\u00fcckrunde',         desc:'Anwesenheit bei Spielen, R\u00fcckrunde.',                                                basis:rrS.length+' Spiele in R\u00fcckrunde',          note:'Nur R\u00fcckrunden-Spiele.'},
-    'training_kader':    {title:'Trainingsquote (Kader)',                    desc:'Anwesenheit bei allen Trainingseinheiten der gesamten Saison (Vor- und R\u00fcckrunde).',basis:pastT.length+' Trainings absolviert (gesamt)',   note:'Zuk\u00fcnftige Einheiten nicht eingerechnet.'},
-    'stat_avg':          {title:'\u00d8 Anwesenheit',                        desc:'Durchschnitt der Trainingsquoten aller Feldspieler (ohne Staff).',                       basis:curT.length+' '+curTLabel,                       note:'Perioden-Filter wirkt auf alle Quoten.'},
-    'dashboard_quote':   {title:'Trainingsquote (aktuelle Periode)',         desc:'Anwesenheit bei Trainings in der aktuellen Periode.',                                    basis:curT.length+' '+curTLabel,                       note:'Wechselt automatisch je nach Datum.'},
-    'langzeit':          {title:'Anwesenheitsquote \u2014 Langzeit',        desc:'Anwesenheit bei allen vergangenen Einheiten im gew\u00e4hlten Zeitraum.',               basis:(pastT.length+pastS.length)+' Einheiten absolviert',note:'Zuk\u00fcnftige Einheiten nicht eingerechnet.'}
-  };
-  var info = infos[ctx] || {title:'Quote', desc:'Anwesenheitsquote.', basis:'', note:''};
-  var tip = document.createElement('div');
-  tip.id = 'quote-tooltip-pop';
-  tip._srcBtn = btn;
-  tip.style.cssText = 'position:fixed;z-index:9999;background:#1a1a1a;color:#fff;'+
-    'padding:14px 16px;border-radius:10px;font-size:12px;max-width:300px;'+
-    'box-shadow:0 8px 32px rgba(0,0,0,0.4);line-height:1.6;pointer-events:auto';
-  tip.innerHTML =
-    '<div style="font-weight:700;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px">'+
-    '<span style="background:#374151;color:#fff;width:16px;height:16px;border-radius:50%;'+
-    'display:inline-flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0">i</span>'+
-    info.title+'</div>'+
-    '<div style="color:rgba(255,255,255,0.82);margin-bottom:8px">'+info.desc+'</div>'+
-    (info.basis?'<div style="background:rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;margin-bottom:6px">'+
-      '<div style="font-size:10px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:2px">Basis</div>'+
-      '<div style="color:rgba(255,255,255,0.85)">'+info.basis+'</div></div>':'')+
-    (info.note?'<div style="color:rgba(255,255,255,0.45);font-size:11px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;margin-top:4px">'+info.note+'</div>':'')+
-    '<div style="color:rgba(255,255,255,0.25);font-size:10px;margin-top:6px">Nochmals klicken zum Schliessen</div>';
-  var rect = btn.getBoundingClientRect();
-  var left = Math.min(rect.left, window.innerWidth - 310);
-  var top  = rect.bottom + 8;
-  if(top + 240 > window.innerHeight) top = rect.top - 250;
-  tip.style.left = Math.max(8, left) + 'px';
-  tip.style.top  = top + 'px';
-  document.body.appendChild(tip);
-  _tooltipCloseHandler = function(ev) {
-    var t2 = document.getElementById('quote-tooltip-pop');
-    if(t2 && !t2.contains(ev.target)) {
-      t2.remove();
-      document.removeEventListener('click', _tooltipCloseHandler);
-      _tooltipCloseHandler = null;
-    }
-  };
-  setTimeout(function() { document.addEventListener('click', _tooltipCloseHandler); }, 80);
-}
 
-function showKaderQuoteInfo(btn, isStaff) { showQuoteTooltip(btn, 'training_kader'); }
 
 
 function renderStatContent() {
@@ -5600,7 +5572,7 @@ function renderStatContent() {
   var avg=cnt?Math.round(sumPct/cnt):null;
   var kEl=document.getElementById('stat-kpis');
   if(kEl) kEl.innerHTML=
-    '<div class="stat-card acc"><div class="stat-label">Ø Anwesenheit <span data-ctx="stat_avg" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></div><div class="stat-value" style="color:'+(avg!=null?(avg>=75?'var(--green)':avg>=50?'var(--amber)':'var(--red)'):'var(--muted)')+'">'+( avg!=null?avg+'%':'—')+'</div><div class="stat-sub">'+(runde||'Gesamt')+'</div></div>'+
+    '<div class="stat-card acc"><div class="stat-label">Ø Anwesenheit </div><div class="stat-value" style="color:'+(avg!=null?(avg>=75?'var(--green)':avg>=50?'var(--amber)':'var(--red)'):'var(--muted)')+'">'+( avg!=null?avg+'%':'—')+'</div><div class="stat-sub">'+(runde||'Gesamt')+'</div></div>'+
     '<div class="stat-card"><div class="stat-label">Spieler</div><div class="stat-value">'+pl.length+'</div><div class="stat-sub">im Kader</div></div>'+
     '<div class="stat-card"><div class="stat-label">Trainings</div><div class="stat-value">'+pt.length+'</div><div class="stat-sub">absolviert</div></div>'+
     '<div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">'+ps.length+'</div><div class="stat-sub">absolviert</div></div>'+
