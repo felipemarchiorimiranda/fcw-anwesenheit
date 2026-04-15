@@ -6531,8 +6531,9 @@ var _autoRefreshTimer  = null;
 function startAutoRefresh() {
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   // Refresh from Supabase every 30 seconds silently
+  // BUT only if no local sync is pending (don't overwrite unsaved local changes)
   _autoRefreshTimer = setInterval(function() {
-    if(SUPABASE_URL && SUPABASE_KEY) loadFromSupabase(true);
+    if(SUPABASE_URL && SUPABASE_KEY && !_syncTimer) loadFromSupabase(true);
   }, 30000);
 }
 
@@ -6551,6 +6552,8 @@ function testConnection() { supabaseInit(); }
 
 function saveDataLocal() {
   try {
+    var now = Date.now();
+    _lastModifiedLocal = now;
     localStorage.setItem('fcw_v6', JSON.stringify({
       players:players, events:events, attendance:attendance,
       seasons:seasons, settings:settings, absenceReasons:absenceReasons,
