@@ -5341,7 +5341,7 @@ function renderUebersicht() {
         } else {
           var reason=entry.reason?absenceReasons.find(function(x){return x.id==entry.reason;}):null;
           cell=reasonKuerzel(entry.reason);
-          bg=reason?reason.color+'33':'#fee2e2';
+          bg='#fee2e2';
           title=reason?reason.label:'Abwesend';
         }
         var dropId='dr-'+e.id+'-'+p.id;
