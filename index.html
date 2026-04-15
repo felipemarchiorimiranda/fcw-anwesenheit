@@ -551,6 +551,15 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <div id="max-reasons-warn" style="display:none;font-size:11px;color:var(--red);margin-top:6px">Maximal 9 Gründe.</div>
             </div>
           </div>
+          <div class="card"><div class="card-header"><span class="card-title">Positionen</span></div>
+            <div style="padding:1.1rem">
+              <div id="positions-list"></div>
+              <div style="margin-top:0.75rem;display:flex;gap:8px">
+                <input type="text" id="new-position-input" class="inp" placeholder="Neue Position..." style="flex:1">
+                <button class="btn pri" onclick="addPosition()">+</button>
+              </div>
+            </div>
+          </div>
           <div class="card"><div class="card-header" style="flex-wrap:wrap;gap:6px"><span class="card-title">Cloud Sync</span><span id="sync-status" style="font-size:11px;margin-left:auto;font-weight:500">verbinde...</span></div><div style="padding:1.1rem"><div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border-radius:8px;margin-bottom:10px;font-size:12px"><div style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0" id="sync-dot"></div><span style="color:var(--muted)">Supabase · Frankfurt · automatisch verbunden</span></div><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Daten werden automatisch nach 3 Sekunden gespeichert. Alle Staff-Mitglieder sehen änderungen in Echtzeit.</p><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="syncToSupabase()">↑ Jetzt hochladen</button><button class="btn" style="flex:1" onclick="loadFromSupabase()">↓ Jetzt laden</button></div></div></div>
           
           <div class="card"><div class="card-header"><span class="card-title">Daten</span></div>
@@ -4195,6 +4204,18 @@ var absenceReasons = [
   {id:4, label:'Privat',       color:'#888888', kuerzel:'P'},
   {id:5, label:'Unbekannt',    color:'#cccccc', kuerzel:'U'}
 ];
+var positions = [
+  'Torwart',
+  'Innenverteidiger',
+  'Aussenverteidiger Links',
+  'Aussenverteidiger Rechts',
+  'Mittelfeld',
+  'Linkes Mittelfeld',
+  'Rechtes Mittelfeld',
+  'Linker Flügel',
+  'Rechter Flügel',
+  'Stürmer'
+];
 var currentPage = 'dashboard';
 var eventsFilter = 'all';
 var addModalTab = 'event';
@@ -5962,6 +5983,7 @@ function renderSettings() {
   var pv=document.getElementById('prev-verein');if(pv&&settings.vereinLogo) pv.src=settings.vereinLogo;
   var pt=document.getElementById('prev-team');if(pt&&settings.teamLogo) pt.src=settings.teamLogo;
   renderReasonsList();
+  renderPositionsList();
 }
 function renderReasonsList() {
   var el=document.getElementById('absence-reasons-list');
@@ -6108,6 +6130,35 @@ function addReason() {
   saveData();renderReasonsList();renderAll();
 }
 function removeReason(id) {absenceReasons=absenceReasons.filter(function(r){return r.id!==id;});saveData();renderReasonsList();renderAll();}
+
+function renderPositionsList() {
+  var el = document.getElementById('positions-list');
+  if(!el) return;
+  el.innerHTML = positions.map(function(pos, i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'+
+      '<span style="flex:1;font-size:13px">'+pos+'</span>'+
+      '<button class="btn danger" onclick="removePosition('+i+')">×</button>'+
+    '</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--muted);padding:4px 0">Keine Positionen definiert.</div>';
+}
+
+function addPosition() {
+  var inp = document.getElementById('new-position-input');
+  if(!inp || !inp.value.trim()) return;
+  var val = inp.value.trim();
+  if(positions.indexOf(val) === -1) {
+    positions.push(val);
+    saveData();
+    renderPositionsList();
+  }
+  inp.value = '';
+}
+
+function removePosition(idx) {
+  positions.splice(idx, 1);
+  saveData();
+  renderPositionsList();
+}
 function saveSettings() {
   var sc=document.getElementById('set-club').value.trim();if(sc) settings.clubName=sc;
   var st=document.getElementById('set-team').value.trim();if(st) settings.teamName=st;
@@ -6397,7 +6448,7 @@ function syncToSupabase() {
       players: players, events: events, attendance: attendance,
       seasons: seasons, settings: settings, absenceReasons: absenceReasons,
       nextEid: nextEid, nextPid: nextPid, nextSid: nextSid, nextRid: nextRid,
-      todos: todos, nextTid: nextTid,
+      todos: todos, nextTid: nextTid, positions: positions,
       lastModified: new Date().toISOString(),
       lastModifiedBy: settings.userName || settings.clubName || ''
     })
@@ -6451,6 +6502,7 @@ function loadFromSupabase(silent) {
       if(d.settings)       Object.assign(settings, d.settings);
       if(d.absenceReasons) absenceReasons = d.absenceReasons;
       if(d.todos) todos = d.todos;
+      if(d.positions && d.positions.length) positions = d.positions;
     if(d.nextTid) nextTid = d.nextTid;
     if(d.nextEid) nextEid = d.nextEid;
       if(d.nextPid) nextPid = d.nextPid;
@@ -6531,7 +6583,7 @@ function saveDataLocal() {
       players:players, events:events, attendance:attendance,
       seasons:seasons, settings:settings, absenceReasons:absenceReasons,
       nextEid:nextEid, nextPid:nextPid, nextSid:nextSid, nextRid:nextRid,
-      todos:todos, nextTid:nextTid
+      todos:todos, nextTid:nextTid, positions:positions
     }));
   } catch(err) { console.error('Save error', err); }
   triggerAutoSync();
@@ -6557,6 +6609,7 @@ function loadData() {
       absenceReasons.forEach(function(r){ if(!r.kuerzel) r.kuerzel = r.label.charAt(0).toUpperCase(); });
     }
     if(d.todos) todos = d.todos;
+    if(d.positions && d.positions.length) positions = d.positions;
     if(d.nextTid) nextTid = d.nextTid;
     if(d.nextEid) nextEid = d.nextEid;
     if(d.nextPid) nextPid = d.nextPid;
@@ -6637,8 +6690,17 @@ function openEditPlayer(id) {
   document.getElementById('ep-name').value=p.name||'';
   document.getElementById('ep-nr').value=p.nr||'';
   document.getElementById('ep-zone').value=p.zone||'Mittelfeld';
-  document.getElementById('ep-pos1').value=p.pos1||'';
-  document.getElementById('ep-pos2').value=p.pos2||'';
+
+  // Populate position dropdowns from positions array
+  var posOpts = '<option value="">— Keine —</option>' +
+    positions.map(function(pos){ return '<option value="'+pos+'">'+pos+'</option>'; }).join('');
+  var sel1 = document.getElementById('ep-pos1');
+  var sel2 = document.getElementById('ep-pos2');
+  sel1.innerHTML = posOpts;
+  sel2.innerHTML = posOpts;
+  sel1.value = p.pos1||'';
+  sel2.value = p.pos2||'';
+
   modal.classList.add('open');
 }
 
@@ -6648,8 +6710,8 @@ function saveEditPlayer() {
   p.name=document.getElementById('ep-name').value.trim()||p.name;
   p.nr=document.getElementById('ep-nr').value.trim()||p.nr;
   p.zone=document.getElementById('ep-zone').value;
-  p.pos1=document.getElementById('ep-pos1').value.trim();
-  p.pos2=document.getElementById('ep-pos2').value.trim();
+  p.pos1=document.getElementById('ep-pos1').value;
+  p.pos2=document.getElementById('ep-pos2').value;
   saveData(); closeModal('edit-player'); renderAll();
 }
 
@@ -7116,8 +7178,16 @@ startAutoRefresh();
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="field"><label>Position 1</label><input class="inp" id="ep-pos1" style="width:100%"></div>
-        <div class="field"><label>Position 2 (opt.)</label><input class="inp" id="ep-pos2" style="width:100%"></div>
+        <div class="field"><label>Position 1</label>
+          <select class="inp" id="ep-pos1" style="width:100%">
+            <option value="">— Keine —</option>
+          </select>
+        </div>
+        <div class="field"><label>Position 2 (opt.)</label>
+          <select class="inp" id="ep-pos2" style="width:100%">
+            <option value="">— Keine —</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
