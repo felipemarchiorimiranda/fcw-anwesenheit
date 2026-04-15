@@ -5331,11 +5331,9 @@ function renderUebersicht() {
         if(isPast||isToday) totalPast++;
         var cell,bg,title='';
         if(!entry && !isPast && !isToday) {
-          if(!attendance[e.id]) attendance[e.id]={};
-          attendance[e.id][p.id]={present:true,reason:null};
-          entry=attendance[e.id][p.id];
-        }
-        if(!entry){
+          // Future with no entry: show as present (visual only, don't write to attendance)
+          cell='✓'; bg='#dcfce7';
+        } else if(!entry){
           cell=isPast||isToday?'—':'?';
           bg=isPast?'#f5f5f5':(isToday?'#fffbeb':'#fefce8');
         } else if(entry.present){
@@ -6433,6 +6431,7 @@ function syncToSupabase() {
     body: JSON.stringify(payload)
   })
   .then(function(r) {
+    _syncTimer = null;
     if(r.ok || r.status === 201) {
       _syncOk = true;
       var t = new Date().toLocaleTimeString('de-CH', {hour:'2-digit',minute:'2-digit'});
@@ -6445,6 +6444,7 @@ function syncToSupabase() {
     }
   })
   .catch(function() {
+    _syncTimer = null;
     showSyncStatus('\u26a0 Offline \u2013 lokal gespeichert', 'var(--muted)');
   });
 }
