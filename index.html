@@ -9,6 +9,9 @@
   <meta name="application-name" content="FCW Anwesenheit">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
   <meta name="theme-color" content="#111111">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anwesenheitsverwaltung FC Wiesendangen</title>
@@ -280,6 +283,9 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
   <div class="topbar">
     <div class="topbar-title" id="page-title">Dashboard</div><span id="sync-status-top" style="font-size:11px;color:rgba(255,255,255,0.5);margin-left:12px;display:none"></span>
     <div class="topbar-actions"><span id="sync-status-bar" style="font-size:11px;color:var(--muted)"></span>
+      <button class="btn" onclick="loadFromSupabase()" title="Daten neu laden" style="padding:6px 10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M4 9a9 9 0 0 1 15-3.4L20 9"/><path d="M20 15a9 9 0 0 1-15 3.4L4 15"/></svg>
+      </button>
       <button class="btn" onclick="openModal('add')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Hinzufügen
