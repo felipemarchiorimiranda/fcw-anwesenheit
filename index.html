@@ -5019,15 +5019,14 @@ function onTrainSelChange() {
 }
 
 function autoSetPresent(eid) {
+  // Only set present:true for players with NO entry at all (undefined)
+  // Never call saveData() here – this is called during render
   if(!attendance[eid]) attendance[eid] = {};
-  var changed = false;
   players.forEach(function(p){
     if(attendance[eid][p.id] === undefined) {
       attendance[eid][p.id] = {present: true, reason: null};
-      changed = true;
     }
   });
-  if(changed) saveData();
 }
 
 function renderTraining() {
