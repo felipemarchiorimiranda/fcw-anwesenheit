@@ -250,6 +250,14 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       </div>
     </div>
 
+    <!-- Nächste/Aktuelle Einheit – Aufgebot -->
+    <div>
+      <div class="mob-section-title" id="mob-nextevt-title">Nächste Einheit — Aufgebot</div>
+      <div class="mob-upcoming" id="mob-nextevt-list">
+        <div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Lädt...</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -305,28 +313,38 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       </div>
     </div>
     <div class="page" id="pg-training">
-      <div class="card"><div class="card-header">
-          <span class="card-title">Training — Anwesenheit</span>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div class="type-tabs" style="margin:0">
-              <button class="type-tab active" id="tv-past" onclick="setTrainView('past')">Vergangen</button>
-              <button class="type-tab" id="tv-future" onclick="setTrainView('future')">Zukünftig</button>
-            </div>
-            <select class="inp" id="train-sel" onchange="onTrainSelChange()" style="min-width:220px"></select>
-          </div>
-        </div><div id="train-content"></div></div>
+      <!-- Nächste Einheit (immer sichtbar) -->
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="card-header">
+          <span class="card-title" id="train-next-title">Nächste Einheit</span>
+        </div>
+        <div id="train-next-content"></div>
+      </div>
+      <!-- Vergangene Trainings -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Vergangene Trainings</span>
+          <select class="inp" id="train-sel" onchange="onTrainSelChange()" style="min-width:220px"></select>
+        </div>
+        <div id="train-content"></div>
+      </div>
     </div>
     <div class="page" id="pg-kader">
-      <div class="card"><div class="card-header">
-          <span class="card-title">Spiele — Aufstellung</span>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div class="type-tabs" style="margin:0">
-              <button class="type-tab active" id="sv-past" onclick="setSpielView('past')">Vergangen</button>
-              <button class="type-tab" id="sv-future" onclick="setSpielView('future')">Zukünftig</button>
-            </div>
-            <select class="inp" id="spiel-sel" onchange="onSpielSelChange()" style="min-width:220px"></select>
-          </div>
-        </div><div id="spiel-content"></div></div>
+      <!-- Nächstes Spiel -->
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="card-header">
+          <span class="card-title" id="spiel-next-title">Nächstes Spiel</span>
+        </div>
+        <div id="spiel-next-content"></div>
+      </div>
+      <!-- Vergangene Spiele -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Vergangene Spiele</span>
+          <select class="inp" id="spiel-sel" onchange="onSpielSelChange()" style="min-width:220px"></select>
+        </div>
+        <div id="spiel-content"></div>
+      </div>
     </div>
     <div class="page" id="pg-uebersicht">
       <div class="card">
@@ -432,6 +450,47 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <div class="grid2">
         <div class="card"><div class="card-header"><span class="card-title">Abwesenheitsgründe — Detail</span></div><div id="stat-absence-detail" style="padding:0.75rem 1.1rem"></div></div>
         <div class="card"><div class="card-header"><span class="card-title">Abwesenheitsgründe — Anteil</span></div><div style="padding:1rem 1.1rem"><canvas id="absence-canvas" width="300" height="200"></canvas></div></div>
+      </div>
+
+      <!-- KADERBERICHT -->
+      <div class="card" style="margin-top:1.1rem">
+        <div class="card-header">
+          <span class="card-title">Kaderbericht — Anwesenheit pro Training</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <div class="type-tabs" style="margin:0" id="kb-tabs">
+              <button class="type-tab active" id="kb-tab-total"      onclick="setKbRunde('total')">Total</button>
+              <button class="type-tab"        id="kb-tab-vorrunde"   onclick="setKbRunde('vorrunde')">Vorrunde</button>
+              <button class="type-tab"        id="kb-tab-rueckrunde" onclick="setKbRunde('rueckrunde')">Rückrunde</button>
+            </div>
+            <button class="btn sm" onclick="exportKaderberichtCSV()" style="white-space:nowrap">↓ CSV Export</button>
+          </div>
+        </div>
+        <div id="kb-summary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border)"></div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="kb-table">
+            <thead><tr>
+              <th>Datum</th>
+              <th>Training</th>
+              <th class="c">Anwesend</th>
+              <th class="c">Kader</th>
+              <th>Quote</th>
+            </tr></thead>
+            <tbody id="kb-tbody"></tbody>
+          </table>
+        </div>
+        <div style="padding:0.75rem 1.1rem;border-top:1px solid var(--border)">
+          <div class="card-title" style="margin-bottom:0.6rem;font-size:12px">Anwesenheit pro Spieler</div>
+          <div style="overflow-x:auto">
+            <table class="tbl" id="kb-player-table">
+              <thead><tr>
+                <th>Spieler</th><th>Zone</th>
+                <th class="r">Anw.</th><th class="r">Abs.</th><th class="r">Fehlend</th>
+                <th>Quote</th>
+              </tr></thead>
+              <tbody id="kb-player-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
     <div class="page" id="pg-saison">
@@ -4134,7 +4193,7 @@ var absenceReasons = [
 var currentPage = 'dashboard';
 var eventsFilter = 'all';
 var addModalTab = 'event';
-var trainView = 'past';
+var trainView = 'future';
 var trainSelectedEid = null;
 var spielView = 'past';
 var spielSelectedEid = null;
@@ -4396,6 +4455,8 @@ function mobSaveAttendance(present) {
   showSaveToast();
   renderTrainingContent(); renderKaderContent(); renderUebersicht(); renderDashboard();
   mobRenderUpcoming();
+  mobRenderNextEvent();
+  mobRenderNextEvent();
 
   var ev = events.find(function(e){ return e.id === eid; });
   var pl = players.find(function(p){ return p.id === pid; });
@@ -4456,11 +4517,161 @@ function mobRenderQuotes() {
   }).join('');
 }
 
+function mobRenderNextEvent() {
+  var el = document.getElementById('mob-nextevt-list');
+  var titleEl = document.getElementById('mob-nextevt-title');
+  if(!el) return;
+
+  var t = today();
+  // Find current (today) or next upcoming event
+  var next = events.filter(function(e){ return e.date >= t; })
+    .sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
+
+  if(!next) {
+    el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
+    return;
+  }
+
+  var isToday = next.date === t;
+  var isSpiel = next.type === 'spiel';
+  var parts = next.date.split('-');
+  var dateStr = parts[2]+'.'+parts[1]+'.'+parts[0];
+  var typeLabel = isSpiel ? '⚽ Spiel' : '🏃 Training';
+
+  if(titleEl) titleEl.textContent = (isToday ? 'Heutige' : 'Nächste') + ' Einheit — Aufgebot';
+
+  var pl = players.filter(function(p){ return !p.isStaff; });
+
+  // Group by status
+  var present = [], absent = [], unknown = [];
+  pl.forEach(function(p){
+    var entry = attendance[next.id] && attendance[next.id][p.id];
+    if(!entry) unknown.push(p);
+    else if(entry.present) present.push(p);
+    else absent.push(p);
+  });
+
+  // Sort each group by name
+  [present, absent, unknown].forEach(function(g){ g.sort(function(a,b){return a.name.localeCompare(b.name);}); });
+
+  var pct = pl.length ? Math.round(present.length / pl.length * 100) : 0;
+  var pctColor = pct >= 75 ? '#15803d' : pct >= 50 ? '#b45309' : '#dc2626';
+  var pctBg    = pct >= 75 ? '#dcfce7' : pct >= 50 ? '#fef9c3' : '#fee2e2';
+
+  function playerRow(p, status) {
+    var dotColor = status === 'present' ? '#22a05a' : status === 'absent' ? '#e53e3e' : '#d1d5db';
+    var textColor = status === 'absent' ? '#6b6b67' : '#111';
+    var entry = attendance[next.id] && attendance[next.id][p.id];
+    var reason = '';
+    if(status === 'absent' && entry && entry.reason) {
+      var r = absenceReasons.find(function(x){ return x.id == entry.reason; });
+      if(r) reason = '<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+r.color+';background:'+r.color+'22;padding:1px 6px;border-radius:4px;margin-left:6px">'+r.kuerzel+'</span>';
+    }
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0"></div>' +
+      '<div style="font-size:13px;color:'+textColor+';flex:1">' + p.name + reason + '</div>' +
+    '</div>';
+  }
+
+  function groupHeader(label, count, color) {
+    return '<div style="padding:6px 14px;background:#f4f4f4;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:'+color+';font-family:\'DM Mono\',monospace;border-bottom:1px solid rgba(0,0,0,0.06)">'+label+' ('+count+')</div>';
+  }
+
+  var html = '<div style="padding:10px 14px;background:#f9f9f9;border-bottom:1px solid rgba(0,0,0,0.07);display:flex;align-items:center;justify-content:space-between">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:600">'+next.name+'</div>' +
+      '<div style="font-size:11px;color:#6b6b67;margin-top:2px">'+typeLabel+' · '+dateStr+'</div>' +
+    '</div>' +
+    '<div style="font-size:15px;font-weight:700;color:'+pctColor+';background:'+pctBg+';padding:4px 10px;border-radius:8px">'+present.length+'/'+pl.length+'</div>' +
+  '</div>';
+
+  if(present.length) html += groupHeader('✓ Anwesend', present.length, '#15803d') + present.map(function(p){ return playerRow(p,'present'); }).join('');
+  if(absent.length)  html += groupHeader('✕ Abwesend', absent.length, '#dc2626')  + absent.map(function(p){ return playerRow(p,'absent'); }).join('');
+  if(unknown.length) html += groupHeader('? Unbekannt', unknown.length, '#9ca3af') + unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
+
+  el.innerHTML = html;
+}
+
+function mobRenderNextEvent() {
+  var el = document.getElementById('mob-nextevt-list');
+  var titleEl = document.getElementById('mob-nextevt-title');
+  if(!el) return;
+
+  var t = today();
+  var evt = events.filter(function(e){ return e.date >= t; })
+    .sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
+
+  if(!evt) {
+    el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
+    return;
+  }
+
+  var isToday = evt.date === t;
+  var isSpiel  = evt.type === 'spiel';
+  var parts = evt.date.split('-');
+  var dateStr = parts[2]+'.'+parts[1]+'.'+parts[0];
+  var typeLabel = isSpiel ? '⚽ Spiel' : '🏃 Training';
+  if(titleEl) titleEl.textContent = (isToday ? 'Heute' : 'Nächste Einheit') + ' — ' + typeLabel;
+
+  var pl = players.filter(function(p){ return !p.isStaff; });
+  var present = pl.filter(function(p){ return attendance[evt.id]&&attendance[evt.id][p.id]&&attendance[evt.id][p.id].present; });
+  var absent  = pl.filter(function(p){ return attendance[evt.id]&&attendance[evt.id][p.id]&&!attendance[evt.id][p.id].present; });
+  var unknown = pl.filter(function(p){ return !attendance[evt.id]||attendance[evt.id][p.id]===undefined; });
+
+  var pct = pl.length ? Math.round(present.length / pl.length * 100) : 0;
+  var pctColor = pct>=75?'#15803d':pct>=50?'#b45309':'#dc2626';
+  var pctBg    = pct>=75?'#dcfce7':pct>=50?'#fef9c3':'#fee2e2';
+
+  function playerRow(p, status) {
+    var icon = status==='present'?'✓':status==='absent'?'✕':'?';
+    var iconColor = status==='present'?'#15803d':status==='absent'?'#dc2626':'#9ca3af';
+    var iconBg    = status==='present'?'#dcfce7':status==='absent'?'#fee2e2':'#f3f4f6';
+    var reason = '';
+    if(status==='absent'&&attendance[evt.id]&&attendance[evt.id][p.id]&&attendance[evt.id][p.id].reason) {
+      var r = absenceReasons.find(function(x){ return x.id==attendance[evt.id][p.id].reason; });
+      if(r) reason = ' <span style="font-size:10px;padding:1px 6px;border-radius:99px;background:'+r.color+'22;color:'+r.color+';font-weight:600">'+r.label+'</span>';
+    }
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'+
+      '<div style="width:22px;height:22px;border-radius:50%;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:'+iconColor+';flex-shrink:0">'+icon+'</div>'+
+      '<div style="flex:1;font-size:13px;font-weight:500">'+p.name+reason+'</div>'+
+      '<div style="font-size:10px;color:#9ca3af;font-family:\'DM Mono\',monospace">'+p.zone+'</div>'+
+    '</div>';
+  }
+
+  var html =
+    '<div style="padding:12px 14px;background:#f8f8f8;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between">'+
+      '<div>'+
+        '<div style="font-size:13px;font-weight:600">'+evt.name+'</div>'+
+        '<div style="font-size:11px;color:#6b6b67;font-family:\'DM Mono\',monospace;margin-top:2px">'+dateStr+'</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+        '<div style="font-size:20px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+pctColor+'">'+pct+'%</div>'+
+        '<div style="font-size:10px;background:'+pctBg+';color:'+pctColor+';padding:1px 8px;border-radius:99px;font-weight:600">'+present.length+' / '+pl.length+'</div>'+
+      '</div>'+
+    '</div>';
+
+  if(present.length) {
+    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#15803d;font-family:\'DM Mono\',monospace">✓ Anwesend ('+present.length+')</div>';
+    html += present.map(function(p){ return playerRow(p,'present'); }).join('');
+  }
+  if(absent.length) {
+    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#dc2626;font-family:\'DM Mono\',monospace">✕ Abwesend ('+absent.length+')</div>';
+    html += absent.map(function(p){ return playerRow(p,'absent'); }).join('');
+  }
+  if(unknown.length) {
+    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-family:\'DM Mono\',monospace">? Unbekannt ('+unknown.length+')</div>';
+    html += unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
 function mobInit() {
   if(window.innerWidth > 900) return;
   mobRenderUpcoming();
   mobRenderSelects();
   mobRenderQuotes();
+  mobRenderNextEvent();
 }
 
 function buildNav() {
@@ -4669,8 +4880,9 @@ function buildAttZones(eid, type, showRunden) {
                   '<td class="c">'+pctBadge(rrr?rrr.pct:null)+'</td>'+
                   '<td class="c">'+pctBadge(rtot?rtot.pct:null)+'</td>';
       } else {
-        var rtot2=playerRate(p.id,type,null);
-        quoteCols='<td>'+barHtml(rtot2?rtot2.pct:null,55)+'</td>';
+        var curRunde = currentRunde();
+        var rcur = playerRate(p.id,'training', curRunde);
+        quoteCols='<td>'+barHtml(rcur?rcur.pct:null,55)+'</td>';
       }
       return '<tr style="background:'+rowBg+'">'+
         '<td><div class="pc">'+avHtml(p.name)+'<div>'+
@@ -4691,15 +4903,16 @@ function buildAttZones(eid, type, showRunden) {
         quoteCols+'</tr>';
     }).join('');
 
+    var curRundeLabel = currentRunde()==='vorrunde'?'VR%':'RR%';
     var theadCols=showRunden
       ? '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,true)">VR% <span data-ctx="training_vr" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'+
         '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',4,true)">RR% <span data-ctx="training_rr" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'+
         '<th class="c" style="font-size:10px;cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',5,true)">Total% <span data-ctx="training_total" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>'
-      : '<th style="cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,false)">Quote <span data-ctx="training_total" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>';
+      : '<th style="cursor:pointer" onclick="sortTbody(\'att-body-'+zone+'\',3,false)">'+curRundeLabel+' <span data-ctx="training_cur" onclick="event.stopPropagation();showQuoteTooltip(this,this.dataset.ctx)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#374151;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;flex-shrink:0;line-height:1;border:none;font-family:monospace">i</span></th>';
 
     var colsCols = showRunden
-      ? '<col style="min-width:160px;width:32%"><col style="width:52px"><col style="min-width:120px;width:25%"><col style="width:58px"><col style="width:58px"><col style="width:72px">'
-      : '<col style="min-width:160px;width:40%"><col style="width:52px"><col style="min-width:120px;width:35%"><col style="min-width:100px">';
+      ? '<col style="width:220px"><col style="width:52px"><col style="width:180px"><col style="width:68px"><col style="width:68px"><col style="width:100px">'
+      : '<col style="width:220px"><col style="width:52px"><col style="width:200px"><col style="min-width:120px;width:160px">';
     html+='<div class="zone-hdr">'+zoneBadge(zone)+
       '<span style="font-size:11px;color:var(--muted);font-family:monospace">'+presCount+'/'+zp.length+' anwesend</span></div>'+
       '<div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%;min-width:460px">'+
@@ -4726,7 +4939,9 @@ function buildFutureZones(eid, type) {
       '<span style="color:var(--red)">✕ '+decl.length+'</span> '+
       '<span style="color:#888">? '+unk.length+'</span> / '+zp.length+'</span></div>';
     var sorted=[].concat(conf,unk,decl);
-    zonesHtml+='<table class="tbl"><thead><tr><th>Spieler</th><th class="c">Status</th><th>Abwesenheitsgrund</th><th>Quote</th></tr></thead><tbody>';
+    zonesHtml+='<div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%;min-width:460px">'+
+      '<colgroup><col style="width:220px"><col style="width:52px"><col style="width:200px"><col style="min-width:120px;width:160px"></colgroup>'+
+      '<thead><tr><th>Spieler</th><th class="c">Status</th><th>Abwesenheitsgrund</th><th>Quote</th></tr></thead><tbody>';
     sorted.forEach(function(p){
       var entry=(attendance[eid]&&attendance[eid][p.id])||null;
       var status=entry?(entry.present?'yes':'no'):'unknown';
@@ -4753,7 +4968,7 @@ function buildFutureZones(eid, type) {
           ))+'</td>'+
         '<td>'+barHtml(r?r.pct:null,55)+'</td></tr>';
     });
-    zonesHtml+='</tbody></table>';
+    zonesHtml+='</tbody></table></div>';
   });
   return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border)">'+
     '<div class="stat-card" style="margin:0"><div class="stat-label">✓ Bestätigt</div><div class="stat-value" style="color:var(--green)">'+totPres+'</div></div>'+
@@ -4766,13 +4981,7 @@ function buildFutureZones(eid, type) {
 // ═══════════════════════════════════════════════
 // TRAINING
 // ═══════════════════════════════════════════════
-function setTrainView(v) {
-  trainView=v; trainSelectedEid=null;
-  var pb=document.getElementById('tv-past'), fb=document.getElementById('tv-future');
-  if(pb) pb.classList.toggle('active',v==='past');
-  if(fb) fb.classList.toggle('active',v==='future');
-  renderTraining();
-}
+function setTrainView(v) {} // removed – no longer needed
 function onTrainSelChange() {
   var sel=document.getElementById('train-sel');
   trainSelectedEid=sel?parseInt(sel.value):null;
@@ -4780,7 +4989,6 @@ function onTrainSelChange() {
 }
 
 function autoSetPresent(eid) {
-  // For future/today events: pre-fill all players as present if not yet set
   if(!attendance[eid]) attendance[eid] = {};
   var changed = false;
   players.forEach(function(p){
@@ -4794,128 +5002,191 @@ function autoSetPresent(eid) {
 
 function renderTraining() {
   var t = today();
-  var todayEvts  = events.filter(function(e){return e.type==='training' && e.date===t;});
-  var pastEvts_  = events.filter(function(e){return e.type==='training' && e.date<t;}).sort(function(a,b){return b.date.localeCompare(a.date);});
-  var futureEvts_= events.filter(function(e){return e.type==='training' && e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var pastEvts_   = events.filter(function(e){return e.type==='training' && e.date<t;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var todayEvts   = events.filter(function(e){return e.type==='training' && e.date===t;});
+  var futureEvts_ = events.filter(function(e){return e.type==='training' && e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+
+  // ── Nächste/Heutige Einheit ──────────────────────────────
+  var nextEvt = todayEvts[0] || futureEvts_[0] || null;
+  var nextTitleEl = document.getElementById('train-next-title');
+  var nextContentEl = document.getElementById('train-next-content');
+  if(nextTitleEl) nextTitleEl.textContent = nextEvt
+    ? (todayEvts.length ? 'Heute — ' : 'Nächste Einheit — ') + fmtDate(nextEvt.date) + ' · ' + nextEvt.name
+    : 'Keine bevorstehenden Trainings';
+  if(nextContentEl) {
+    if(nextEvt) {
+      autoSetPresent(nextEvt.id);
+      nextContentEl.innerHTML = buildTrainingOverview(nextEvt.id);
+    } else {
+      nextContentEl.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Trainings geplant.</div>';
+    }
+  }
+
+  // ── Vergangene Trainings Dropdown ─────────────────────
   var sel = document.getElementById('train-sel');
   if(!sel) return;
-
-  // Build option groups: Heutiges Training / Vergangene / Zukünftige
-  var opts = '';
-  if(todayEvts.length) {
-    opts += '<optgroup label="Heutiges Training">' +
-      todayEvts.map(function(e){return '<option value="'+e.id+'">Heute — '+e.name+'</option>';}).join('') +
-      '</optgroup>';
-  }
-  if(trainView === 'past') {
-    opts += pastEvts_.length
-      ? '<optgroup label="Vergangene Trainings">' +
-          pastEvts_.map(function(e){return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+'</option>';}).join('') +
-        '</optgroup>'
-      : '<option value="">Keine vergangenen Trainings</option>';
+  if(!pastEvts_.length) {
+    sel.innerHTML = '<option value="">Keine vergangenen Trainings</option>';
+    trainSelectedEid = null;
   } else {
-    opts += futureEvts_.length
-      ? '<optgroup label="Zukünftige Trainings">' +
-          futureEvts_.map(function(e){return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+'</option>';}).join('') +
-        '</optgroup>'
-      : '<option value="">Keine zukünftigen Trainings</option>';
-  }
-  sel.innerHTML = opts;
-
-  // Auto-select today if present, otherwise keep previous selection
-  if(todayEvts.length && !trainSelectedEid) {
-    trainSelectedEid = todayEvts[0].id;
-  }
-  if(trainSelectedEid) {
-    var allEvts = todayEvts.concat(pastEvts_).concat(futureEvts_);
-    if(allEvts.find(function(e){return e.id===trainSelectedEid;})) {
-      sel.value = trainSelectedEid;
-    } else {
-      trainSelectedEid = (todayEvts[0]||pastEvts_[0]||futureEvts_[0]||{}).id||null;
+    sel.innerHTML = pastEvts_.map(function(e){
+      return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+'</option>';
+    }).join('');
+    if(!trainSelectedEid || !pastEvts_.find(function(e){return e.id===trainSelectedEid;})) {
+      trainSelectedEid = pastEvts_[0].id;
     }
-  } else {
-    trainSelectedEid = (todayEvts[0]||pastEvts_[0]||futureEvts_[0]||{}).id||null;
+    sel.value = trainSelectedEid;
   }
-  if(trainSelectedEid) sel.value = trainSelectedEid;
   renderTrainingContent();
+}
+
+
+function buildTrainingOverview(eid) {
+  var pl = players.filter(function(p){ return !p.isStaff; });
+  var present = pl.filter(function(p){ return attendance[eid]&&attendance[eid][p.id]&&attendance[eid][p.id].present; });
+  var absent  = pl.filter(function(p){ return attendance[eid]&&attendance[eid][p.id]&&!attendance[eid][p.id].present; });
+  var unknown = pl.filter(function(p){ return !attendance[eid]||attendance[eid][p.id]===undefined; });
+  var pct = pl.length ? Math.round(present.length/pl.length*100) : 0;
+  var pctColor = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+
+  // KPI bar
+  var html = '<div style="display:flex;align-items:center;gap:20px;padding:12px 16px;background:var(--surface);border-bottom:2px solid var(--border);flex-wrap:wrap">'+
+    '<div style="display:flex;align-items:baseline;gap:6px">'+
+      '<span style="font-size:36px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+pctColor+'">'+present.length+'</span>'+
+      '<span style="font-size:15px;color:var(--muted)">/ '+pl.length+' Spieler</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:16px;font-size:13px">'+
+      '<span style="color:var(--green)">✓ '+present.length+' anwesend</span>'+
+      (absent.length?'<span style="color:var(--red)">✕ '+absent.length+' abwesend</span>':'')+
+      (unknown.length?'<span style="color:var(--muted)">? '+unknown.length+' unbekannt</span>':'')+
+    '</div>'+
+    '<div style="margin-left:auto;min-width:120px">'+barHtml(pct,120)+'</div>'+
+  '</div>';
+
+  // Per-zone breakdown
+  var FIELD_ZONES = ['Torwart','Abwehr','Mittelfeld','Angriff'];
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">';
+  FIELD_ZONES.forEach(function(zone){
+    var zPres = present.filter(function(p){ return p.zone===zone; });
+    var zAll  = pl.filter(function(p){ return p.zone===zone; });
+    var zAbs  = absent.filter(function(p){ return p.zone===zone; });
+    var zUnk  = unknown.filter(function(p){ return p.zone===zone; });
+    html += '<div style="padding:10px 14px;border-right:1px solid var(--border)">'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:4px">'+zone+'</div>'+
+      '<div style="font-size:22px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+(zPres.length===zAll.length?'var(--green)':zPres.length===0?'var(--red)':'var(--amber)')+'">'+zPres.length+' <span style="font-size:13px;color:var(--muted);font-weight:400">/ '+zAll.length+'</span></div>'+
+    '</div>';
+  });
+  html += '</div>';
+
+  // Player lists
+  function playerPill(p, status) {
+    var bg = status==='present'?'#dcfce7':status==='absent'?'#fee2e2':'#f3f4f6';
+    var color = status==='present'?'#15803d':status==='absent'?'#dc2626':'#6b7280';
+    var reason = '';
+    if(status==='absent' && attendance[eid] && attendance[eid][p.id] && attendance[eid][p.id].reason) {
+      var r = absenceReasons.find(function(x){ return x.id==attendance[eid][p.id].reason; });
+      if(r) reason = ' <span style="font-size:9px;opacity:0.75">('+r.kuerzel+')</span>';
+    }
+    return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:500;background:'+bg+';color:'+color+';margin:2px">'+
+      p.name.split(' ')[0]+' '+p.name.split(' ').slice(1).join(' ')+reason+'</span>';
+  }
+
+  html += '<div style="padding:12px 16px">';
+
+  // Anwesend grouped by zone
+  if(present.length) {
+    html += '<div style="margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);font-family:\'DM Mono\',monospace;margin-bottom:6px">✓ Anwesend ('+present.length+')</div>'+
+      '<div>';
+    FIELD_ZONES.concat(['Staff']).forEach(function(zone){
+      var zp = present.filter(function(p){ return p.zone===zone; });
+      if(!zp.length) return;
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">'+
+        '<span style="font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;min-width:70px">'+zone+'</span>'+
+        zp.map(function(p){ return playerPill(p,'present'); }).join('')+
+      '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Abwesend
+  if(absent.length) {
+    html += '<div style="margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--red);font-family:\'DM Mono\',monospace;margin-bottom:6px">✕ Abwesend ('+absent.length+')</div>'+
+      '<div>'+absent.map(function(p){ return playerPill(p,'absent'); }).join('')+'</div>'+
+    '</div>';
+  }
+
+  // Unbekannt
+  if(unknown.length) {
+    html += '<div>'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:6px">? Unbekannt ('+unknown.length+')</div>'+
+      '<div>'+unknown.map(function(p){ return playerPill(p,'unknown'); }).join('')+'</div>'+
+    '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 function renderTrainingContent() {
   var el = document.getElementById('train-content');
   if(!el || !trainSelectedEid) { if(el) el.innerHTML=''; return; }
-  var eid = trainSelectedEid;
-  var t = today();
-  var ev = events.find(function(x){return x.id===eid;});
-  var isPastOrToday = ev && ev.date <= t;
-  if(isPastOrToday) {
-    var pl = players.filter(function(p){return !p.isStaff;});
-    var pres = pl.filter(function(p){return attendance[eid]&&attendance[eid][p.id]&&attendance[eid][p.id].present;}).length;
-    var pct = pl.length ? Math.round(pres/pl.length*100) : 0;
-    var pctColor = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
-    var isToday = ev && ev.date === t;
-    var top = '<div style="display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--surface);border-bottom:2px solid var(--border)">'+
-      (isToday?'<span style="background:var(--amber);color:#7c2d00;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px">HEUTE</span>':'')+
-      '<div><span style="font-size:28px;font-weight:700;font-family:Barlow Condensed,sans-serif;color:'+pctColor+'">'+pres+'</span>'+
-      '<span style="font-size:15px;color:var(--muted)"> / '+pl.length+' anwesend</span></div>'+
-      '<div style="margin-left:auto">'+barHtml(pct,100)+'</div></div>';
-    el.innerHTML = top + buildAttZones(eid, 'training', true);
-  } else {
-    // Future: auto-set all players as present
-    autoSetPresent(eid);
-    el.innerHTML = buildFutureZones(eid, 'training');
-  }
+  el.innerHTML = buildTrainingOverview(trainSelectedEid);
 }
 
-function setSpielView(v) {
-  spielView=v; spielSelectedEid=null;
-  var pb=document.getElementById('sv-past'), fb=document.getElementById('sv-future');
-  if(pb) pb.classList.toggle('active',v==='past');
-  if(fb) fb.classList.toggle('active',v==='future');
-  renderKader();
-}
+function setSpielView(v) {} // no longer needed
 function onSpielSelChange() {
   var sel=document.getElementById('spiel-sel');
   spielSelectedEid=sel?parseInt(sel.value):null;
   renderKaderContent();
 }
+
 function renderKader() {
-  var t=today();
-  var evts=spielView==='past'
-    ? events.filter(function(e){return e.type==='spiel'&&e.date<=t;}).sort(function(a,b){return b.date.localeCompare(a.date);})
-    : events.filter(function(e){return e.type==='spiel'&&e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
-  var sel=document.getElementById('spiel-sel');
+  var t = today();
+  var pastSpiele   = events.filter(function(e){return e.type==='spiel'&&e.date<t;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var todaySpiele  = events.filter(function(e){return e.type==='spiel'&&e.date===t;});
+  var futureSpiele = events.filter(function(e){return e.type==='spiel'&&e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+
+  // ── Nächstes/Heutiges Spiel ──────────────────────
+  var nextEvt = todaySpiele[0] || futureSpiele[0] || null;
+  var nextTitleEl  = document.getElementById('spiel-next-title');
+  var nextContentEl= document.getElementById('spiel-next-content');
+  if(nextTitleEl) nextTitleEl.textContent = nextEvt
+    ? (todaySpiele.length ? 'Heute — ' : 'Nächstes Spiel — ') + fmtDate(nextEvt.date) + ' · ' + nextEvt.name
+    : 'Keine bevorstehenden Spiele';
+  if(nextContentEl) {
+    if(nextEvt) {
+      autoSetPresent(nextEvt.id);
+      nextContentEl.innerHTML = buildTrainingOverview(nextEvt.id);
+    } else {
+      nextContentEl.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Spiele geplant.</div>';
+    }
+  }
+
+  // ── Vergangene Spiele Dropdown ───────────────────
+  var sel = document.getElementById('spiel-sel');
   if(!sel) return;
-  sel.innerHTML=evts.length
-    ? evts.map(function(e){
-        var res=e.resultat?' ('+e.resultat+')':'';
-        return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+res+'</option>';
-      }).join('')
-    : '<option value="">Keine '+(spielView==='past'?'vergangenen':'zukünftigen')+' Spiele</option>';
-  if(spielSelectedEid&&evts.find(function(e){return e.id===spielSelectedEid;})){
-    sel.value=spielSelectedEid;
+  if(!pastSpiele.length) {
+    sel.innerHTML = '<option value="">Keine vergangenen Spiele</option>';
+    spielSelectedEid = null;
   } else {
-    spielSelectedEid=evts.length?evts[0].id:null;
+    sel.innerHTML = pastSpiele.map(function(e){
+      var res = e.resultat ? ' ('+e.resultat+')' : '';
+      return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+res+'</option>';
+    }).join('');
+    if(!spielSelectedEid || !pastSpiele.find(function(e){return e.id===spielSelectedEid;})) {
+      spielSelectedEid = pastSpiele[0].id;
+    }
+    sel.value = spielSelectedEid;
   }
   renderKaderContent();
 }
+
 function renderKaderContent() {
-  var el=document.getElementById('spiel-content');
-  if(!el||!spielSelectedEid){if(el)el.innerHTML='';return;}
-  var t=today(), ev=events.find(function(x){return x.id===spielSelectedEid;});
-  var isPast=ev&&ev.date<=t;
-  if(isPast) {
-    var pl=players.filter(function(p){return !p.isStaff;});
-    var present=pl.filter(function(p){return attendance[spielSelectedEid]&&attendance[spielSelectedEid][p.id]&&attendance[spielSelectedEid][p.id].present;}).length;
-    var absent=pl.length-present;
-    var pct=pl.length?Math.round(present/pl.length*100):0;
-    el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border)">'+
-      '<div class="stat-card" style="margin:0"><div class="stat-label">Anwesend</div><div class="stat-value" style="color:var(--green)">'+present+'</div></div>'+
-      '<div class="stat-card" style="margin:0"><div class="stat-label">Abwesend</div><div class="stat-value" style="color:var(--red)">'+absent+'</div></div>'+
-      '<div class="stat-card" style="margin:0"><div class="stat-label">Quote</div><div class="stat-value">'+pct+'%</div></div></div>'+
-      buildAttZones(spielSelectedEid,'spiel',false);
-  } else {
-    el.innerHTML=buildFutureZones(spielSelectedEid,'spiel');
-  }
+  var el = document.getElementById('spiel-content');
+  if(!el || !spielSelectedEid) { if(el) el.innerHTML=''; return; }
+  el.innerHTML = buildTrainingOverview(spielSelectedEid);
 }
 
 // ═══════════════════════════════════════════════
@@ -4944,6 +5215,16 @@ function renderUebersicht() {
     return;
   }
 
+  // Split into past and present/future
+  var evtsPast   = evtsAll.filter(function(e){ return e.date < t; });
+  var evtsCurrent= evtsAll.filter(function(e){ return e.date >= t; });
+
+  // Check if past is expanded
+  var pastExpanded = container._pastExpanded || false;
+
+  // Which events to show in the table
+  var evtsVisible = pastExpanded ? evtsAll : evtsCurrent;
+
   var opts = '<option value="">—</option>' +
     absenceReasons.map(function(r){
       return '<option value="'+r.id+'">'+r.kuerzel+' '+r.label+'</option>';
@@ -4951,49 +5232,61 @@ function renderUebersicht() {
 
   var pl = players.filter(function(p){return !p.isStaff;});
 
-  // Build HTML - outer div has overflow-x:auto
-  var html = '<div style="overflow-x:auto;overflow-y:visible;width:100%;-webkit-overflow-scrolling:touch">' +
+  // ── Collapse toggle bar ─────────────────────────
+  var toggleBar = '';
+  if(evtsPast.length) {
+    toggleBar = '<div style="padding:6px 12px;background:'+(pastExpanded?'#f0fdf4':'var(--surface)')+';border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" onclick="toggleUebersichtPast()">' +
+      '<span style="font-size:13px">'+(pastExpanded?'▼':'▶')+'</span>'+
+      '<span style="font-size:12px;font-weight:500;color:var(--muted)">'+(pastExpanded?'Vergangenheit ausblenden':'Vergangene '+evtsPast.length+' Einheiten einblenden')+'</span>'+
+    '</div>';
+  }
+
+  if(!evtsVisible.length) {
+    container.innerHTML = toggleBar + '<div style="padding:2rem;text-align:center;color:var(--muted)">Keine aktuellen Einheiten.</div>';
+    return;
+  }
+
+  // ── Table ───────────────────────────────────────
+  var html = toggleBar +
+    '<div style="overflow-x:auto;overflow-y:visible;width:100%;-webkit-overflow-scrolling:touch">' +
     '<table style="border-collapse:collapse;font-size:11px;table-layout:fixed;width:max-content;min-width:100%">';
 
-  // Scroll buttons row
   html += '<caption style="caption-side:top;padding:4px 8px;text-align:right;font-size:11px;color:var(--muted)">← Scrollen →</caption>';
 
-  // Header row
-  html += '<thead>';
-  // Row 1: count of present per day
-  html += '<tr style="background:var(--surface)">';
+  // Header row 1: anwesend count
+  html += '<thead><tr style="background:var(--surface)">';
   html += '<th style="position:sticky;left:0;z-index:3;background:var(--surface);min-width:155px;padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-align:left">Anwesend</th>';
-  evtsAll.forEach(function(e){
+  evtsVisible.forEach(function(e){
     var isFut=e.date>t;
-    var bg=e.type==='spiel'?(isFut?'#e0e7ff':'#e8e8e8'):(isFut?'#f0fdf4':'#f4f4f4');
+    var isToday=e.date===t;
+    var bg=e.type==='spiel'?(isFut?'#e0e7ff':'#e8e8e8'):(isFut?'#f0fdf4':(isToday?'#fffbeb':'#f4f4f4'));
     var presentCount=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present;}).length;
-    var totalCount=pl.length;
-    var pctColor=isFut?'#aaa':(presentCount/totalCount>=0.75?'var(--green)':presentCount/totalCount>=0.5?'var(--amber)':'var(--red)');
-    html+='<th style="background:'+bg+';min-width:38px;width:38px;text-align:center;padding:3px 2px;border-bottom:1px solid var(--border);font-size:9px;color:'+pctColor+';font-family:monospace;font-weight:600">'+
-      (isFut?'?':presentCount)+
-    '</th>';
+    var absentCount=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present;}).length;
+    var pctColor=isFut?(absentCount>0?'var(--amber)':'var(--green)'):(presentCount/pl.length>=0.75?'var(--green)':presentCount/pl.length>=0.5?'var(--amber)':'var(--red)');
+    var displayVal = isFut
+      ? (pl.length - absentCount) // future: kader minus known absents
+      : presentCount;
+    html+='<th style="background:'+bg+';min-width:38px;width:38px;text-align:center;padding:3px 2px;border-bottom:1px solid var(--border);font-size:9px;color:'+pctColor+';font-family:monospace;font-weight:600">'+displayVal+'</th>';
   });
   html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:4px 4px;border-bottom:1px solid var(--border)"></th></tr>';
 
-  // Row 2: dates
+  // Header row 2: dates
   html += '<tr style="background:var(--surface)">';
   html += '<th style="position:sticky;left:0;z-index:3;background:var(--surface);min-width:155px;padding:6px 8px;border-bottom:2px solid var(--border);text-align:left;font-size:12px">Spieler</th>';
-  evtsAll.forEach(function(e){
+  evtsVisible.forEach(function(e){
     var isFut=e.date>t;
     var isToday=e.date===t;
-    var bg=e.type==='spiel'?(isFut?'#e0e7ff':'#e8e8e8'):(isFut?'#f0fdf4':'#f4f4f4');
-    if(isToday) bg='#fffbeb';
+    var bg=e.type==='spiel'?(isFut?'#e0e7ff':'#e8e8e8'):(isFut?'#f0fdf4':(isToday?'#fffbeb':'#f4f4f4'));
     html+='<th style="min-width:38px;width:38px;background:'+bg+';writing-mode:vertical-rl;transform:rotate(180deg);height:80px;padding:4px 3px;font-size:9px;font-weight:500;border-bottom:2px solid var(--border);text-align:center;cursor:default;white-space:nowrap'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+fmtDate(e.date)+' — '+e.name+'">'+
       fmtShort(e.date)+'<br>'+(e.type==='spiel'?'S':'T')+'</th>';
   });
   html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%<span onclick="event.stopPropagation();showQuoteTooltip(this,\'langzeit\')" style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#e5e7eb;color:#555;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:2px">i</span></th></tr>';
-  html += '</thead>';
+  html += '</thead><tbody>';
 
-  html += '<tbody>';
   ZONES_ALL.forEach(function(zone){
     var zp=players.filter(function(p){return p.zone===zone;});
     if(!zp.length) return;
-    html+='<tr><td colspan="'+(evtsAll.length+2)+'" style="padding:0;border-bottom:none">'+
+    html+='<tr><td colspan="'+(evtsVisible.length+2)+'" style="padding:0;border-bottom:none">'+
       '<div class="zone-hdr" style="min-width:155px">'+zoneBadge(zone)+'</div></td></tr>';
     zp.forEach(function(p){
       var attCount=0, totalPast=0;
@@ -5001,17 +5294,16 @@ function renderUebersicht() {
       html+='<td style="position:sticky;left:0;background:#fff;z-index:1;white-space:nowrap;padding:5px 8px;border-bottom:1px solid var(--border);min-width:155px;width:155px">'+
         '<div style="display:flex;align-items:center;gap:5px">'+avHtml(p.name)+
         '<span style="font-size:12px;font-weight:500">'+p.name+'</span></div></td>';
-      evtsAll.forEach(function(e){
+      evtsVisible.forEach(function(e){
         var entry=attendance[e.id]&&attendance[e.id][p.id];
-        var isPast=e.date<=t;
+        var isPast=e.date<t;
         var isToday=e.date===t;
         if(isPast||isToday) totalPast++;
         var cell,bg,title='';
-        // Auto-set future players to present
         if(!entry && !isPast && !isToday) {
-          if(!attendance[e.id]) attendance[e.id] = {};
-          attendance[e.id][p.id] = {present:true, reason:null};
-          entry = attendance[e.id][p.id];
+          if(!attendance[e.id]) attendance[e.id]={};
+          attendance[e.id][p.id]={present:true,reason:null};
+          entry=attendance[e.id][p.id];
         }
         if(!entry){
           cell=isPast||isToday?'—':'?';
@@ -5037,19 +5329,29 @@ function renderUebersicht() {
               'onchange="setReasonUebersicht('+e.id+','+p.id+',this.value)">'+opts+'</select>';
           }
         }
-        html+='<td style="text-align:center;background:'+bg+';border:1px solid rgba(0,0,0,0.04);padding:2px;vertical-align:top;width:38px;min-width:38px'+(isToday?';border-left:1px solid var(--amber);border-right:1px solid var(--amber)':'')+'" title="'+title+'">'+
+        html+='<td style="text-align:center;background:'+bg+';border:1px solid rgba(0,0,0,0.04);padding:2px;vertical-align:top;width:38px;min-width:38px'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+title+'">'+
           '<div style="cursor:pointer;font-size:12px;line-height:1.4" onclick="quickToggleAtt('+e.id+','+p.id+')">'+cell+'</div>'+
           selHtml+'</td>';
       });
-      var pct=totalPast>0?Math.round(attCount/totalPast*100):null;
+      // Quote: always based on all past events (not just visible)
+      var rTot = playerRate(p.id, null, filterRunde);
+      var pct = rTot ? rTot.pct : null;
       var pctColor=pct!=null?(pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)'):'#999';
-      html+='<td style="font-family:monospace;font-size:11px;font-weight:700;text-align:center;position:sticky;right:0;background:#fff;z-index:1;border-bottom:1px solid var(--border);color:'+pctColor+';min-width:44px;width:44px">'+
-        (pct!=null?pct+'%':'—')+'</td>';
+      html+='<td style="font-family:monospace;font-size:11px;font-weight:700;text-align:center;position:sticky;right:0;background:#fff;z-index:1;border-bottom:1px solid var(--border);color:'+pctColor+';min-width:44px;width:44px">'+(pct!=null?pct+'%':'—')+'</td>';
       html+='</tr>';
     });
   });
+
   html+='</tbody></table></div>';
   container.innerHTML=html;
+  container._pastExpanded=pastExpanded;
+}
+
+function toggleUebersichtPast() {
+  var container = document.getElementById('uebersicht-content');
+  if(!container) return;
+  container._pastExpanded = !container._pastExpanded;
+  renderUebersicht();
 }
 
 
@@ -5108,7 +5410,36 @@ function filterEvents(f) {
 function renderPlayers() {
   var el = document.getElementById('players-zones');
   if(!el) return;
-  el.innerHTML = ZONES_ALL.map(function(zone){
+
+  // ── Kader-Übersicht ─────────────────────────────
+  var pl       = players.filter(function(p){ return !p.isStaff; });
+  var staff    = players.filter(function(p){ return p.isStaff; });
+  var torwart  = players.filter(function(p){ return p.zone==='Torwart'; });
+  var abwehr   = players.filter(function(p){ return p.zone==='Abwehr'; });
+  var mittel   = players.filter(function(p){ return p.zone==='Mittelfeld'; });
+  var angriff  = players.filter(function(p){ return p.zone==='Angriff'; });
+
+  function kpiBox(label, val, sub, color) {
+    return '<div class="stat-card" style="margin:0">'+
+      '<div class="stat-label">'+label+'</div>'+
+      '<div class="stat-value"'+(color?' style="color:'+color+'"':'')+'>'+val+'</div>'+
+      (sub?'<div class="stat-sub">'+sub+'</div>':'')+
+    '</div>';
+  }
+
+  var summary = '<div style="padding:1rem 1.1rem;border-bottom:1px solid var(--border)">'+
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:0.6rem">Kadergrösse</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">'+
+      kpiBox('Total', pl.length, 'Feldspieler', null)+
+      kpiBox('Torwart', torwart.length, torwart.map(function(p){return p.name.split(' ')[0];}).join(', ')||'—', '#f59e0b')+
+      kpiBox('Abwehr', abwehr.length, abwehr.length+' Spieler', '#1a1a1a')+
+      kpiBox('Mittelfeld', mittel.length, mittel.length+' Spieler', '#555')+
+      kpiBox('Angriff', angriff.length, angriff.length+' Spieler', '#6b6b67')+
+      kpiBox('Staff', staff.length, staff.map(function(p){return p.name.split(' ')[0];}).join(', ')||'—', '#7c3aed')+
+    '</div>'+
+  '</div>';
+
+  el.innerHTML = summary + ZONES_ALL.map(function(zone){
     var zp = players.filter(function(p){return p.zone===zone;});
     if(!zp.length) return '';
     var isStaffZone = zone==='Staff';
@@ -5165,14 +5496,14 @@ function renderPlayers() {
 }
 
 
+var _tooltipCloseHandler = null;
+
 function showQuoteTooltip(btn, ctx) {
   var existing = document.getElementById('quote-tooltip-pop');
-  // If tooltip open AND same button clicked -> close and stop
   if(existing) {
     var wasBtn = existing._srcBtn;
-    var wasHandler = existing._closeHandler;
     existing.remove();
-    if(wasHandler) document.removeEventListener('click', wasHandler);
+    if(_tooltipCloseHandler) { document.removeEventListener('click', _tooltipCloseHandler); _tooltipCloseHandler = null; }
     if(wasBtn === btn) return;
   }
   var pastT=pastEvts('training'), pastS=pastEvts('spiel');
@@ -5181,17 +5512,19 @@ function showQuoteTooltip(btn, ctx) {
   var curR = currentRunde ? currentRunde() : null;
   var curT = curR==='vorrunde' ? vrT : curR==='rueckrunde' ? rrT : pastT;
   var curTLabel = curR==='vorrunde' ? 'Trainings in Vorrunde' : curR==='rueckrunde' ? 'Trainings in R\u00fcckrunde' : 'Trainings absolviert';
+  var curRLabel = curR==='vorrunde' ? 'Vorrunde' : 'R\u00fcckrunde';
   var infos={
-    'training_total':  {title:'Trainingsquote \u2014 Total',         desc:'Anwesenheit bei allen Trainings der gesamten Saison.',             basis:pastT.length+' Trainings (gesamt)',       note:'Spiele nicht eingerechnet.'},
-    'training_vr':     {title:'Trainingsquote \u2014 Vorrunde',      desc:'Anwesenheit bei Trainings, Vorrunde (Jul\u2013Nov 2025).',        basis:vrT.length+' Trainings in Vorrunde',      note:'Nur Vorrunden-Trainings.'},
-    'training_rr':     {title:'Trainingsquote \u2014 R\u00fcckrunde',desc:'Anwesenheit bei Trainings, R\u00fcckrunde (Feb\u2013Jun 2026).', basis:rrT.length+' Trainings in R\u00fcckrunde',note:'Nur R\u00fcckrunden-Trainings.'},
-    'spiel_total':     {title:'Spielquote \u2014 Total',              desc:'Anwesenheit bei allen Spielen der Saison.',                       basis:pastS.length+' Spiele absolviert',         note:'Trainings nicht eingerechnet.'},
-    'spiel_vr':        {title:'Spielquote \u2014 Vorrunde',           desc:'Anwesenheit bei Spielen, Vorrunde.',                              basis:vrS.length+' Spiele in Vorrunde',          note:'Nur Vorrunden-Spiele.'},
-    'spiel_rr':        {title:'Spielquote \u2014 R\u00fcckrunde',    desc:'Anwesenheit bei Spielen, R\u00fcckrunde.',                       basis:rrS.length+' Spiele in R\u00fcckrunde',   note:'Nur R\u00fcckrunden-Spiele.'},
-    'training_kader':  {title:'Trainingsquote (Kader)',                desc:'Anwesenheit bei allen Trainingseinheiten der gesamten Saison (Vor- und Rückrunde).',  basis:pastT.length+' Trainings absolviert (gesamt)',  note:'Zukünftige Einheiten nicht eingerechnet.'},
-    'stat_avg':        {title:'\u00d8 Anwesenheit',                   desc:'Durchschnitt der Trainingsquoten aller Feldspieler (ohne Staff).',basis:curT.length+' '+curTLabel,                 note:'Perioden-Filter wirkt auf alle Quoten.'},
-    'dashboard_quote': {title:'Trainingsquote (aktuelle Periode)',     desc:'Anwesenheit bei Trainings in der aktuellen Periode.',             basis:curT.length+' '+curTLabel,                 note:'Wechselt automatisch je nach Datum.'},
-    'langzeit':        {title:'Anwesenheitsquote \u2014 Langzeit',    desc:'Anwesenheit bei allen vergangenen Einheiten (Trainings und Spiele) im gewählten Zeitraum.', basis:(pastT.length+pastS.length)+' Einheiten absolviert', note:'Zukünftige Einheiten nicht eingerechnet.'}
+    'training_total':    {title:'Trainingsquote \u2014 Total',              desc:'Anwesenheit bei allen Trainings der gesamten Saison.',                                    basis:pastT.length+' Trainings (gesamt)',              note:'Spiele nicht eingerechnet.'},
+    'training_vr':       {title:'Trainingsquote \u2014 Vorrunde',           desc:'Anwesenheit bei Trainings, Vorrunde (Jul\u2013Nov 2025).',                                basis:vrT.length+' Trainings in Vorrunde',             note:'Nur Vorrunden-Trainings.'},
+    'training_rr':       {title:'Trainingsquote \u2014 R\u00fcckrunde',     desc:'Anwesenheit bei Trainings, R\u00fcckrunde (Feb\u2013Jun 2026).',                          basis:rrT.length+' Trainings in R\u00fcckrunde',       note:'Nur R\u00fcckrunden-Trainings.'},
+    'training_cur':      {title:'Trainingsquote \u2014 '+curRLabel,         desc:'Anwesenheit bei Trainings in der aktuellen Periode ('+curRLabel+'). Spiele ausgeschlossen.',basis:curT.length+' Trainings in '+curRLabel,         note:'Wechselt automatisch je nach aktuellem Datum.'},
+    'spiel_total':       {title:'Spielquote \u2014 Total',                   desc:'Anwesenheit bei allen Spielen der Saison.',                                               basis:pastS.length+' Spiele absolviert',               note:'Trainings nicht eingerechnet.'},
+    'spiel_vr':          {title:'Spielquote \u2014 Vorrunde',                desc:'Anwesenheit bei Spielen, Vorrunde.',                                                      basis:vrS.length+' Spiele in Vorrunde',                note:'Nur Vorrunden-Spiele.'},
+    'spiel_rr':          {title:'Spielquote \u2014 R\u00fcckrunde',         desc:'Anwesenheit bei Spielen, R\u00fcckrunde.',                                                basis:rrS.length+' Spiele in R\u00fcckrunde',          note:'Nur R\u00fcckrunden-Spiele.'},
+    'training_kader':    {title:'Trainingsquote (Kader)',                    desc:'Anwesenheit bei allen Trainingseinheiten der gesamten Saison (Vor- und R\u00fcckrunde).',basis:pastT.length+' Trainings absolviert (gesamt)',   note:'Zuk\u00fcnftige Einheiten nicht eingerechnet.'},
+    'stat_avg':          {title:'\u00d8 Anwesenheit',                        desc:'Durchschnitt der Trainingsquoten aller Feldspieler (ohne Staff).',                       basis:curT.length+' '+curTLabel,                       note:'Perioden-Filter wirkt auf alle Quoten.'},
+    'dashboard_quote':   {title:'Trainingsquote (aktuelle Periode)',         desc:'Anwesenheit bei Trainings in der aktuellen Periode.',                                    basis:curT.length+' '+curTLabel,                       note:'Wechselt automatisch je nach Datum.'},
+    'langzeit':          {title:'Anwesenheitsquote \u2014 Langzeit',        desc:'Anwesenheit bei allen vergangenen Einheiten im gew\u00e4hlten Zeitraum.',               basis:(pastT.length+pastS.length)+' Einheiten absolviert',note:'Zuk\u00fcnftige Einheiten nicht eingerechnet.'}
   };
   var info = infos[ctx] || {title:'Quote', desc:'Anwesenheitsquote.', basis:'', note:''};
   var tip = document.createElement('div');
@@ -5218,19 +5551,15 @@ function showQuoteTooltip(btn, ctx) {
   tip.style.left = Math.max(8, left) + 'px';
   tip.style.top  = top + 'px';
   document.body.appendChild(tip);
-  // Store close handler on tip so we can remove it later
-  var closeHandler = function(ev) {
+  _tooltipCloseHandler = function(ev) {
     var t2 = document.getElementById('quote-tooltip-pop');
     if(t2 && !t2.contains(ev.target)) {
       t2.remove();
-      document.removeEventListener('click', closeHandler);
+      document.removeEventListener('click', _tooltipCloseHandler);
+      _tooltipCloseHandler = null;
     }
   };
-  tip._closeHandler = closeHandler;
-  // Small delay so this click doesn't immediately trigger close
-  setTimeout(function() {
-    document.addEventListener('click', closeHandler);
-  }, 80);
+  setTimeout(function() { document.addEventListener('click', _tooltipCloseHandler); }, 80);
 }
 
 function showKaderQuoteInfo(btn, isStaff) { showQuoteTooltip(btn, 'training_kader'); }
@@ -6440,6 +6769,155 @@ function todoKeydown(ev) {
   if(ev.key === 'Enter') saveTodoModal();
 }
 
+// ═══════════════════════════════════════════════
+// KADERBERICHT
+// ═══════════════════════════════════════════════
+var kbRunde = 'total';
+
+function setKbRunde(r) {
+  kbRunde = r;
+  ['total','vorrunde','rueckrunde'].forEach(function(id){
+    var el = document.getElementById('kb-tab-'+id);
+    if(el) el.classList.toggle('active', id===r);
+  });
+  renderKaderbericht();
+}
+
+function renderKaderbericht() {
+  var runde = kbRunde === 'total' ? null : kbRunde;
+  var t = today();
+  var trainings = events.filter(function(e){
+    return e.type === 'training' && e.date <= t && (!runde || getRunde(e.date) === runde);
+  }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+  var pl = players.filter(function(p){ return !p.isStaff; });
+  var totalKader = pl.length;
+
+  // ── Summary KPIs ──────────────────────────────
+  var sumEl = document.getElementById('kb-summary');
+  if(sumEl) {
+    if(!trainings.length) {
+      sumEl.innerHTML = '<div style="grid-column:1/-1;padding:0.5rem;font-size:13px;color:var(--muted)">Keine Trainings im gewählten Zeitraum.</div>';
+    } else {
+      var perTraining = trainings.map(function(e){
+        return pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+      });
+      var avg = Math.round(perTraining.reduce(function(a,b){return a+b;},0) / perTraining.length);
+      var minAtt = Math.min.apply(null, perTraining);
+      var maxAtt = Math.max.apply(null, perTraining);
+      var avgPct = Math.round(avg / totalKader * 100);
+      sumEl.innerHTML =
+        '<div class="stat-card" style="margin:0"><div class="stat-label">Trainings</div><div class="stat-value">'+trainings.length+'</div><div class="stat-sub">analysiert</div></div>'+
+        '<div class="stat-card" style="margin:0"><div class="stat-label">Ø Anwesend</div><div class="stat-value" style="color:'+(avgPct>=75?'var(--green)':avgPct>=50?'var(--amber)':'var(--red)')+'">'+avg+'</div><div class="stat-sub">von '+totalKader+' ('+avgPct+'%)</div></div>'+
+        '<div class="stat-card" style="margin:0"><div class="stat-label">Min. / Max.</div><div class="stat-value" style="font-size:18px">'+minAtt+' / '+maxAtt+'</div><div class="stat-sub">Spieler anwesend</div></div>'+
+        '<div class="stat-card" style="margin:0"><div class="stat-label">Kadergrösse</div><div class="stat-value">'+totalKader+'</div><div class="stat-sub">Feldspieler</div></div>';
+    }
+  }
+
+  // ── Pro-Training Tabelle ───────────────────────
+  var tbody = document.getElementById('kb-tbody');
+  if(tbody) {
+    if(!trainings.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem">Keine Daten</td></tr>'; }
+    else {
+      tbody.innerHTML = trainings.map(function(e){
+        var att = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+        var pct = Math.round(att / totalKader * 100);
+        var color = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+        return '<tr>'+
+          '<td style="font-family:monospace;font-size:12px">'+fmtDate(e.date)+'</td>'+
+          '<td style="font-size:13px">'+e.name+'</td>'+
+          '<td class="c"><strong>'+att+'</strong></td>'+
+          '<td class="c" style="color:var(--muted)">'+totalKader+'</td>'+
+          '<td>'+barHtml(pct, 80)+'</td>'+
+        '</tr>';
+      }).join('');
+    }
+  }
+
+  // ── Pro-Spieler Tabelle ────────────────────────
+  var ptbody = document.getElementById('kb-player-tbody');
+  if(ptbody) {
+    var rows = pl.map(function(p){
+      var att = trainings.filter(function(e){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+      var abs = trainings.filter(function(e){ return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present; }).length;
+      var missing = trainings.length - att - abs; // no entry = not recorded
+      var pct = trainings.length ? Math.round(att / trainings.length * 100) : null;
+      return {p:p, att:att, abs:abs, missing:missing, pct:pct};
+    }).sort(function(a,b){ return (b.pct||0)-(a.pct||0); });
+
+    ptbody.innerHTML = rows.map(function(row){
+      var color = row.pct===null?'var(--muted)':row.pct>=75?'var(--green)':row.pct>=50?'var(--amber)':'var(--red)';
+      return '<tr>'+
+        '<td><div class="pc">'+avHtml(row.p.name)+'<span style="font-size:13px">'+row.p.name+'</span></div></td>'+
+        '<td>'+zoneBadge(row.p.zone)+'</td>'+
+        '<td class="r" style="font-weight:600;color:var(--green)">'+row.att+'</td>'+
+        '<td class="r" style="color:var(--red)">'+row.abs+'</td>'+
+        '<td class="r" style="color:var(--muted)">'+row.missing+'</td>'+
+        '<td>'+barHtml(row.pct, 80)+'</td>'+
+      '</tr>';
+    }).join('');
+  }
+}
+
+function exportKaderberichtCSV() {
+  var runde = kbRunde === 'total' ? null : kbRunde;
+  var t = today();
+  var trainings = events.filter(function(e){
+    return e.type === 'training' && e.date <= t && (!runde || getRunde(e.date) === runde);
+  }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var pl = players.filter(function(p){ return !p.isStaff; });
+
+  var lines = [];
+  var rundeLbl = kbRunde === 'vorrunde' ? 'Vorrunde' : kbRunde === 'rueckrunde' ? 'Rückrunde' : 'Total';
+  lines.push('FC Wiesendangen – Kaderbericht Trainingsanwesenheit (' + rundeLbl + ')');
+  lines.push('Erstellt am: ' + new Date().toLocaleDateString('de-CH'));
+  lines.push('');
+
+  // Per-training summary
+  lines.push('Anwesenheit pro Training');
+  lines.push('Datum;Training;Anwesend;Kader;Quote%');
+  trainings.forEach(function(e){
+    var att = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+    var pct = pl.length ? Math.round(att/pl.length*100) : 0;
+    lines.push(fmtDate(e.date)+';'+e.name+';'+att+';'+pl.length+';'+pct+'%');
+  });
+  lines.push('');
+
+  // Per-player summary
+  lines.push('Anwesenheit pro Spieler');
+  lines.push('Spieler;Zone;Anwesend;Abwesend;Nicht erfasst;Quote%');
+  pl.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(p){
+    var att = trainings.filter(function(e){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+    var abs = trainings.filter(function(e){ return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present; }).length;
+    var missing = trainings.length - att - abs;
+    var pct = trainings.length ? Math.round(att/trainings.length*100) : 0;
+    lines.push(p.name+';'+p.zone+';'+att+';'+abs+';'+missing+';'+pct+'%');
+  });
+
+  // Summary stats
+  if(trainings.length) {
+    var perT = trainings.map(function(e){
+      return pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; }).length;
+    });
+    var avg = Math.round(perT.reduce(function(a,b){return a+b;},0)/perT.length);
+    lines.push('');
+    lines.push('Zusammenfassung');
+    lines.push('Anzahl Trainings;'+trainings.length);
+    lines.push('Kadergrösse (Feldspieler);'+pl.length);
+    lines.push('Ø Anwesend pro Training;'+avg);
+    lines.push('Ø Quote;'+Math.round(avg/pl.length*100)+'%');
+    lines.push('Min. Anwesend;'+Math.min.apply(null,perT));
+    lines.push('Max. Anwesend;'+Math.max.apply(null,perT));
+  }
+
+  var bom = '\uFEFF';
+  var blob = new Blob([bom + lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'FCW_Kaderbericht_'+rundeLbl+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
 function renderStatistik() {
   var topEl=document.getElementById('stat-top');
   if(topEl) {
@@ -6452,6 +6930,7 @@ function renderStatistik() {
       '</div>';
   }
   renderStatContent();
+  renderKaderbericht();
 }
 
 function setStatRunde(r) {
