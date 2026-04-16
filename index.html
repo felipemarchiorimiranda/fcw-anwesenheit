@@ -4238,15 +4238,15 @@ function fmtShort(d) { if(!d) return ''; var p=d.slice(0,10).split('-'); return 
 function initials(n) { return n.split(' ').map(function(p){return p[0];}).join('').toUpperCase().slice(0,2); }
 function currentRunde() {
   var t = today();
-  if(t >= '2025-07-17' && t <= '2025-11-08') return 'vorrunde';
-  if(t >= '2026-02-03' && t <= '2026-06-21') return 'rueckrunde';
-  // Winterpause oder ausserhalb: nimm nächste kommende Runde
-  return t < '2026-02-03' ? 'rueckrunde' : 'rueckrunde';
+  if(t >= '2025-07-17' && t <= '2025-11-30') return 'vorrunde';
+  if(t >= '2026-02-01') return 'rueckrunde';
+  return t < '2026-01-01' ? 'vorrunde' : 'rueckrunde';
 }
 function getRunde(date) {
-  if(date >= '2025-07-17' && date <= '2025-11-08') return 'vorrunde';
-  if(date >= '2026-02-03' && date <= '2026-06-21') return 'rueckrunde';
-  return 'other';
+  if(date >= '2025-07-17' && date <= '2025-11-30') return 'vorrunde';
+  if(date >= '2026-02-01' && date <= '2026-12-31') return 'rueckrunde';
+  // Fallback: before 2026 = vorrunde, 2026+ = rueckrunde
+  return date < '2026-01-01' ? 'vorrunde' : 'rueckrunde';
 }
 function pastEvts(type) {
   var t=today();
