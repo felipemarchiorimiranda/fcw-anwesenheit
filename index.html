@@ -5898,7 +5898,9 @@ function drawCanvas(runde) {
     parent.innerHTML = '<div style="padding:2rem;font-size:13px;color:var(--muted);text-align:center">Keine Abwesenheiten erfasst</div>';
     return;
   }
-  var active = absenceReasons.filter(function(r){ return counts[r.kuerzel] > 0; });
+  // Sort by count descending so labels are placed on largest segments first
+  var active = absenceReasons.filter(function(r){ return counts[r.kuerzel] > 0; })
+    .sort(function(a,b){ return (counts[b.kuerzel]||0) - (counts[a.kuerzel]||0); });
 
   // SVG donut - bigger and centered properly
   var cx=100, cy=100, ro=85, ri=40, startA=-Math.PI/2;
