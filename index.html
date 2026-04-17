@@ -318,35 +318,21 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       </div>
     </div>
     <div class="page" id="pg-training">
-      <!-- Nächste Einheit (immer sichtbar) -->
-      <div class="card" style="margin-bottom:1.1rem">
-        <div class="card-header">
-          <span class="card-title" id="train-next-title">Nächste Einheit</span>
-        </div>
-        <div id="train-next-content"></div>
-      </div>
-      <!-- Vergangene Trainings -->
+      <!-- Nächste Einheit + zukünftige -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Vergangene Trainings</span>
-          <select class="inp" id="train-sel" onchange="onTrainSelChange()" style="min-width:220px"></select>
+          <span class="card-title">Training — Anwesenheit</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="train-count"></span>
         </div>
         <div id="train-content"></div>
       </div>
     </div>
     <div class="page" id="pg-kader">
-      <!-- Nächstes Spiel -->
-      <div class="card" style="margin-bottom:1.1rem">
-        <div class="card-header">
-          <span class="card-title" id="spiel-next-title">Nächstes Spiel</span>
-        </div>
-        <div id="spiel-next-content"></div>
-      </div>
-      <!-- Vergangene Spiele -->
+      <!-- Spiele — zukünftige + vergangene -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Vergangene Spiele</span>
-          <select class="inp" id="spiel-sel" onchange="onSpielSelChange()" style="min-width:220px"></select>
+          <span class="card-title">Spiele — Aufstellung</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" id="spiel-count"></span>
         </div>
         <div id="spiel-content"></div>
       </div>
@@ -5011,64 +4997,8 @@ function buildFutureZones(eid, type) {
 // ═══════════════════════════════════════════════
 // TRAINING
 // ═══════════════════════════════════════════════
-function setTrainView(v) {} // removed – no longer needed
-function onTrainSelChange() {
-  var sel=document.getElementById('train-sel');
-  trainSelectedEid=sel?parseInt(sel.value):null;
-  renderTrainingContent();
-}
-
-function autoSetPresent(eid) {
-  // Only set present:true for players with NO entry at all (undefined)
-  // Never call saveData() here – this is called during render
-  if(!attendance[eid]) attendance[eid] = {};
-  players.forEach(function(p){
-    if(attendance[eid][p.id] === undefined) {
-      attendance[eid][p.id] = {present: true, reason: null};
-    }
-  });
-}
-
-function renderTraining() {
-  var t = today();
-  var pastEvts_   = events.filter(function(e){return e.type==='training' && e.date<t;}).sort(function(a,b){return b.date.localeCompare(a.date);});
-  var todayEvts   = events.filter(function(e){return e.type==='training' && e.date===t;});
-  var futureEvts_ = events.filter(function(e){return e.type==='training' && e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
-
-  // ── Nächste/Heutige Einheit ──────────────────────────────
-  var nextEvt = todayEvts[0] || futureEvts_[0] || null;
-  var nextTitleEl = document.getElementById('train-next-title');
-  var nextContentEl = document.getElementById('train-next-content');
-  if(nextTitleEl) nextTitleEl.textContent = nextEvt
-    ? (todayEvts.length ? 'Heute — ' : 'Nächste Einheit — ') + fmtDate(nextEvt.date) + ' · ' + nextEvt.name
-    : 'Keine bevorstehenden Trainings';
-  if(nextContentEl) {
-    if(nextEvt) {
-      autoSetPresent(nextEvt.id);
-      nextContentEl.innerHTML = buildTrainingOverview(nextEvt.id);
-    } else {
-      nextContentEl.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Trainings geplant.</div>';
-    }
-  }
-
-  // ── Vergangene Trainings Dropdown ─────────────────────
-  var sel = document.getElementById('train-sel');
-  if(!sel) return;
-  if(!pastEvts_.length) {
-    sel.innerHTML = '<option value="">Keine vergangenen Trainings</option>';
-    trainSelectedEid = null;
-  } else {
-    sel.innerHTML = pastEvts_.map(function(e){
-      return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+'</option>';
-    }).join('');
-    if(!trainSelectedEid || !pastEvts_.find(function(e){return e.id===trainSelectedEid;})) {
-      trainSelectedEid = pastEvts_[0].id;
-    }
-    sel.value = trainSelectedEid;
-  }
-  renderTrainingContent();
-}
-
+function setTrainView(v) {}
+function onTrainSelChange() {}
 
 function buildTrainingOverview(eid) {
   var pl = players.filter(function(p){ return !p.isStaff; });
@@ -5078,7 +5008,6 @@ function buildTrainingOverview(eid) {
   var pct = pl.length ? Math.round(present.length/pl.length*100) : 0;
   var pctColor = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
 
-  // KPI bar
   var html = '<div style="display:flex;align-items:center;gap:20px;padding:12px 16px;background:var(--surface);border-bottom:2px solid var(--border);flex-wrap:wrap">'+
     '<div style="display:flex;align-items:baseline;gap:6px">'+
       '<span style="font-size:36px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+pctColor+'">'+present.length+'</span>'+
@@ -5092,14 +5021,11 @@ function buildTrainingOverview(eid) {
     '<div style="margin-left:auto;min-width:120px">'+barHtml(pct,120)+'</div>'+
   '</div>';
 
-  // Per-zone breakdown
   var FIELD_ZONES = ['Torwart','Abwehr','Mittelfeld','Angriff'];
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">';
   FIELD_ZONES.forEach(function(zone){
     var zPres = present.filter(function(p){ return p.zone===zone; });
     var zAll  = pl.filter(function(p){ return p.zone===zone; });
-    var zAbs  = absent.filter(function(p){ return p.zone===zone; });
-    var zUnk  = unknown.filter(function(p){ return p.zone===zone; });
     html += '<div style="padding:10px 14px;border-right:1px solid var(--border)">'+
       '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:4px">'+zone+'</div>'+
       '<div style="font-size:22px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+(zPres.length===zAll.length?'var(--green)':zPres.length===0?'var(--red)':'var(--amber)')+'">'+zPres.length+' <span style="font-size:13px;color:var(--muted);font-weight:400">/ '+zAll.length+'</span></div>'+
@@ -5107,7 +5033,6 @@ function buildTrainingOverview(eid) {
   });
   html += '</div>';
 
-  // Player lists
   function playerPill(p, status) {
     var bg = status==='present'?'#dcfce7':status==='absent'?'#fee2e2':'#f3f4f6';
     var color = status==='present'?'#15803d':status==='absent'?'#dc2626':'#6b7280';
@@ -5121,8 +5046,6 @@ function buildTrainingOverview(eid) {
   }
 
   html += '<div style="padding:12px 16px">';
-
-  // Anwesend grouped by zone
   if(present.length) {
     html += '<div style="margin-bottom:12px">'+
       '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);font-family:\'DM Mono\',monospace;margin-bottom:6px">✓ Anwesend ('+present.length+')</div>'+
@@ -5137,85 +5060,117 @@ function buildTrainingOverview(eid) {
     });
     html += '</div></div>';
   }
-
-  // Abwesend
   if(absent.length) {
     html += '<div style="margin-bottom:12px">'+
       '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--red);font-family:\'DM Mono\',monospace;margin-bottom:6px">✕ Abwesend ('+absent.length+')</div>'+
       '<div>'+absent.map(function(p){ return playerPill(p,'absent'); }).join('')+'</div>'+
     '</div>';
   }
-
-  // Unbekannt
   if(unknown.length) {
     html += '<div>'+
       '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:6px">? Unbekannt ('+unknown.length+')</div>'+
       '<div>'+unknown.map(function(p){ return playerPill(p,'unknown'); }).join('')+'</div>'+
     '</div>';
   }
-
   html += '</div>';
   return html;
 }
 
+function autoSetPresent(eid) {
+  if(!attendance[eid]) attendance[eid] = {};
+  players.forEach(function(p){
+    if(attendance[eid][p.id] === undefined) {
+      attendance[eid][p.id] = {present: true, reason: null};
+    }
+  });
+}
+
+function renderTraining() { renderTrainingContent(); }
+
 function renderTrainingContent() {
   var el = document.getElementById('train-content');
-  if(!el || !trainSelectedEid) { if(el) el.innerHTML=''; return; }
-  el.innerHTML = buildTrainingOverview(trainSelectedEid);
-}
-
-function setSpielView(v) {} // no longer needed
-function onSpielSelChange() {
-  var sel=document.getElementById('spiel-sel');
-  spielSelectedEid=sel?parseInt(sel.value):null;
-  renderKaderContent();
-}
-
-function renderKader() {
+  if(!el) return;
   var t = today();
-  var pastSpiele   = events.filter(function(e){return e.type==='spiel'&&e.date<t;}).sort(function(a,b){return b.date.localeCompare(a.date);});
-  var todaySpiele  = events.filter(function(e){return e.type==='spiel'&&e.date===t;});
-  var futureSpiele = events.filter(function(e){return e.type==='spiel'&&e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var todayEvts   = events.filter(function(e){return e.type==='training' && e.date===t;});
+  var futureEvts_ = events.filter(function(e){return e.type==='training' && e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var evts = todayEvts.concat(futureEvts_);
 
-  // ── Nächstes/Heutiges Spiel ──────────────────────
-  var nextEvt = todaySpiele[0] || futureSpiele[0] || null;
-  var nextTitleEl  = document.getElementById('spiel-next-title');
-  var nextContentEl= document.getElementById('spiel-next-content');
-  if(nextTitleEl) nextTitleEl.textContent = nextEvt
-    ? (todaySpiele.length ? 'Heute — ' : 'Nächstes Spiel — ') + fmtDate(nextEvt.date) + ' · ' + nextEvt.name
-    : 'Keine bevorstehenden Spiele';
-  if(nextContentEl) {
-    if(nextEvt) {
-      autoSetPresent(nextEvt.id);
-      nextContentEl.innerHTML = buildTrainingOverview(nextEvt.id);
-    } else {
-      nextContentEl.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Spiele geplant.</div>';
-    }
-  }
+  var countEl = document.getElementById('train-count');
+  if(countEl) countEl.textContent = evts.length + ' Einheiten';
 
-  // ── Vergangene Spiele Dropdown ───────────────────
-  var sel = document.getElementById('spiel-sel');
-  if(!sel) return;
-  if(!pastSpiele.length) {
-    sel.innerHTML = '<option value="">Keine vergangenen Spiele</option>';
-    spielSelectedEid = null;
-  } else {
-    sel.innerHTML = pastSpiele.map(function(e){
-      var res = e.resultat ? ' ('+e.resultat+')' : '';
-      return '<option value="'+e.id+'">'+fmtDate(e.date)+' — '+e.name+res+'</option>';
-    }).join('');
-    if(!spielSelectedEid || !pastSpiele.find(function(e){return e.id===spielSelectedEid;})) {
-      spielSelectedEid = pastSpiele[0].id;
-    }
-    sel.value = spielSelectedEid;
+  if(!evts.length) {
+    el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Trainings geplant.</div>';
+    return;
   }
-  renderKaderContent();
+  el.innerHTML = evts.map(function(e, i){
+    var pl=players.filter(function(p){return !p.isStaff;});
+    var absent=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present;}).length;
+    var pres=pl.length-absent;
+    var col=absent===0?'var(--green)':absent<=3?'var(--amber)':'var(--red)';
+    var isToday = e.date===t;
+    var isOpen = i < 3;
+    autoSetPresent(e.id);
+    return '<div style="border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;background:'+(isOpen?'#fafaf8':'#fff')+';user-select:none" onclick="toggleTrainCard(this)">'+
+        (isToday?'<span style="background:var(--amber);color:#7c2d00;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px">HEUTE</span>':'')+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted);min-width:80px">'+fmtDate(e.date)+'</span>'+
+        '<span style="font-size:13px;font-weight:500;flex:1">'+e.name+'</span>'+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+col+'">'+pres+'/'+pl.length+'</span>'+
+        '<span style="font-size:11px;color:var(--muted);margin-left:8px">'+(isOpen?'▲':'▼')+'</span>'+
+      '</div>'+
+      '<div style="display:'+(isOpen?'block':'none')+'">'+buildTrainingOverview(e.id)+'</div>'+
+    '</div>';
+  }).join('');
 }
+
+function toggleTrainCard(header) {
+  var body = header.nextElementSibling;
+  var arrow = header.querySelector('span:last-child');
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+  header.style.background = isOpen ? '#fff' : '#fafaf8';
+}
+
+function setSpielView(v) {}
+function onSpielSelChange() {}
+
+function renderKader() { renderKaderContent(); }
 
 function renderKaderContent() {
   var el = document.getElementById('spiel-content');
-  if(!el || !spielSelectedEid) { if(el) el.innerHTML=''; return; }
-  el.innerHTML = buildTrainingOverview(spielSelectedEid);
+  if(!el) return;
+  var t = today();
+  var todaySpiele  = events.filter(function(e){return e.type==='spiel' && e.date===t;});
+  var futureSpiele = events.filter(function(e){return e.type==='spiel' && e.date>t;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var evts = todaySpiele.concat(futureSpiele);
+
+  var countEl = document.getElementById('spiel-count');
+  if(countEl) countEl.textContent = evts.length + ' Spiele';
+
+  if(!evts.length) {
+    el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px">Keine bevorstehenden Spiele.</div>';
+    return;
+  }
+  el.innerHTML = evts.map(function(e, i){
+    var pl=players.filter(function(p){return !p.isStaff;});
+    var absent=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present;}).length;
+    var pres=pl.length-absent;
+    var col=absent===0?'var(--green)':absent<=3?'var(--amber)':'var(--red)';
+    var isToday = e.date===t;
+    var isOpen = i < 3;
+    autoSetPresent(e.id);
+    return '<div style="border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;background:'+(isOpen?'#fafaf8':'#fff')+';user-select:none" onclick="toggleTrainCard(this)">'+
+        (isToday?'<span style="background:var(--amber);color:#7c2d00;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px">HEUTE</span>':'')+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted);min-width:80px">'+fmtDate(e.date)+'</span>'+
+        '<span style="font-size:13px;font-weight:500;flex:1">'+e.name+'</span>'+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+col+'">'+pres+'/'+pl.length+'</span>'+
+        '<span style="font-size:11px;color:var(--muted);margin-left:8px">'+(isOpen?'▲':'▼')+'</span>'+
+      '</div>'+
+      '<div style="display:'+(isOpen?'block':'none')+'">'+buildTrainingOverview(e.id)+'</div>'+
+    '</div>';
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -5277,14 +5232,14 @@ function renderUebersicht() {
 
   // ── Table ───────────────────────────────────────
   var html = toggleBar +
-    '<div style="overflow-x:auto;overflow-y:visible;width:100%;-webkit-overflow-scrolling:touch">' +
+    '<div style="overflow:auto;width:100%;max-height:calc(100vh - 200px);-webkit-overflow-scrolling:touch">' +
     '<table style="border-collapse:collapse;font-size:11px;table-layout:fixed;width:max-content;min-width:100%">';
 
   html += '<caption style="caption-side:top;padding:4px 8px;text-align:right;font-size:11px;color:var(--muted)">← Scrollen →</caption>';
 
   // Header row 1: anwesend count
-  html += '<thead><tr style="background:var(--surface)">';
-  html += '<th style="position:sticky;left:0;z-index:3;background:var(--surface);min-width:155px;padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-align:left">Anwesend</th>';
+  html += '<thead style="position:sticky;top:0;z-index:10"><tr style="background:var(--surface)">';
+  html += '<th style="position:sticky;left:0;z-index:11;background:var(--surface);min-width:155px;padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-align:left">Anwesend</th>';
   evtsVisible.forEach(function(e){
     var isFut=e.date>t;
     var isToday=e.date===t;
@@ -5297,11 +5252,11 @@ function renderUebersicht() {
       : presentCount;
     html+='<th style="background:'+bg+';min-width:38px;width:38px;text-align:center;padding:3px 2px;border-bottom:1px solid var(--border);font-size:9px;color:'+pctColor+';font-family:monospace;font-weight:600">'+displayVal+'</th>';
   });
-  html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:4px 4px;border-bottom:1px solid var(--border)"></th></tr>';
+  html += '<th style="position:sticky;right:0;z-index:11;background:var(--surface);min-width:44px;padding:4px 4px;border-bottom:1px solid var(--border)"></th></tr>';
 
   // Header row 2: dates
   html += '<tr style="background:var(--surface)">';
-  html += '<th style="position:sticky;left:0;z-index:3;background:var(--surface);min-width:155px;padding:6px 8px;border-bottom:2px solid var(--border);text-align:left;font-size:12px">Spieler</th>';
+  html += '<th style="position:sticky;left:0;z-index:11;background:var(--surface);min-width:155px;padding:6px 8px;border-bottom:2px solid var(--border);text-align:left;font-size:12px">Spieler</th>';
   evtsVisible.forEach(function(e){
     var isFut=e.date>t;
     var isToday=e.date===t;
@@ -5309,7 +5264,7 @@ function renderUebersicht() {
     html+='<th style="min-width:38px;width:38px;background:'+bg+';writing-mode:vertical-rl;transform:rotate(180deg);height:80px;padding:4px 3px;font-size:9px;font-weight:500;border-bottom:2px solid var(--border);text-align:center;cursor:default;white-space:nowrap'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+fmtDate(e.date)+' — '+e.name+'">'+
       fmtShort(e.date)+'<br>'+(e.type==='spiel'?'S':'T')+'</th>';
   });
-  html += '<th style="position:sticky;right:0;z-index:3;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%</th></tr>';
+  html += '<th style="position:sticky;right:0;z-index:11;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%</th></tr>';
   html += '</thead><tbody>';
 
   ZONES_ALL.forEach(function(zone){
@@ -5664,10 +5619,12 @@ function openPlayerDetail(pid) {
   var all=playerRateAll(pid);
 
   function rRow(label,r) {
-    if(!r) return '<tr><td style="font-size:12px;color:var(--muted)">'+label+'</td><td colspan="3" style="font-size:12px;color:var(--muted)">—</td></tr>';
+    if(!r) return '<tr><td style="font-size:12px;color:var(--muted)">'+label+'</td><td colspan="4" style="font-size:12px;color:var(--muted)">—</td></tr>';
+    var ab = r.total - r.att;
     return '<tr><td style="font-size:12px">'+label+'</td>'+
-      '<td class="r" style="color:var(--green);font-size:12px">'+r.att+'</td>'+
-      '<td class="r" style="color:var(--red);font-size:12px">'+(r.total-r.att)+'</td>'+
+      '<td class="r" style="color:var(--green);font-size:12px;font-weight:600">'+r.att+'</td>'+
+      '<td class="r" style="color:var(--red);font-size:12px;font-weight:600">'+ab+'</td>'+
+      '<td class="r" style="font-size:11px;color:var(--muted)">/ '+r.total+'</td>'+
       '<td>'+pctBadge(r.pct)+'</td></tr>';
   }
 
@@ -5703,9 +5660,13 @@ function openPlayerDetail(pid) {
     '<div style="background:var(--surface);border-radius:8px;padding:0.75rem">'+
     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:8px">Anwesenheit</div>'+
     '<table style="width:100%;border-collapse:collapse">'+
-    '<thead><tr><th style="text-align:left;font-size:11px;font-weight:400;color:var(--muted);padding-bottom:4px">Periode</th>'+
-    '<th class="r" style="font-size:11px;font-weight:400;color:var(--muted)">An</th>'+
-    '<th class="r" style="font-size:11px;font-weight:400;color:var(--muted)">Ab</th><th></th></tr></thead>'+
+    '<thead><tr>'+
+    '<th style="text-align:left;font-size:11px;font-weight:400;color:var(--muted);padding-bottom:4px">Periode</th>'+
+    '<th class="r" style="font-size:11px;font-weight:400;color:var(--green)">An</th>'+
+    '<th class="r" style="font-size:11px;font-weight:400;color:var(--red)">Ab</th>'+
+    '<th class="r" style="font-size:11px;font-weight:400;color:var(--muted)">Total</th>'+
+    '<th class="r" style="font-size:11px;font-weight:400;color:var(--muted)">%</th>'+
+    '</tr></thead>'+
     rRow('Training VR',all.train_vr)+rRow('Training RR',all.train_rr)+rRow('Training Total',all.train_tot)+
     rRow('Spiele VR',all.spiel_vr)+rRow('Spiele RR',all.spiel_rr)+rRow('Spiele Total',all.spiel_tot)+
     '</table></div></div>'+
