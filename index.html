@@ -5364,15 +5364,15 @@ function renderUebersichtKeepScroll() {
   var outer = document.getElementById('uebersicht-content');
   var scrollEl = outer ? outer.querySelector('div[style*="overflow"]') : null;
   var scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
-  var contentEl = document.querySelector('.content');
-  var scrollTop = contentEl ? contentEl.scrollTop : 0;
+  var scrollTop  = scrollEl ? scrollEl.scrollTop  : 0;
   renderUebersicht();
   requestAnimationFrame(function() {
     var outer2 = document.getElementById('uebersicht-content');
     var scrollEl2 = outer2 ? outer2.querySelector('div[style*="overflow"]') : null;
-    if(scrollEl2) scrollEl2.scrollLeft = scrollLeft;
-    var contentEl2 = document.querySelector('.content');
-    if(contentEl2) contentEl2.scrollTop = scrollTop;
+    if(scrollEl2) {
+      scrollEl2.scrollLeft = scrollLeft;
+      scrollEl2.scrollTop  = scrollTop;
+    }
   });
 }
 
