@@ -4465,7 +4465,7 @@ function mobSaveAttendance(present) {
   if(_syncTimer) clearTimeout(_syncTimer);
   syncToSupabase();
   showSaveToast();
-  renderTrainingContent(); renderKaderContent(); renderUebersicht(); renderDashboard();
+  renderTrainingContent(); renderKaderContent(); renderUebersichtKeepScroll(); renderDashboard();
   mobRenderUpcoming();
   mobRenderNextEvent();
   mobRenderNextEvent();
@@ -4723,7 +4723,7 @@ function renderAll() {
   renderDashboard();
   renderTraining();
   renderKader();
-  renderUebersicht();
+  renderUebersichtKeepScroll();
   renderEvents();
   renderPlayers();
   renderMinuten();
@@ -5239,7 +5239,7 @@ function renderUebersicht() {
 
   // Header row 1: anwesend count
   html += '<thead style="position:sticky;top:0;z-index:10"><tr style="background:var(--surface)">';
-  html += '<th style="position:sticky;left:0;z-index:11;background:var(--surface);min-width:155px;padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-align:left">Anwesend</th>';
+  html += '<th style="position:sticky;left:0;z-index:12;background:var(--surface);min-width:155px;padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-align:left">Anwesend</th>';
   evtsVisible.forEach(function(e){
     var isFut=e.date>t;
     var isToday=e.date===t;
@@ -5247,16 +5247,14 @@ function renderUebersicht() {
     var presentCount=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present;}).length;
     var absentCount=pl.filter(function(p){return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present;}).length;
     var pctColor=isFut?(absentCount>0?'var(--amber)':'var(--green)'):(presentCount/pl.length>=0.75?'var(--green)':presentCount/pl.length>=0.5?'var(--amber)':'var(--red)');
-    var displayVal = isFut
-      ? (pl.length - absentCount) // future: kader minus known absents
-      : presentCount;
+    var displayVal=isFut?(pl.length-absentCount):presentCount;
     html+='<th style="background:'+bg+';min-width:38px;width:38px;text-align:center;padding:3px 2px;border-bottom:1px solid var(--border);font-size:9px;color:'+pctColor+';font-family:monospace;font-weight:600">'+displayVal+'</th>';
   });
-  html += '<th style="position:sticky;right:0;z-index:11;background:var(--surface);min-width:44px;padding:4px 4px;border-bottom:1px solid var(--border)"></th></tr>';
+  html += '<th style="position:sticky;right:0;z-index:12;background:var(--surface);min-width:44px;padding:4px 4px;border-bottom:1px solid var(--border)"></th></tr>';
 
   // Header row 2: dates
   html += '<tr style="background:var(--surface)">';
-  html += '<th style="position:sticky;left:0;z-index:11;background:var(--surface);min-width:155px;padding:6px 8px;border-bottom:2px solid var(--border);text-align:left;font-size:12px">Spieler</th>';
+  html += '<th style="position:sticky;left:0;z-index:12;background:var(--surface);min-width:155px;padding:6px 8px;border-bottom:2px solid var(--border);text-align:left;font-size:12px">Spieler</th>';
   evtsVisible.forEach(function(e){
     var isFut=e.date>t;
     var isToday=e.date===t;
@@ -5264,14 +5262,16 @@ function renderUebersicht() {
     html+='<th style="min-width:38px;width:38px;background:'+bg+';writing-mode:vertical-rl;transform:rotate(180deg);height:80px;padding:4px 3px;font-size:9px;font-weight:500;border-bottom:2px solid var(--border);text-align:center;cursor:default;white-space:nowrap'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+fmtDate(e.date)+' — '+e.name+'">'+
       fmtShort(e.date)+'<br>'+(e.type==='spiel'?'S':'T')+'</th>';
   });
-  html += '<th style="position:sticky;right:0;z-index:11;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%</th></tr>';
+  html += '<th style="position:sticky;right:0;z-index:12;background:var(--surface);min-width:44px;padding:6px 4px;border-bottom:2px solid var(--border);text-align:center;font-size:11px">%</th></tr>';
   html += '</thead><tbody>';
 
   ZONES_ALL.forEach(function(zone){
     var zp=players.filter(function(p){return p.zone===zone;});
     if(!zp.length) return;
-    html+='<tr><td colspan="'+(evtsVisible.length+2)+'" style="padding:0;border-bottom:none">'+
-      '<div class="zone-hdr" style="min-width:155px">'+zoneBadge(zone)+'</div></td></tr>';
+
+    // Zone separator row
+    html+='<tr><td colspan="'+(evtsVisible.length+2)+'" style="padding:0;border-bottom:none;position:sticky;top:108px;z-index:9;background:var(--surface)">'+
+      '<div class="zone-hdr" style="min-width:155px;border-top:2px solid var(--border)">'+zoneBadge(zone)+'</div></td></tr>';
     zp.forEach(function(p){
       var attCount=0, totalPast=0;
       html+='<tr>';
@@ -5311,7 +5311,8 @@ function renderUebersicht() {
               'onchange="setReasonUebersicht('+e.id+','+p.id+',this.value)">'+opts+'</select>';
           }
         }
-        html+='<td style="text-align:center;background:'+bg+';border:1px solid rgba(0,0,0,0.04);padding:2px;vertical-align:top;width:38px;min-width:38px'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+title+'">'+
+        var cellTitle = fmtDate(e.date) + (e.name !== 'Training' ? ' · ' + e.name : '') + (title ? ' — ' + title : '');
+        html+='<td style="text-align:center;background:'+bg+';border:1px solid rgba(0,0,0,0.04);padding:2px;vertical-align:top;width:38px;min-width:38px'+(isToday?';border-left:2px solid var(--amber);border-right:2px solid var(--amber)':'')+'" title="'+cellTitle+'">'+
           '<div style="cursor:pointer;font-size:12px;line-height:1.4" onclick="quickToggleAtt('+e.id+','+p.id+')">'+cell+'</div>'+
           selHtml+'</td>';
       });
@@ -5333,7 +5334,7 @@ function toggleUebersichtPast() {
   var container = document.getElementById('uebersicht-content');
   if(!container) return;
   container._pastExpanded = !container._pastExpanded;
-  renderUebersicht();
+  renderUebersichtKeepScroll();
 }
 
 
@@ -5360,17 +5361,15 @@ function clearReasonUebersicht(eid,pid) {
 }
 
 function renderUebersichtKeepScroll() {
-  // Preserve horizontal scroll of table and vertical scroll of page
   var outer = document.getElementById('uebersicht-content');
-  var scrollEl = outer ? outer.querySelector('div[style*="overflow-x"]') : null;
+  var scrollEl = outer ? outer.querySelector('div[style*="overflow"]') : null;
   var scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
   var contentEl = document.querySelector('.content');
   var scrollTop = contentEl ? contentEl.scrollTop : 0;
   renderUebersicht();
-  // Restore scroll positions after render
   requestAnimationFrame(function() {
     var outer2 = document.getElementById('uebersicht-content');
-    var scrollEl2 = outer2 ? outer2.querySelector('div[style*="overflow-x"]') : null;
+    var scrollEl2 = outer2 ? outer2.querySelector('div[style*="overflow"]') : null;
     if(scrollEl2) scrollEl2.scrollLeft = scrollLeft;
     var contentEl2 = document.querySelector('.content');
     if(contentEl2) contentEl2.scrollTop = scrollTop;
@@ -5934,7 +5933,7 @@ function renderReasonsList() {
 function updateKuerzel(id, val) {
   var r=absenceReasons.find(function(x){return x.id===id;});
   if(r) {r.kuerzel=val.trim().toUpperCase().charAt(0)||r.label.charAt(0);}
-  saveData(); renderAbsenceChart('dash-absence-chart'); renderUebersicht();
+  saveData(); renderAbsenceChart('dash-absence-chart'); renderUebersichtKeepScroll();
 }
 
 // ═══════════════════════════════════════════════
@@ -5978,7 +5977,7 @@ function toggleAttSave(eid,pid) {
   var cur=attendance[eid][pid]||{present:false,reason:null};
   attendance[eid][pid]={present:!cur.present,reason:cur.reason};
   saveData(); showSaveToast();
-  renderTrainingContent(); renderKaderContent(); renderDashboard(); renderUebersicht();
+  renderTrainingContent(); renderKaderContent(); renderDashboard(); renderUebersichtKeepScroll();
 }
 function setReasonSave(eid,pid,rid) {
   if(!attendance[eid]) attendance[eid]={};
