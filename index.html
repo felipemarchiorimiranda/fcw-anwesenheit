@@ -408,7 +408,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
             <span id="kp-total" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace"></span>
           </div>
           <table class="tbl" id="kp-kaderliste-tbl">
-            <thead><tr><th>Vorname</th><th>Nachname</th><th>Position</th><th>Status</th><th>Notiz</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Position</th><th>Status</th><th>Notiz</th><th></th></tr></thead>
             <tbody id="kp-kaderliste-body"></tbody>
           </table>
           <div style="padding:0.6rem 1.1rem;border-top:1px solid var(--border);display:flex;gap:6px">
@@ -420,38 +420,23 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <!-- Nächste Saison -->
         <div class="card">
           <div class="card-header"><span class="card-title" id="kp-next-season-title">Planung nächste Saison</span><button class="btn sm" onclick="kpAddNextSeason()">+</button></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem 1.1rem" id="kp-next-season-grid">
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);font-family:'DM Mono',monospace;margin-bottom:4px">✓ Fix</div>
-              <div id="kp-next-fix"></div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);font-family:'DM Mono',monospace;margin-bottom:4px">? Unklar</div>
-              <div id="kp-next-unklar"></div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6366f1;font-family:'DM Mono',monospace;margin-bottom:4px">↑ Zuzüge</div>
-              <div id="kp-next-zuzuege"></div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0891b2;font-family:'DM Mono',monospace;margin-bottom:4px">★ Potenzielle Spieler</div>
-              <div id="kp-next-potenzielle"></div>
-            </div>
-          </div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Position</th><th>Status</th><th>Bemerkung</th><th></th></tr></thead>
+            <tbody id="kp-next-body"></tbody>
+          </table>
           <div style="padding:0.6rem 1.1rem;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
             <input type="text" id="kp-next-vorname" class="inp" placeholder="Vorname" style="width:100px">
             <input type="text" id="kp-next-nachname" class="inp" placeholder="Nachname" style="width:100px">
-            <select id="kp-next-status" class="inp" style="width:110px">
+            <select id="kp-next-status" class="inp" style="width:120px">
               <option value="fix">Fix</option>
               <option value="unklar">Unklar</option>
               <option value="zuzug">Zuzug</option>
-              <option value="potenziell">Potenziell</option>
+              <option value="potenziell">Pot. Spieler</option>
             </select>
-            <input type="text" id="kp-next-notiz" class="inp" placeholder="Bemerkung (z.B. B-Junior)" style="flex:1;min-width:80px">
+            <input type="text" id="kp-next-notiz" class="inp" placeholder="Bemerkung..." style="flex:1;min-width:80px">
             <button class="btn pri" onclick="kpAddNextSeason()">+</button>
           </div>
         </div>
-
         <!-- Trainingskleidung -->
         <div class="card" style="grid-column:1/-1">
           <div class="card-header">
@@ -6392,10 +6377,21 @@ function kpAddCaptain(type) {
 function renderKpAbgaenge() {
   var body = document.getElementById('kp-abgaenge-body');
   if(!body) return;
+
+  // Player dropdown options from current squad
+  var playerOpts = '<option value="">— Freitext —</option>' +
+    players.filter(function(p){return !p.isStaff;})
+      .sort(function(a,b){return a.name.localeCompare(b.name);})
+      .map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('');
+
   body.innerHTML = kpData.abgaenge.map(function(a, i){
     return '<tr>'+
-      '<td><input class="inp" value="'+a.name+'" style="width:130px;font-size:12px" onchange="kpData.abgaenge['+i+'].name=this.value;saveKpData()"></td>'+
-      '<td><input class="inp" value="'+(a.grund||'')+'" style="width:130px;font-size:12px" placeholder="Grund..." onchange="kpData.abgaenge['+i+'].grund=this.value;saveKpData()"></td>'+
+      '<td>'+
+        '<select class="inp" style="font-size:12px;width:160px" onchange="kpData.abgaenge['+i+'].name=this.value;saveKpData()">'+
+          playerOpts.replace('value="'+a.name+'"','value="'+a.name+'" selected')+
+        '</select>'+
+      '</td>'+
+      '<td><input class="inp" value="'+(a.grund||'')+'" style="width:150px;font-size:12px" placeholder="Grund..." onchange="kpData.abgaenge['+i+'].grund=this.value;saveKpData()"></td>'+
       '<td><button class="btn danger" onclick="kpData.abgaenge.splice('+i+',1);saveKpData();renderKpAbgaenge()">×</button></td>'+
     '</tr>';
   }).join('') || '<tr><td colspan="3" style="font-size:12px;color:var(--muted);text-align:center">Keine Abgänge</td></tr>';
@@ -6408,9 +6404,9 @@ function kpAddAbgang() {
 }
 
 var KP_STATUS = {
-  'normal': {label:'Normal', bg:'#fff',      color:'#111'},
-  'gelb':   {label:'Unklar', bg:'#fef9c3',   color:'#b45309'},
-  'orange': {label:'Problem',bg:'#ffedd5',   color:'#c2410c'}
+  'zugesagt': {label:'Zugesagt', bg:'#dcfce7', color:'#15803d'},
+  'unklar':   {label:'Unklar',   bg:'#fef9c3', color:'#b45309'},
+  'abgesagt': {label:'Abgesagt', bg:'#fee2e2', color:'#dc2626'}
 };
 
 function renderKpKaderliste() {
@@ -6425,24 +6421,68 @@ function renderKpKaderliste() {
         .sort(function(a,b){return a.name.localeCompare(b.name);})
         .map(function(p){ return '<option value="'+p.id+'">'+p.name+'</option>'; }).join('');
   }
-  body.innerHTML = kpData.kaderliste.map(function(k, i){
-    var sc = KP_STATUS[k.status||'normal'];
-    var posOpts = '<option value="">—</option>' + positions.map(function(p){
-      return '<option value="'+p+'"'+(k.position===p?' selected':'')+'>'+p+'</option>';
-    }).join('');
-    return '<tr style="background:'+sc.bg+'">'+
-      '<td style="font-size:13px">'+k.vorname+'</td>'+
-      '<td style="font-size:13px;font-weight:500">'+k.nachname+'</td>'+
-      '<td><select class="inp" style="font-size:11px;height:26px;padding:0 4px" onchange="kpData.kaderliste['+i+'].position=this.value;saveKpData()">'+posOpts+'</select></td>'+
-      '<td>'+
-        '<select class="inp" style="font-size:11px;height:26px;padding:0 4px;background:'+sc.bg+'" onchange="kpData.kaderliste['+i+'].status=this.value;saveKpData();renderKpKaderliste()">'+
+
+  if(!kpData.kaderliste.length) {
+    body.innerHTML = '<tr><td colspan="5" style="font-size:12px;color:var(--muted);text-align:center">Keine Spieler</td></tr>';
+    return;
+  }
+
+  // Group by zone based on position
+  var zoneOrder = ['Torwart','Abwehr','Mittelfeld','Angriff','—'];
+  var grouped = {}; zoneOrder.forEach(function(z){ grouped[z] = []; });
+  kpData.kaderliste.forEach(function(k, i){
+    var pos = (k.position||'').toLowerCase();
+    var zone = '—';
+    if(pos.indexOf('torwart') >= 0) zone = 'Torwart';
+    else if(pos.indexOf('verteidiger') >= 0) zone = 'Abwehr';
+    else if(pos.indexOf('mittelfeld') >= 0 || pos.indexOf('fl') >= 0) zone = 'Mittelfeld';
+    else if(pos.indexOf('st') >= 0) zone = 'Angriff';
+    grouped[zone].push({k:k, i:i});
+  });
+
+  var zoneColors = {'Torwart':'#f59e0b','Abwehr':'#3b82f6','Mittelfeld':'#22c55e','Angriff':'#ef4444','—':'#9ca3af'};
+  var html = '';
+  zoneOrder.forEach(function(zone){
+    var items = grouped[zone];
+    if(!items.length) return;
+    html += '<tr><td colspan="5" style="background:#f4f4f4;padding:4px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:'+zoneColors[zone]+';font-family:\'DM Mono\',monospace;border-top:2px solid var(--border)">'+zone+'</td></tr>';
+    items.forEach(function(item){
+      var k = item.k, i = item.i;
+      var sc = KP_STATUS[k.status||'zugesagt'] || KP_STATUS['zugesagt'];
+      var posOpts = '<option value="">—</option>' + positions.map(function(p){
+        return '<option value="'+p+'"'+(k.position===p?' selected':'')+'>'+p+'</option>';
+      }).join('');
+      html += '<tr style="background:'+sc.bg+'">'+
+        '<td style="font-size:13px;font-weight:600;color:'+sc.color+'">'+k.vorname+' '+k.nachname+'</td>'+
+        '<td><select class="inp" style="font-size:11px;height:26px;padding:0 4px;width:150px" onchange="kpData.kaderliste['+i+'].position=this.value;saveKpData();renderKpKaderliste()">'+posOpts+'</select></td>'+
+        '<td><select class="inp" style="font-size:11px;height:26px;padding:0 4px;background:'+sc.bg+';color:'+sc.color+';font-weight:600" onchange="kpKaderStatusChange('+i+',this.value)">'+
           Object.keys(KP_STATUS).map(function(s){return '<option value="'+s+'"'+(k.status===s?' selected':'')+'>'+KP_STATUS[s].label+'</option>';}).join('')+
-        '</select>'+
-      '</td>'+
-      '<td><input class="inp" value="'+(k.notiz||'')+'" style="width:100%;font-size:11px" placeholder="Notiz..." onchange="kpData.kaderliste['+i+'].notiz=this.value;saveKpData()"></td>'+
-      '<td><button class="btn danger" onclick="kpData.kaderliste.splice('+i+',1);saveKpData();renderKpKaderliste()">×</button></td>'+
-    '</tr>';
-  }).join('') || '<tr><td colspan="6" style="font-size:12px;color:var(--muted);text-align:center">Keine Spieler</td></tr>';
+        '</select></td>'+
+        '<td><input class="inp" value="'+(k.notiz||'')+'" style="width:100%;font-size:11px" placeholder="Notiz..." onchange="kpData.kaderliste['+i+'].notiz=this.value;saveKpData()"></td>'+
+        '<td><button class="btn danger" onclick="kpData.kaderliste.splice('+i+',1);saveKpData();renderKpKaderliste()">×</button></td>'+
+      '</tr>';
+    });
+  });
+  body.innerHTML = html;
+}
+
+function kpKaderStatusChange(i, val) {
+  var k = kpData.kaderliste[i];
+  var name = k.vorname + ' ' + k.nachname;
+  if(val === 'abgesagt') {
+    // Add to abgaenge
+    var exists = kpData.abgaenge.find(function(a){ return a.name === name; });
+    if(!exists) kpData.abgaenge.push({name:name, grund:''});
+    // Remove from kaderliste
+    kpData.kaderliste.splice(i, 1);
+    saveKpData();
+    renderKpKaderliste();
+    renderKpAbgaenge();
+  } else {
+    kpData.kaderliste[i].status = val;
+    saveKpData();
+    renderKpKaderliste();
+  }
 }
 
 function kpAddToKaderliste() {
@@ -6450,44 +6490,66 @@ function kpAddToKaderliste() {
   if(!sel||!sel.value) return;
   var p = players.find(function(x){return x.id==sel.value;});
   if(!p) return;
+  if(kpData.kaderliste.find(function(k){ return k.vorname+' '+k.nachname === p.name; })) return;
   var parts = p.name.split(' ');
-  kpData.kaderliste.push({vorname:parts[0], nachname:parts.slice(1).join(' '), position:p.pos1||'', status:'normal', notiz:''});
+  kpData.kaderliste.push({vorname:parts[0], nachname:parts.slice(1).join(' '), position:p.pos1||'', status:'zugesagt', notiz:''});
   saveKpData();
   renderKpKaderliste();
 }
 
+
+var KP_NEXT_STATUS = {
+  'fix':       {label:'Fix',              bg:'#dcfce7', color:'#15803d'},
+  'unklar':    {label:'Unklar',           bg:'#fef9c3', color:'#b45309'},
+  'zuzug':     {label:'Zuzug',           bg:'#e0e7ff', color:'#4338ca'},
+  'potenziell':{label:'Pot. Spieler',    bg:'#cffafe', color:'#0e7490'}
+};
+
 function renderKpNextSeason() {
-  var fix    = document.getElementById('kp-next-fix');
-  var unklar = document.getElementById('kp-next-unklar');
-  var zuzug  = document.getElementById('kp-next-zuzuege');
-  var pot    = document.getElementById('kp-next-potenzielle');
-  if(!fix) return;
+  var body = document.getElementById('kp-next-body');
+  if(!body) return;
 
-  function pill(p, i) {
-    var cfg = {
-      'fix':       {bg:'#dcfce7', color:'#15803d'},
-      'unklar':    {bg:'#fef9c3', color:'#b45309'},
-      'zuzug':     {bg:'#e0e7ff', color:'#4338ca'},
-      'potenziell':{bg:'#cffafe', color:'#0e7490'}
-    };
-    var c = cfg[p.status] || cfg['fix'];
-    return '<div style="display:flex;align-items:center;gap:4px;padding:3px 0;font-size:12px">'+
-      '<span style="flex:1"><strong>'+p.vorname+'</strong> '+p.nachname+
-        (p.notiz?' <span style="font-size:10px;color:var(--muted)">('+p.notiz+')</span>':'')+
-      '</span>'+
-      '<button class="btn danger" style="padding:2px 6px" onclick="kpData.nextSeason.splice('+i+',1);saveKpData();renderKpNextSeason()">×</button>'+
-    '</div>';
+  if(!kpData.nextSeason.length) {
+    body.innerHTML = '<tr><td colspan="5" style="font-size:12px;color:var(--muted);text-align:center">Keine Einträge</td></tr>';
+    return;
   }
 
-  function render(el, status) {
-    var items = kpData.nextSeason.map(function(p,i){return {p:p,i:i};}).filter(function(x){return x.p.status===status;});
-    el.innerHTML = items.length ? items.map(function(x){return pill(x.p,x.i);}).join('') : '<div style="font-size:11px;color:var(--muted)">—</div>';
-  }
+  // Sort by status order
+  var statusOrder = ['fix','zuzug','unklar','potenziell'];
+  var sorted = kpData.nextSeason.map(function(p,i){return {p:p,i:i};}).sort(function(a,b){
+    return statusOrder.indexOf(a.p.status||'fix') - statusOrder.indexOf(b.p.status||'fix');
+  });
 
-  render(fix,    'fix');
-  render(unklar, 'unklar');
-  render(zuzug,  'zuzug');
-  if(pot) render(pot, 'potenziell');
+  // Group by status
+  var lastStatus = null;
+  var html = '';
+  var statusLabels = {'fix':'✓ Fix','zuzug':'↑ Zuzüge','unklar':'? Unklar','potenziell':'★ Potenzielle Spieler'};
+  var statusColors = {'fix':'#15803d','zuzug':'#4338ca','unklar':'#b45309','potenziell':'#0e7490'};
+
+  sorted.forEach(function(item){
+    var p = item.p, i = item.i;
+    var sc = KP_NEXT_STATUS[p.status||'fix'] || KP_NEXT_STATUS['fix'];
+
+    if(p.status !== lastStatus) {
+      lastStatus = p.status;
+      html += '<tr><td colspan="5" style="background:#f4f4f4;padding:4px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:'+(statusColors[p.status]||'#555')+';font-family:\'DM Mono\',monospace;border-top:2px solid var(--border)">'+(statusLabels[p.status]||p.status)+'</td></tr>';
+    }
+
+    var posOpts = '<option value="">—</option>' + positions.map(function(pos){
+      return '<option value="'+pos+'"'+(p.position===pos?' selected':'')+'>'+pos+'</option>';
+    }).join('');
+
+    html += '<tr style="background:'+sc.bg+'">'+
+      '<td style="font-size:13px;font-weight:600;color:'+sc.color+'">'+p.vorname+' '+p.nachname+'</td>'+
+      '<td><select class="inp" style="font-size:11px;height:26px;padding:0 4px;width:150px" onchange="kpData.nextSeason['+i+'].position=this.value;saveKpData()">'+posOpts+'</select></td>'+
+      '<td><select class="inp" style="font-size:11px;height:26px;padding:0 4px;background:'+sc.bg+';color:'+sc.color+';font-weight:600" onchange="kpData.nextSeason['+i+'].status=this.value;saveKpData();renderKpNextSeason()">'+
+        Object.keys(KP_NEXT_STATUS).map(function(s){return '<option value="'+s+'"'+(p.status===s?' selected':'')+'>'+KP_NEXT_STATUS[s].label+'</option>';}).join('')+
+      '</select></td>'+
+      '<td><input class="inp" value="'+(p.notiz||'')+'" style="width:100%;font-size:11px" placeholder="Bemerkung..." onchange="kpData.nextSeason['+i+'].notiz=this.value;saveKpData()"></td>'+
+      '<td><button class="btn danger" onclick="kpData.nextSeason.splice('+i+',1);saveKpData();renderKpNextSeason()">×</button></td>'+
+    '</tr>';
+  });
+  body.innerHTML = html;
 }
 
 function kpAddNextSeason() {
@@ -6496,7 +6558,7 @@ function kpAddNextSeason() {
   var st = document.getElementById('kp-next-status');
   var no = document.getElementById('kp-next-notiz');
   if(!vn||!vn.value.trim()) return;
-  kpData.nextSeason.push({vorname:vn.value.trim(), nachname:(nn?nn.value.trim():''), status:(st?st.value:'fix'), notiz:(no?no.value.trim():'')});
+  kpData.nextSeason.push({vorname:vn.value.trim(), nachname:(nn?nn.value.trim():''), status:(st?st.value:'fix'), position:'', notiz:(no?no.value.trim():'')});
   vn.value=''; if(nn)nn.value=''; if(no)no.value='';
   saveKpData();
   renderKpNextSeason();
