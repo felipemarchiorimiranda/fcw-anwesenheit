@@ -5232,7 +5232,7 @@ function renderUebersicht() {
 
   // ── Table ───────────────────────────────────────
   var html = toggleBar +
-    '<div style="overflow:auto;width:100%;max-height:calc(100vh - 200px);-webkit-overflow-scrolling:touch">' +
+    '<div id="ub-scroll" style="overflow:auto;width:100%;max-height:calc(100vh - 200px);-webkit-overflow-scrolling:touch">' +
     '<table style="border-collapse:collapse;font-size:11px;table-layout:fixed;width:max-content;min-width:100%">';
 
   html += '<caption style="caption-side:top;padding:4px 8px;text-align:right;font-size:11px;color:var(--muted)">← Scrollen →</caption>';
@@ -5361,14 +5361,12 @@ function clearReasonUebersicht(eid,pid) {
 }
 
 function renderUebersichtKeepScroll() {
-  var outer = document.getElementById('uebersicht-content');
-  var scrollEl = outer ? outer.querySelector('div[style*="overflow"]') : null;
+  var scrollEl = document.getElementById('ub-scroll');
   var scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
   var scrollTop  = scrollEl ? scrollEl.scrollTop  : 0;
   renderUebersicht();
   requestAnimationFrame(function() {
-    var outer2 = document.getElementById('uebersicht-content');
-    var scrollEl2 = outer2 ? outer2.querySelector('div[style*="overflow"]') : null;
+    var scrollEl2 = document.getElementById('ub-scroll');
     if(scrollEl2) {
       scrollEl2.scrollLeft = scrollLeft;
       scrollEl2.scrollTop  = scrollTop;
