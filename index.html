@@ -276,7 +276,13 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     </div>
   </div>
   <div class="nav" id="nav"></div>
-  <div class="sb-footer"><span id="sb-saison">Saison 2025/26</span></div>
+  <div class="sb-footer">
+    <div style="margin-bottom:6px;font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em">Saison</div>
+    <div style="display:flex;gap:4px">
+      <button id="sb-s1-btn" onclick="switchSeason(1)" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.12);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace" id="sb-s1-btn">2025/26</button>
+      <button id="sb-s2-btn" onclick="switchSeason(2)" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.4);font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace">2026/27</button>
+    </div>
+  </div>
 </nav>
 <div class="main">
   <div class="topbar">
@@ -480,6 +486,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <option value="vorrunde">Vorrunde</option>
               <option value="rueckrunde">Rückrunde</option>
             </select>
+            <button class="btn sm" onclick="tpExportWord()">⬇ Word</button>
             <button class="btn sm" onclick="tpAddEintrag()">+ Eintrag</button>
           </div>
         </div>
@@ -616,15 +623,36 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     </div>
     <div class="page" id="pg-saison">
       <div class="card">
-        <div class="card-header"><span class="card-title">Neue Saison</span><span id="active-saison-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)"></span></div>
-        <div class="form-row">
-          <input type="text" id="new-saison-name" class="inp" placeholder="z.B. 2026/27" style="width:130px">
-          <button class="btn pri" onclick="addSaison()">Neue Saison erstellen</button>
-          <button class="btn" onclick="openSeasonImport()">Einheiten Bulk-Import</button>
-          <span style="font-size:11px;color:var(--muted)">Einheiten & Anwesenheiten werden zurückgesetzt. Spieler bleiben erhalten.</span>
+        <div class="card-header">
+          <span class="card-title">Saison 2026/27 erstellen</span>
+          <span id="active-saison-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)"></span>
+        </div>
+        <div style="padding:1rem 1.1rem">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#15803d">
+            <strong>ℹ️ Saison-System:</strong> Es gibt immer genau 2 Saisons (Slot 1 + Slot 2). Wenn du eine neue erstellst, rückt Slot 2 → Slot 1 und die neue kommt in Slot 2. So bleibt immer die letzte und aktuelle Saison erhalten.
+          </div>
+          <div class="form-row">
+            <input type="text" id="new-saison-name" class="inp" placeholder="z.B. 2027/28" style="width:130px">
+            <button class="btn pri" onclick="addSaison()">Neue Saison erstellen</button>
+            <button class="btn" onclick="openSeasonImport()">Einheiten Bulk-Import</button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">Kader wird übernommen · Anwesenheit & Einheiten werden zurückgesetzt · Slot 1 wird überschrieben</div>
         </div>
       </div>
-      <div class="card"><div class="card-header"><span class="card-title">Alle Saisons</span></div><div id="saison-list"></div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Saisons</span></div>
+        <div style="padding:1rem 1.1rem;display:flex;gap:12px">
+          <div id="sb-season-card-1" onclick="switchSeason(1)" style="flex:1;padding:14px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center">
+            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif">2025/26</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Klicken zum Wechseln</div>
+          </div>
+          <div id="sb-season-card-2" onclick="switchSeason(2)" style="flex:1;padding:14px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center">
+            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif">2026/27</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Klicken zum Wechseln</div>
+          </div>
+        </div>
+      </div>
+      <div class="card"><div class="card-header"><span class="card-title">Alle Einheiten</span></div><div id="saison-list"></div></div>
     </div>
     <div class="page" id="pg-einstellungen">
       <div class="grid2">
@@ -6622,6 +6650,155 @@ function tpDeleteExtra(idx) {
   renderTerminplanung();
 }
 
+function tpExportWord() {
+  var saison = (document.getElementById('tp-saison')||{}).value || 'rueckrunde';
+  var saisonLabel = saison === 'vorrunde' ? 'Vorrunde 2025' : 'Rückrunde 2026';
+  var monate = saison === 'vorrunde' ? TP_MONATE_VR : TP_MONATE_RR;
+
+  // Load docx library if not loaded
+  if(!window.docx) {
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
+    script.onload = function(){ _tpBuildWord(saison, saisonLabel, monate); };
+    document.head.appendChild(script);
+  } else {
+    _tpBuildWord(saison, saisonLabel, monate);
+  }
+}
+
+function _tpBuildWord(saison, saisonLabel, monate) {
+  var { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+        AlignmentType, PageOrientation, BorderStyle, WidthType, ShadingType,
+        VerticalAlign, HeadingLevel } = window.docx;
+
+  var evtMap = {};
+  events.forEach(function(e){ if(!evtMap[e.date]) evtMap[e.date]=[]; evtMap[e.date].push(e); });
+  var extraMap = {};
+  (tpData.extraEintraege||[]).forEach(function(e){ if(!extraMap[e.date]) extraMap[e.date]=[]; extraMap[e.date].push(e); });
+  var ferienMap = {};
+  monate.forEach(function(m){
+    var j = (m>=7 && saison==='vorrunde') ? 2025 : 2026;
+    getFeiertage(j).forEach(function(f){ ferienMap[f.date]=f.text; });
+  });
+
+  var border = {style:BorderStyle.SINGLE, size:1, color:'CCCCCC'};
+  var borders = {top:border,bottom:border,left:border,right:border};
+  var cellMargins = {top:60,bottom:60,left:80,right:80};
+
+  // Per month = 3 cols: Nr, WT, Inhalt
+  var colsPerMonth = 3;
+  var numMonths = monate.length;
+  var totalWidth = 15120; // A3 landscape content width (~270mm)
+  var nrW = 480, wtW = 480;
+  var contentW = Math.floor((totalWidth - numMonths*(nrW+wtW)) / numMonths);
+  var columnWidths = [];
+  monate.forEach(function(){ columnWidths.push(nrW, wtW, contentW); });
+
+  // Header row
+  var headerCells = monate.map(function(m){
+    var j = (m>=7 && saison==='vorrunde') ? 2025 : 2026;
+    return new TableCell({
+      borders, columnSpan:3,
+      width:{size:nrW+wtW+contentW, type:WidthType.DXA},
+      margins:cellMargins,
+      shading:{fill:'111111', type:ShadingType.CLEAR},
+      children:[new Paragraph({alignment:AlignmentType.CENTER, children:[
+        new TextRun({text:j+' '+TP_MONATSNAMEN[m-1], bold:true, color:'FFFFFF', size:20})
+      ]})]
+    });
+  });
+
+  var rows = [new TableRow({children:headerCells})];
+
+  for(var day=1; day<=31; day++){
+    var cells = [];
+    monate.forEach(function(m){
+      var j = (m>=7 && saison==='vorrunde') ? 2025 : 2026;
+      var daysInMonth = new Date(j,m,0).getDate();
+      if(day > daysInMonth){
+        [nrW,wtW,contentW].forEach(function(w){
+          cells.push(new TableCell({borders, width:{size:w,type:WidthType.DXA}, margins:cellMargins,
+            shading:{fill:'F5F5F5',type:ShadingType.CLEAR}, children:[new Paragraph({children:[new TextRun('')]})]
+          }));
+        });
+        return;
+      }
+      var dateStr = j+'-'+(m<10?'0':'')+m+'-'+(day<10?'0':'')+day;
+      var d = new Date(j,m-1,day);
+      var wd = d.getDay();
+      var isWE = wd===0||wd===6;
+      var feiertag = ferienMap[dateStr];
+      var evts = evtMap[dateStr]||[];
+      var extras = extraMap[dateStr]||[];
+      var bg = isWE||feiertag ? 'FEF08A' : 'FFFFFF';
+
+      // Content text
+      var contentParts = [];
+      if(feiertag) contentParts.push({text:feiertag, color:'B45309', bold:true});
+      evts.forEach(function(e){
+        if(e.type==='training') contentParts.push({text:'Training', color:'15803D', bold:false});
+        else contentParts.push({text:e.name.replace('(H)','(H)').replace('(A)','(A)'), color:'1D4ED8', bold:true});
+      });
+      extras.forEach(function(x){
+        var col = x.type==='training'?'15803D':x.type==='spiel'?'1D4ED8':'7C3AED';
+        contentParts.push({text:x.text, color:col, bold:false});
+      });
+
+      var contentRuns = contentParts.length
+        ? contentParts.map(function(p,i){ return new TextRun({text:(i>0?' | ':'')+p.text, color:p.color, bold:p.bold, size:16}); })
+        : [new TextRun({text:'', size:16})];
+
+      cells.push(new TableCell({borders, width:{size:nrW,type:WidthType.DXA}, margins:cellMargins,
+        shading:{fill:bg,type:ShadingType.CLEAR},
+        children:[new Paragraph({alignment:AlignmentType.RIGHT, children:[
+          new TextRun({text:String(day), bold:isWE, size:16, color:isWE?'111111':'555555'})
+        ]})]
+      }));
+      cells.push(new TableCell({borders, width:{size:wtW,type:WidthType.DXA}, margins:cellMargins,
+        shading:{fill:bg,type:ShadingType.CLEAR},
+        children:[new Paragraph({alignment:AlignmentType.CENTER, children:[
+          new TextRun({text:TP_WOCHENTAGE[wd], size:16, color:'888888'})
+        ]})]
+      }));
+      cells.push(new TableCell({borders, width:{size:contentW,type:WidthType.DXA}, margins:cellMargins,
+        shading:{fill:bg,type:ShadingType.CLEAR},
+        children:[new Paragraph({children:contentRuns})]
+      }));
+    });
+    rows.push(new TableRow({children:cells}));
+  }
+
+  var table = new Table({
+    width:{size:totalWidth, type:WidthType.DXA},
+    columnWidths:columnWidths,
+    rows:rows
+  });
+
+  var doc = new Document({sections:[{
+    properties:{page:{
+      size:{width:12240, height:15840, orientation:PageOrientation.LANDSCAPE},
+      margin:{top:720,right:720,bottom:720,left:720}
+    }},
+    children:[
+      new Paragraph({heading:HeadingLevel.HEADING_1, children:[
+        new TextRun({text:'Terminplanung '+saisonLabel+' – FC Wiesendangen 2. Mannschaft', bold:true, size:28})
+      ]}),
+      new Paragraph({children:[new TextRun({text:'Stand: '+new Date().toLocaleDateString('de-CH'), size:18, color:'888888'})]}),
+      new Paragraph({children:[new TextRun('')]}),
+      table
+    ]
+  }]});
+
+  Packer.toBlob(doc).then(function(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Terminplanung_'+saisonLabel.replace(/\s/g,'_')+'.docx';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
 function tpAddEintrag() {
   // kept for compatibility – opens today's day
   tpOpenDay(today());
@@ -6746,20 +6923,66 @@ function editPlayer(id) {
 function addSaison() {
   var name = document.getElementById('new-saison-name').value.trim();
   if(!name) { alert('Bitte Saisonname eingeben.'); return; }
-  if(!confirm('Neue Saison "'+name+'" erstellen? Kader wird übernommen, Statistik auf 0 gesetzt.')) return;
-  var active = seasons.find(function(s){ return s.active; });
-  if(active) {
-    active.active = false;
-    active.archivedEvents = JSON.parse(JSON.stringify(events));
-    active.archivedAttendance = JSON.parse(JSON.stringify(attendance));
-    active.archivedPlayers = JSON.parse(JSON.stringify(players));
-  }
-  players = players.map(function(p){ return {id:p.id,name:p.name,nr:p.nr,zone:p.zone,pos1:p.pos1||'',pos2:p.pos2||'',isStaff:p.isStaff||false,minuten:0,einsaetze:0,tore:0}; });
-  events = []; attendance = {}; nextEid = 200;
-  seasons.push({id:nextSid++, name:name, active:true});
-  document.getElementById('new-saison-name').value = '';
-  saveData(); renderAll();
-  alert('Saison "'+name+'" erstellt! Kader übernommen, Statistik zurückgesetzt.');
+  if(!confirm('Saison "'+name+'" erstellen?\n\nDie aktuelle Saison '+getSaisonLabel(1)+' rückt in Slot 1.\nDie bisherige Saison '+getSaisonLabel(2)+' wird zu Slot 1.\nDie neue Saison "'+name+'" kommt in Slot 2.\n\nKader wird übernommen, Anwesenheit/Einheiten werden zurückgesetzt.')) return;
+
+  // Step 1: Copy current slot2 data to slot1 in Supabase
+  // (slot1 data is overwritten with slot2 data)
+  _currentSeasonId = 2;
+  // We need to first load slot2, then save it as slot1
+  loadFromSupabase(true).then(function(){
+    var slot2Data = JSON.stringify({
+      players:players, events:events, attendance:attendance,
+      seasons:seasons, settings:settings, absenceReasons:absenceReasons,
+      nextEid:nextEid, nextPid:nextPid, nextSid:nextSid, nextRid:nextRid,
+      todos:todos, nextTid:nextTid, positions:positions, kpData:kpData, tpData:tpData,
+      lastModified:new Date().toISOString()
+    });
+    // Save slot2 data as slot1
+    fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE, {
+      method:'POST',
+      headers:Object.assign({}, supabaseHeaders(), {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({id:1, data:slot2Data})
+    }).then(function(){
+      // Step 2: Create new season in slot2
+      _currentSeasonId = 2;
+      players = players.map(function(p){ return {id:p.id,name:p.name,nr:p.nr,zone:p.zone,pos1:p.pos1||'',pos2:p.pos2||'',isStaff:p.isStaff||false,minuten:0,einsaetze:0,tore:0}; });
+      events = []; attendance = {}; nextEid = 200;
+      settings.seasonName = name;
+      seasons = [{id:1, name:name, active:true}];
+
+      // Update sidebar labels
+      updateSeasonLabels();
+      document.getElementById('new-saison-name').value = '';
+      saveData(); renderAll();
+      alert('Saison "'+name+'" erstellt!\nSlot 1: '+getSaisonLabel(1)+'\nSlot 2 (aktiv): '+name);
+    });
+  });
+}
+
+function getSaisonLabel(slot) {
+  // If we're currently in this slot, use live settings
+  if(_currentSeasonId === slot && settings.seasonName) return settings.seasonName;
+  try {
+    var raw = localStorage.getItem('fcw_v6_s'+slot);
+    if(raw) {
+      var d = JSON.parse(raw);
+      if(d.settings && d.settings.seasonName) return d.settings.seasonName;
+    }
+  } catch(e){}
+  return slot===1 ? '2025/26' : '2026/27';
+}
+
+function updateSeasonLabels() {
+  var l1 = getSaisonLabel(1);
+  var l2 = getSaisonLabel(2);
+  var b1 = document.getElementById('sb-s1-btn');
+  var b2 = document.getElementById('sb-s2-btn');
+  if(b1) b1.textContent = l1;
+  if(b2) b2.textContent = l2;
+  // Update saison page cards
+  var cards = document.querySelectorAll('#sb-season-card-1 div:first-child, #sb-season-card-2 div:first-child');
+  if(cards[0]) cards[0].textContent = l1;
+  if(cards[1]) cards[1].textContent = l2;
 }
 function switchSaison(id) {
   var active = seasons.find(function(s){ return s.active; });
@@ -7054,6 +7277,33 @@ function handleSpielplanCSV(input) {
 var SUPABASE_URL   = 'https://ixfjaruujssgmswhvfsw.supabase.co';
 var SUPABASE_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZmphcnV1anNzZ21zd2h2ZnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDQ0NDcsImV4cCI6MjA5MTMyMDQ0N30.mUqJz7eq4pBBGgZAYD0U1eUJedjmwMMQ_cmFc8AvJJ4';
 var SUPABASE_TABLE = 'fcw_data';
+var _currentSeasonId = 1; // 1 = 2025/26, 2 = 2026/27
+
+var SEASON_LABELS = {1: '2025/26', 2: '2026/27'};
+
+function switchSeason(id) {
+  _currentSeasonId = id;
+  updateSeasonUI();
+  loadFromSupabase();
+}
+
+function updateSeasonUI() {
+  var id = _currentSeasonId;
+  updateSeasonLabels();
+  // Sidebar buttons
+  var b1 = document.getElementById('sb-s1-btn');
+  var b2 = document.getElementById('sb-s2-btn');
+  if(b1) { b1.style.background = id===1?'rgba(255,255,255,0.12)':'transparent'; b1.style.color = id===1?'#fff':'rgba(255,255,255,0.4)'; b1.style.borderColor = id===1?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
+  if(b2) { b2.style.background = id===2?'rgba(255,255,255,0.12)':'transparent'; b2.style.color = id===2?'#fff':'rgba(255,255,255,0.4)'; b2.style.borderColor = id===2?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
+  // Season cards on saison page
+  var c1 = document.getElementById('sb-season-card-1');
+  var c2 = document.getElementById('sb-season-card-2');
+  if(c1) { c1.style.borderColor = id===1?'#22c55e':'var(--border)'; c1.style.background = id===1?'#f0fdf4':'#fff'; }
+  if(c2) { c2.style.borderColor = id===2?'#22c55e':'var(--border)'; c2.style.background = id===2?'#f0fdf4':'#fff'; }
+  // Active label
+  var lbl = document.getElementById('active-saison-lbl');
+  if(lbl) lbl.textContent = 'Aktiv: '+(id===1?'2025/26':'2026/27');
+}
 var _syncTimer     = null;
 var _syncOk        = false;
 
@@ -7104,7 +7354,7 @@ function supabaseInit() {
 function syncToSupabase() {
   showSyncStatus('\u2191 Speichern...', '#f59e0b');
   var payload = {
-    id:   1,
+    id:   _currentSeasonId,
     data: JSON.stringify({
       players: players, events: events, attendance: attendance,
       seasons: seasons, settings: settings, absenceReasons: absenceReasons,
@@ -7142,7 +7392,7 @@ function syncToSupabase() {
 
 function loadFromSupabase(silent) {
   if(!silent) showSyncStatus('\u2193 Laden...', '#f59e0b');
-  return fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE + '?id=eq.1&select=data', {
+  return fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE + '?id=eq.'+_currentSeasonId+'&select=data', {
     headers: supabaseHeaders()
   })
   .then(function(r) { return r.json(); })
@@ -7176,7 +7426,7 @@ function loadFromSupabase(silent) {
       _lastModifiedLocal = remoteTime;
       saveDataLocal();
       if(hasNew && silent) { renderAll(); }  // new data found silently
-      else if(!silent) { renderAll(); }
+      else if(!silent) { renderAll(); updateSeasonUI(); }
     }
     var when = d.lastModified
       ? new Date(d.lastModified).toLocaleString('de-CH', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
@@ -7247,7 +7497,7 @@ function saveDataLocal() {
   try {
     var now = Date.now();
     _lastModifiedLocal = now;
-    localStorage.setItem('fcw_v6', JSON.stringify({
+    localStorage.setItem('fcw_v6_s'+_currentSeasonId, JSON.stringify({
       players:players, events:events, attendance:attendance,
       seasons:seasons, settings:settings, absenceReasons:absenceReasons,
       nextEid:nextEid, nextPid:nextPid, nextSid:nextSid, nextRid:nextRid,
@@ -7264,7 +7514,7 @@ function saveData() {
 function loadData() {
   try {
     ['fcw_v3','fcw_v4','fcw_v5'].forEach(function(k){ localStorage.removeItem(k); });
-    var raw = localStorage.getItem('fcw_v6');
+    var raw = localStorage.getItem('fcw_v6_s'+_currentSeasonId);
     if(!raw) return;
     var d = JSON.parse(raw);
     if(d.players && d.players.length) players = d.players;
@@ -7315,6 +7565,7 @@ loadKpData();
 loadTpData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
+updateSeasonUI();
 uebersichtType = currentRunde(); // set correct period before any render
 buildNav();
 // Desktop: show dashboard; mobile app handles itself
@@ -7700,6 +7951,7 @@ loadKpData();
 loadTpData();
 if(settings.appsScriptUrl) APPS_SCRIPT_URL = settings.appsScriptUrl;
 applySettings();
+updateSeasonUI();
 uebersichtType = currentRunde(); // set correct period before any render
 buildNav();
 // Desktop: show dashboard; mobile app handles itself
