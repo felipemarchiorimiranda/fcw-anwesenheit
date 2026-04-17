@@ -6414,7 +6414,11 @@ function renderKpKaderliste() {
   var total = document.getElementById('kp-total');
   var sel   = document.getElementById('kp-add-player-sel');
   if(!body) return;
-  if(total) total.textContent = kpData.kaderliste.length + ' Spieler';
+  if(total) {
+    var unklarCount = kpData.kaderliste.filter(function(k){ return k.status === 'unklar'; }).length;
+    total.innerHTML = kpData.kaderliste.length + ' Spieler' +
+      (unklarCount ? ' &nbsp;·&nbsp; <span style="color:#b45309;font-weight:700">'+unklarCount+' unklar</span>' : '');
+  }
   if(sel) {
     sel.innerHTML = '<option value="">Spieler hinzufügen...</option>' +
       players.filter(function(p){return !p.isStaff;})
