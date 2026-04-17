@@ -367,7 +367,16 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <div class="card-header">
           <span class="card-title">Aufstellung 4-2-3-1</span>
         </div>
-        <div id="kp-formation-grid" style="padding:1.25rem;background:#1a4a1a;border-radius:0 0 8px 8px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)">
+          <div>
+            <div style="padding:6px 12px;background:rgba(0,0,0,0.04);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#555;text-align:center;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border)" id="kp-form-left-label">Aktuell</div>
+            <div id="kp-formation-grid" style="padding:1.25rem;background:#1a4a1a;min-height:280px"></div>
+          </div>
+          <div style="border-left:2px solid rgba(255,255,255,0.2)">
+            <div style="padding:6px 12px;background:rgba(0,0,0,0.06);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#555;text-align:center;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border)" id="kp-form-right-label">Planung</div>
+            <div id="kp-formation-grid-next" style="padding:1.25rem;background:#153a15;min-height:280px"></div>
+          </div>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem">
 
@@ -395,7 +404,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <!-- Kaderliste aktuelle Saison -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Kaderliste Saison 26/27</span>
+            <span class="card-title" id="kp-kaderliste-title">Kaderliste Saison 26/27</span>
             <span id="kp-total" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace"></span>
           </div>
           <table class="tbl" id="kp-kaderliste-tbl">
@@ -410,7 +419,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 
         <!-- Nächste Saison -->
         <div class="card">
-          <div class="card-header"><span class="card-title">Planung Saison 26/27</span><button class="btn sm" onclick="kpAddNextSeason()">+</button></div>
+          <div class="card-header"><span class="card-title" id="kp-next-season-title">Planung nächste Saison</span><button class="btn sm" onclick="kpAddNextSeason()">+</button></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem 1.1rem" id="kp-next-season-grid">
             <div>
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);font-family:'DM Mono',monospace;margin-bottom:4px">✓ Fix</div>
@@ -6071,6 +6080,7 @@ function processSeasonImport() {
 var kpData = {
   formation: '4231',
   formationPlayers: {},
+  formationPlayersNext: {},
   captains: [],
   rat: [],
   abgaenge: [],
@@ -6097,6 +6107,36 @@ var FORMATION_ROWS = {
 };
 
 function renderKaderplanung() {
+  // Set next season title dynamically
+  var nextTitle = document.getElementById('kp-next-season-title');
+  if(nextTitle) {
+    var cur = settings.seasonName || '2025/26';
+    // Parse e.g. "2025/26" → next = "2026/27"
+    var match = cur.match(/(\d{2,4})\/(\d{2,4})/);
+    var nextLabel = '';
+    if(match) {
+      var y1 = parseInt(match[1]), y2 = parseInt(match[2]);
+      // Handle 2-digit years: 25/26 → 26/27, or 2025/26 → 2026/27
+      nextLabel = 'Planung Saison ' + (y1+1) + '/' + (y2+1 < 100 ? String(y2+1).padStart(2,'0') : y2+1);
+    } else {
+      nextLabel = 'Planung nächste Saison';
+    }
+    nextTitle.textContent = nextLabel;
+  }
+  var kaderTitle = document.getElementById('kp-kaderliste-title');
+  if(kaderTitle && settings.seasonName) {
+    var m2 = settings.seasonName.match(/(\d{2,4})\/(\d{2,4})/);
+    if(m2) kaderTitle.textContent = 'Kaderliste Saison '+(parseInt(m2[1])+1)+'/'+(parseInt(m2[2])+1 < 100 ? String(parseInt(m2[2])+1).padStart(2,'0') : parseInt(m2[2])+1);
+  }
+  // Update formation labels
+  var cur = settings.seasonName || '2025/26';
+  var leftLbl = document.getElementById('kp-form-left-label');
+  var rightLbl = document.getElementById('kp-form-right-label');
+  if(leftLbl) leftLbl.textContent = 'Aktuell — ' + cur;
+  if(rightLbl) {
+    var m3 = cur.match(/(\d{2,4})\/(\d{2,4})/);
+    if(m3) rightLbl.textContent = 'Planung — '+(parseInt(m3[1])+1)+'/'+(parseInt(m3[2])+1 < 100 ? String(parseInt(m3[2])+1).padStart(2,'0') : parseInt(m3[2])+1);
+  }
   renderKpFormation();
   renderKpCaptains();
   renderKpAbgaenge();
@@ -6255,15 +6295,66 @@ function renderKpFormation() {
   grid.innerHTML = '<div style="display:flex;flex-direction:column;gap:16px">' +
     rows.map(function(row){
       return '<div style="display:flex;justify-content:center;gap:12px">' +
-        row.map(function(p){ return posCard(p.pos, p.label); }).join('') +
+        row.map(function(p){ return posCard(p.pos, p.label, 'formationPlayers'); }).join('') +
       '</div>';
     }).join('') +
   '</div>';
+
+  // Right side: next season formation
+  var gridNext = document.getElementById('kp-formation-grid-next');
+  if(gridNext) {
+    // Players from kaderliste (next season)
+    var nextPlayers = (kpData.kaderliste||[]).map(function(k){ return k.vorname + ' ' + k.nachname; });
+
+    function playerOptsNext(selectedVal) {
+      return '<option value="">—</option>' +
+        nextPlayers.map(function(name){
+          return '<option value="'+name+'"'+(name===selectedVal?' selected':'')+'>'+name+'</option>';
+        }).join('');
+    }
+
+    function posCardNext(pos, label) {
+      var d = (kpData.formationPlayersNext && kpData.formationPlayersNext[pos]) || {main:'', alt1:'', alt2:''};
+      return '<div style="text-align:center;flex:1;max-width:200px">'+
+        '<div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:\'DM Mono\',monospace;margin-bottom:4px;text-transform:uppercase">'+label+'</div>'+
+        '<div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:5px 4px;margin-bottom:3px;border:2px solid rgba(255,255,255,0.3)">'+
+          '<div style="font-size:7px;color:rgba(255,255,255,0.45);margin-bottom:1px">Haupt</div>'+
+          '<select style="background:transparent;border:none;color:#fff;font-size:11px;font-weight:700;width:100%;text-align:center;cursor:pointer" '+
+            'onchange="kpSetPositionNext(\''+pos+'\',\'main\',this.value)">'+playerOptsNext(d.main)+'</select>'+
+        '</div>'+
+        '<div style="background:rgba(255,255,255,0.07);border-radius:6px;padding:3px 4px;margin-bottom:2px">'+
+          '<div style="font-size:7px;color:rgba(255,255,255,0.3);margin-bottom:1px">Alt 1</div>'+
+          '<select style="background:transparent;border:none;color:rgba(255,255,255,0.7);font-size:10px;width:100%;text-align:center;cursor:pointer" '+
+            'onchange="kpSetPositionNext(\''+pos+'\',\'alt1\',this.value)">'+playerOptsNext(d.alt1)+'</select>'+
+        '</div>'+
+        '<div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:3px 4px">'+
+          '<div style="font-size:7px;color:rgba(255,255,255,0.2);margin-bottom:1px">Alt 2</div>'+
+          '<select style="background:transparent;border:none;color:rgba(255,255,255,0.45);font-size:10px;width:100%;text-align:center;cursor:pointer" '+
+            'onchange="kpSetPositionNext(\''+pos+'\',\'alt2\',this.value)">'+playerOptsNext(d.alt2)+'</select>'+
+        '</div>'+
+      '</div>';
+    }
+
+    gridNext.innerHTML = '<div style="display:flex;flex-direction:column;gap:16px">' +
+      rows.map(function(row){
+        return '<div style="display:flex;justify-content:center;gap:12px">' +
+          row.map(function(p){ return posCardNext(p.pos, p.label); }).join('') +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }
 }
 
 function kpSetPosition(pos, slot, val) {
   if(!kpData.formationPlayers[pos]) kpData.formationPlayers[pos] = {main:'', alt1:'', alt2:''};
   kpData.formationPlayers[pos][slot] = val;
+  saveKpData();
+}
+
+function kpSetPositionNext(pos, slot, val) {
+  if(!kpData.formationPlayersNext) kpData.formationPlayersNext = {};
+  if(!kpData.formationPlayersNext[pos]) kpData.formationPlayersNext[pos] = {main:'', alt1:'', alt2:''};
+  kpData.formationPlayersNext[pos][slot] = val;
   saveKpData();
 }
 
