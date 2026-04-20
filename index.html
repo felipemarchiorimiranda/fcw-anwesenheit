@@ -4929,14 +4929,12 @@ function renderDashboard() {
       '<span style="color:#888;font-size:13px;margin-left:8px">S </span><span>'+spielFuture.length+'</span>'+
     '</div><div class="stat-sub">Training / Spiel</div></div>';
 
-  // ── dash3: today + last past training + next 2 future trainings
+  // ── dash3: today + next 3 future trainings only
   var todayTraining = events.filter(function(e){return e.type==='training'&&e.date===t0;});
-  var pastTraining  = events.filter(function(e){return e.type==='training'&&e.date<t0;}).sort(function(a,b){return b.date.localeCompare(a.date);});
   var futureTraining= events.filter(function(e){return e.type==='training'&&e.date>t0;}).sort(function(a,b){return a.date.localeCompare(b.date);});
   var dash3 = [];
   if(todayTraining.length) dash3.push(todayTraining[0]);
-  else if(pastTraining.length) dash3.push(pastTraining[0]);
-  dash3 = dash3.concat(futureTraining.slice(0,2));
+  dash3 = dash3.concat(futureTraining.slice(0, 3 - dash3.length));
 
   ['dh1','dh2','dh3'].forEach(function(id,i){
     var thEl=document.getElementById(id);
