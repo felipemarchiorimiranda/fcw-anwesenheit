@@ -4568,12 +4568,11 @@ function mobRenderSelects() {
   if(!eidSel || !pidSel || !reasonSel) return;
 
   var t = today();
-  // All events sorted by proximity to today
-  var evts = events.slice().sort(function(a,b){
-    var da = Math.abs(new Date(a.date) - new Date(t));
-    var db = Math.abs(new Date(b.date) - new Date(t));
-    return da - db;
-  });
+  // Sort: today first, future ascending, past descending
+  var todayEvts   = events.filter(function(e){ return e.date === t; });
+  var futureEvts  = events.filter(function(e){ return e.date > t; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var pastEvts_   = events.filter(function(e){ return e.date < t; }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var evts = todayEvts.concat(futureEvts).concat(pastEvts_);
   eidSel.innerHTML = '<option value="">— Einheit wählen —</option>' +
     evts.map(function(e){
       var parts = e.date.split('-');
@@ -7068,7 +7067,21 @@ function addEvent() {
   document.getElementById('ne-name').value='';
   saveData();renderAll();
 }
-function removeEvent(id) {events=events.filter(function(e){return e.id!==id;});delete attendance[id];saveData();renderAll();}
+function removeEvent(id) {
+  events = events.filter(function(e){ return e.id !== id; });
+  delete attendance[id];
+  saveData();
+  // Force full render without scroll preservation
+  renderDashboard();
+  renderTraining();
+  renderKader();
+  renderUebersicht();
+  renderEvents();
+  renderMinuten();
+  renderStatistik();
+  renderTerminplanung();
+  mobInit();
+}
 function removePlayer(id) {players=players.filter(function(p){return p.id!==id;});saveData();renderAll();}
 function editPlayer(id) {
   var p=players.find(function(x){return x.id===id;});if(!p) return;
