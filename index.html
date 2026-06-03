@@ -6628,10 +6628,24 @@ function renderTerminplanung() {
   var el = document.getElementById('tp-content');
   if(!el) return;
   var saison = (document.getElementById('tp-saison')||{}).value || 'rueckrunde';
-  var monate = saison === 'vorrunde' ? TP_MONATE_VR : TP_MONATE_RR;
-  var jahr_start = saison === 'vorrunde' ? 2025 : 2026;
 
-  // Build lookup: date -> list of events
+  // Parse years from season name e.g. "2025/26" or "2026/27"
+  var seasonName = settings.seasonName || '2025/26';
+  var match = seasonName.match(/(\d{2,4})\/(\d{2,4})/);
+  var vrJahr = 2025, rrJahr = 2026;
+  if(match) {
+    var y1 = parseInt(match[1]);
+    var y2 = parseInt(match[2]);
+    // Handle 2-digit: "25/26" → 2025, 2026
+    if(y1 < 100) y1 += 2000;
+    if(y2 < 100) y2 += 2000;
+    vrJahr = y1; // Vorrunde = first year (Jul-Nov)
+    rrJahr = y2; // Rückrunde = second year (Jan-Jun)
+  }
+
+  var monate = saison === 'vorrunde' ? [7,8,9,10,11] : [1,2,3,4,5,6];
+
+  // Build event lookup
   var evtMap = {};
   events.forEach(function(e){
     if(!evtMap[e.date]) evtMap[e.date] = [];
@@ -6642,22 +6656,20 @@ function renderTerminplanung() {
     if(!extraMap[e.date]) extraMap[e.date] = [];
     extraMap[e.date].push(e);
   });
-  // Dynamic feiertage for all relevant years
+  // Dynamic feiertage
   var ferienMap = {};
-  var jahre = saison === 'vorrunde' ? [2025] : [2026];
+  var jahre = saison === 'vorrunde' ? [vrJahr] : [rrJahr];
   jahre.forEach(function(j){
     getFeiertage(j).forEach(function(f){ ferienMap[f.date] = f.text; });
   });
 
-  // Max days in any month for row count
   var maxDays = 31;
-
   var html = '<table style="border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:'+(monate.length*220)+'px">';
 
   // Header
   html += '<thead><tr>';
   monate.forEach(function(m){
-    var jahr = (m >= 7 && saison==='vorrunde') ? 2025 : 2026;
+    var jahr = saison === 'vorrunde' ? vrJahr : rrJahr;
     html += '<th colspan="3" style="background:#111;color:#fff;padding:5px 8px;text-align:center;font-size:12px;font-weight:700;border:1px solid #333">'+
       jahr+' &nbsp; '+TP_MONATSNAMEN[m-1]+'</th>';
   });
@@ -6667,7 +6679,7 @@ function renderTerminplanung() {
   for(var day = 1; day <= maxDays; day++){
     html += '<tr>';
     monate.forEach(function(m){
-      var jahr = (m >= 7 && saison==='vorrunde') ? 2025 : 2026;
+      var jahr = saison === 'vorrunde' ? vrJahr : rrJahr;
       var daysInMonth = new Date(jahr, m, 0).getDate();
       if(day > daysInMonth){
         html += '<td colspan="3" style="border:1px solid #e5e7eb;background:#f9f9f9"></td>';
@@ -6809,8 +6821,12 @@ function tpDeleteExtra(idx) {
 
 function tpExportWord() {
   var saison = (document.getElementById('tp-saison')||{}).value || 'rueckrunde';
-  var saisonLabel = saison === 'vorrunde' ? 'Vorrunde 2025' : 'Rückrunde 2026';
-  var monate = saison === 'vorrunde' ? TP_MONATE_VR : TP_MONATE_RR;
+  var seasonName = settings.seasonName || '2025/26';
+  var smatch = seasonName.match(/(\d{2,4})\/(\d{2,4})/);
+  var svrJ = 2025, srrJ = 2026;
+  if(smatch) { svrJ = parseInt(smatch[1]); srrJ = parseInt(smatch[2]); if(svrJ<100)svrJ+=2000; if(srrJ<100)srrJ+=2000; }
+  var saisonLabel = saison === 'vorrunde' ? 'Vorrunde '+svrJ : 'Rückrunde '+srrJ;
+  var monate = saison === 'vorrunde' ? [7,8,9,10,11] : [1,2,3,4,5,6];
 
   // Load docx library if not loaded
   if(!window.docx) {
