@@ -206,6 +206,12 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 
   <div class="mob-body">
 
+    <!-- Saison Wechsel -->
+    <div style="display:flex;gap:8px;margin-bottom:0.25rem">
+      <button id="mob-s1-btn" onclick="switchSeason(1)" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#fff;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;cursor:pointer">2025/26</button>
+      <button id="mob-s2-btn" onclick="switchSeason(2)" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#f4f4f4;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;cursor:pointer;color:#999">2026/27</button>
+    </div>
+
     <!-- Nächste Einheiten -->
     <div>
       <div class="mob-section-title">Nächste Einheiten</div>
@@ -637,12 +643,14 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <div class="card-header"><span class="card-title">Saisons</span></div>
         <div style="padding:1rem 1.1rem;display:flex;gap:12px">
           <div id="sb-season-card-1" onclick="switchSeason(1)" style="flex:1;padding:14px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center">
-            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif">2025/26</div>
+            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif" id="sc1-label">2025/26</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px">Klicken zum Wechseln</div>
+            <button class="btn danger" style="margin-top:8px;font-size:10px;padding:3px 10px" onclick="event.stopPropagation();deleteSeason(1)">Löschen</button>
           </div>
           <div id="sb-season-card-2" onclick="switchSeason(2)" style="flex:1;padding:14px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center">
-            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif">2026/27</div>
+            <div style="font-size:16px;font-weight:700;font-family:'Barlow Condensed',sans-serif" id="sc2-label">2026/27</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px">Klicken zum Wechseln</div>
+            <button class="btn danger" style="margin-top:8px;font-size:10px;padding:3px 10px" onclick="event.stopPropagation();deleteSeason(2)">Löschen</button>
           </div>
         </div>
       </div>
@@ -4507,7 +4515,6 @@ var PAGES = [
   {id:'einheiten',     label:'Einheiten'},
   {id:'statistik',     label:'Statistik'},
   {id:'minuten',       label:'Spielstatistik'},
-  {id:'kaderplanung',  label:'Kaderplanung'},
   {id:'terminplanung', label:'Terminplanung'},
   {id:'spieler',       label:'Kader'},
   {id:'saison',        label:'Saison'},
@@ -4531,7 +4538,7 @@ function mobRenderUpcoming() {
   var t = today();
   var upcoming = events.filter(function(e){ return e.date >= t; })
     .sort(function(a,b){ return a.date.localeCompare(b.date); })
-    .slice(0, 5);
+    .slice(0, 10);
   if(!upcoming.length) {
     el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
     return;
@@ -7162,14 +7169,12 @@ function getSaisonLabel(slot) {
 function updateSeasonLabels() {
   var l1 = getSaisonLabel(1);
   var l2 = getSaisonLabel(2);
-  var b1 = document.getElementById('sb-s1-btn');
-  var b2 = document.getElementById('sb-s2-btn');
-  if(b1) b1.textContent = l1;
-  if(b2) b2.textContent = l2;
-  // Update saison page cards
-  var cards = document.querySelectorAll('#sb-season-card-1 div:first-child, #sb-season-card-2 div:first-child');
-  if(cards[0]) cards[0].textContent = l1;
-  if(cards[1]) cards[1].textContent = l2;
+  ['sb-s1-btn','mob-s1-btn'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=l1; });
+  ['sb-s2-btn','mob-s2-btn'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=l2; });
+  var sc1 = document.getElementById('sc1-label');
+  var sc2 = document.getElementById('sc2-label');
+  if(sc1) sc1.textContent = l1;
+  if(sc2) sc2.textContent = l2;
 }
 function switchSaison(id) {
   var active = seasons.find(function(s){ return s.active; });
@@ -7468,7 +7473,31 @@ var _currentSeasonId = 1; // 1 = 2025/26, 2 = 2026/27
 
 var SEASON_LABELS = {1: '2025/26', 2: '2026/27'};
 
-function switchSeason(id) {
+function deleteSeason(slot) {
+  var label = getSaisonLabel(slot);
+  if(!confirm('Saison "'+label+'" wirklich löschen?\n\nAlle Daten dieser Saison gehen verloren!')) return;
+  // Clear in Supabase by saving empty data to that slot
+  var emptyPayload = {id: slot, data: JSON.stringify({
+    players:[], events:[], attendance:{}, seasons:[], settings:{seasonName:'—'},
+    absenceReasons:[], nextEid:99, nextPid:30, nextSid:2, nextRid:6,
+    todos:[], nextTid:1, positions:[], kpData:{}, tpData:{},
+    lastModified: new Date().toISOString()
+  })};
+  fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE, {
+    method:'POST',
+    headers: Object.assign({}, supabaseHeaders(), {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+    body: JSON.stringify(emptyPayload)
+  }).then(function(){
+    localStorage.removeItem('fcw_v6_s'+slot);
+    if(_currentSeasonId === slot) {
+      // Switch to other slot
+      switchSeason(slot === 1 ? 2 : 1);
+    } else {
+      updateSeasonUI();
+    }
+    alert('Saison "'+label+'" gelöscht.');
+  });
+}
   _currentSeasonId = id;
   updateSeasonUI();
   loadFromSupabase();
@@ -7482,6 +7511,10 @@ function updateSeasonUI() {
   var b2 = document.getElementById('sb-s2-btn');
   if(b1) { b1.style.background = id===1?'rgba(255,255,255,0.12)':'transparent'; b1.style.color = id===1?'#fff':'rgba(255,255,255,0.4)'; b1.style.borderColor = id===1?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
   if(b2) { b2.style.background = id===2?'rgba(255,255,255,0.12)':'transparent'; b2.style.color = id===2?'#fff':'rgba(255,255,255,0.4)'; b2.style.borderColor = id===2?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
+  var mb1 = document.getElementById('mob-s1-btn');
+  var mb2 = document.getElementById('mob-s2-btn');
+  if(mb1) { mb1.style.background = id===1?'#111':'#f4f4f4'; mb1.style.color = id===1?'#fff':'#999'; mb1.style.borderColor = id===1?'#111':'rgba(0,0,0,0.12)'; }
+  if(mb2) { mb2.style.background = id===2?'#111':'#f4f4f4'; mb2.style.color = id===2?'#fff':'#999'; mb2.style.borderColor = id===2?'#111':'rgba(0,0,0,0.12)'; }
   // Season cards on saison page
   var c1 = document.getElementById('sb-season-card-1');
   var c2 = document.getElementById('sb-season-card-2');
