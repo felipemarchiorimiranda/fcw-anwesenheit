@@ -260,7 +260,14 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
 
     <!-- Nächste/Aktuelle Einheit – Aufgebot -->
     <div>
-      <div class="mob-section-title" id="mob-nextevt-title">Nächste Einheit — Aufgebot</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+        <div class="mob-section-title" id="mob-nextevt-title" style="margin-bottom:0">Nächste Einheit — Aufgebot</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button onclick="mobNavEvent(-1)" style="width:32px;height:32px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">‹</button>
+          <span id="mob-evt-counter" style="font-size:11px;color:#9ca3af;font-family:'DM Mono',monospace;min-width:36px;text-align:center"></span>
+          <button onclick="mobNavEvent(1)" style="width:32px;height:32px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">›</button>
+        </div>
+      </div>
       <div class="mob-upcoming" id="mob-nextevt-list">
         <div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Lädt...</div>
       </div>
@@ -4689,82 +4696,98 @@ function mobRenderQuotes() {
   }).join('');
 }
 
+var _mobEventIdx = -1; // -1 = auto (nächste/heute)
+
+function mobNavEvent(dir) {
+  var t = today();
+  var evts = events.filter(function(e){ return e.date >= t; })
+    .sort(function(a,b){ return a.date.localeCompare(b.date); });
+  if(!evts.length) return;
+  // Init to first upcoming if not set
+  if(_mobEventIdx < 0) _mobEventIdx = 0;
+  _mobEventIdx = Math.max(0, Math.min(evts.length-1, _mobEventIdx + dir));
+  mobRenderNextEvent();
+}
+
 function mobRenderNextEvent() {
   var el = document.getElementById('mob-nextevt-list');
   var titleEl = document.getElementById('mob-nextevt-title');
+  var counterEl = document.getElementById('mob-evt-counter');
   if(!el) return;
 
   var t = today();
-  var evt = events.filter(function(e){ return e.date >= t; })
-    .sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
+  var evts = events.filter(function(e){ return e.date >= t; })
+    .sort(function(a,b){ return a.date.localeCompare(b.date); });
 
-  if(!evt) {
+  if(!evts.length) {
     el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
+    if(counterEl) counterEl.textContent = '';
     return;
   }
 
-  var isToday = evt.date === t;
-  var isSpiel  = evt.type === 'spiel';
-  var parts = evt.date.split('-');
+  // Auto-select first if not set
+  if(_mobEventIdx < 0 || _mobEventIdx >= evts.length) _mobEventIdx = 0;
+  var next = evts[_mobEventIdx];
+  if(counterEl) counterEl.textContent = (_mobEventIdx+1)+'/'+evts.length;
+
+  var isToday = next.date === t;
+  var isSpiel = next.type === 'spiel';
+  var parts = next.date.split('-');
   var dateStr = parts[2]+'.'+parts[1]+'.'+parts[0];
   var typeLabel = isSpiel ? '⚽ Spiel' : '🏃 Training';
-  if(titleEl) titleEl.textContent = (isToday ? 'Heute' : 'Nächste Einheit') + ' — ' + typeLabel;
+
+  if(titleEl) titleEl.textContent = (isToday ? 'Heute' : 'Einheit') + ' — Aufgebot';
 
   var pl = players.filter(function(p){ return !p.isStaff; });
-  var present = pl.filter(function(p){ return attendance[evt.id]&&attendance[evt.id][p.id]&&attendance[evt.id][p.id].present; });
-  var absent  = pl.filter(function(p){ return attendance[evt.id]&&attendance[evt.id][p.id]&&!attendance[evt.id][p.id].present; });
-  var unknown = pl.filter(function(p){ return !attendance[evt.id]||attendance[evt.id][p.id]===undefined; });
+  var present = [], absent = [], unknown = [];
+  pl.forEach(function(p){
+    var entry = attendance[next.id] && attendance[next.id][p.id];
+    if(!entry) unknown.push(p);
+    else if(entry.present) present.push(p);
+    else absent.push(p);
+  });
+  [present, absent, unknown].forEach(function(g){ g.sort(function(a,b){return a.name.localeCompare(b.name);}); });
 
   var pct = pl.length ? Math.round(present.length / pl.length * 100) : 0;
-  var pctColor = pct>=75?'#15803d':pct>=50?'#b45309':'#dc2626';
-  var pctBg    = pct>=75?'#dcfce7':pct>=50?'#fef9c3':'#fee2e2';
+  var pctColor = pct >= 75 ? '#15803d' : pct >= 50 ? '#b45309' : '#dc2626';
+  var pctBg    = pct >= 75 ? '#dcfce7' : pct >= 50 ? '#fef9c3' : '#fee2e2';
 
   function playerRow(p, status) {
-    var icon = status==='present'?'✓':status==='absent'?'✕':'?';
-    var iconColor = status==='present'?'#15803d':status==='absent'?'#dc2626':'#9ca3af';
-    var iconBg    = status==='present'?'#dcfce7':status==='absent'?'#fee2e2':'#f3f4f6';
+    var dotColor = status === 'present' ? '#22a05a' : status === 'absent' ? '#e53e3e' : '#d1d5db';
+    var textColor = status === 'absent' ? '#6b6b67' : '#111';
+    var entry = attendance[next.id] && attendance[next.id][p.id];
     var reason = '';
-    if(status==='absent'&&attendance[evt.id]&&attendance[evt.id][p.id]&&attendance[evt.id][p.id].reason) {
-      var r = absenceReasons.find(function(x){ return x.id==attendance[evt.id][p.id].reason; });
-      if(r) reason = ' <span style="font-size:10px;padding:1px 6px;border-radius:99px;background:'+r.color+'22;color:'+r.color+';font-weight:600">'+r.label+'</span>';
+    if(status === 'absent' && entry && entry.reason) {
+      var r = absenceReasons.find(function(x){ return x.id == entry.reason; });
+      if(r) reason = '<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+r.color+';background:'+r.color+'22;padding:1px 6px;border-radius:4px;margin-left:6px">'+r.kuerzel+'</span>';
     }
-    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'+
-      '<div style="width:22px;height:22px;border-radius:50%;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:'+iconColor+';flex-shrink:0">'+icon+'</div>'+
-      '<div style="flex:1;font-size:13px;font-weight:500">'+p.name+reason+'</div>'+
-      '<div style="font-size:10px;color:#9ca3af;font-family:\'DM Mono\',monospace">'+p.zone+'</div>'+
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0"></div>' +
+      '<div style="font-size:13px;color:'+textColor+';flex:1">' + p.name + reason + '</div>' +
     '</div>';
   }
 
-  var html =
-    '<div style="padding:12px 14px;background:#f8f8f8;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between">'+
-      '<div>'+
-        '<div style="font-size:13px;font-weight:600">'+evt.name+'</div>'+
-        '<div style="font-size:11px;color:#6b6b67;font-family:\'DM Mono\',monospace;margin-top:2px">'+dateStr+'</div>'+
-      '</div>'+
-      '<div style="text-align:right">'+
-        '<div style="font-size:20px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;color:'+pctColor+'">'+pct+'%</div>'+
-        '<div style="font-size:10px;background:'+pctBg+';color:'+pctColor+';padding:1px 8px;border-radius:99px;font-weight:600">'+present.length+' / '+pl.length+'</div>'+
-      '</div>'+
-    '</div>';
+  function groupHeader(label, count, color) {
+    return '<div style="padding:6px 14px;background:#f4f4f4;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:'+color+';font-family:\'DM Mono\',monospace;border-bottom:1px solid rgba(0,0,0,0.06)">'+label+' ('+count+')</div>';
+  }
 
-  if(present.length) {
-    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#15803d;font-family:\'DM Mono\',monospace">✓ Anwesend ('+present.length+')</div>';
-    html += present.map(function(p){ return playerRow(p,'present'); }).join('');
-  }
-  if(absent.length) {
-    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#dc2626;font-family:\'DM Mono\',monospace">✕ Abwesend ('+absent.length+')</div>';
-    html += absent.map(function(p){ return playerRow(p,'absent'); }).join('');
-  }
-  if(unknown.length) {
-    html += '<div style="padding:6px 14px 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-family:\'DM Mono\',monospace">? Unbekannt ('+unknown.length+')</div>';
-    html += unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
-  }
+  var html = '<div style="padding:10px 14px;background:#f9f9f9;border-bottom:1px solid rgba(0,0,0,0.07);display:flex;align-items:center;justify-content:space-between">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:600">'+next.name+'</div>' +
+      '<div style="font-size:11px;color:#6b6b67;margin-top:2px">'+typeLabel+' · '+dateStr+'</div>' +
+    '</div>' +
+    '<div style="font-size:15px;font-weight:700;color:'+pctColor+';background:'+pctBg+';padding:4px 10px;border-radius:8px">'+present.length+'/'+pl.length+'</div>' +
+  '</div>';
+
+  if(present.length) html += groupHeader('✓ Anwesend', present.length, '#15803d') + present.map(function(p){ return playerRow(p,'present'); }).join('');
+  if(absent.length)  html += groupHeader('✕ Abwesend', absent.length, '#dc2626')  + absent.map(function(p){ return playerRow(p,'absent'); }).join('');
+  if(unknown.length) html += groupHeader('? Unbekannt', unknown.length, '#9ca3af') + unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
 
   el.innerHTML = html;
 }
-
 function mobInit() {
   if(window.innerWidth > 900) return;
+  _mobEventIdx = 0; // Start at first upcoming event
   mobRenderUpcoming();
   mobRenderSelects();
   mobRenderQuotes();
@@ -7361,7 +7384,6 @@ var SEASON_LABELS = {1: '2025/26', 2: '2026/27'};
 function deleteSeason(slot) {
   var label = getSaisonLabel(slot);
   if(!confirm('Saison "'+label+'" wirklich löschen?\n\nAlle Daten dieser Saison gehen verloren!')) return;
-  // Clear in Supabase by saving empty data to that slot
   var emptyPayload = {id: slot, data: JSON.stringify({
     players:[], events:[], attendance:{}, seasons:[], settings:{seasonName:'—'},
     absenceReasons:[], nextEid:99, nextPid:30, nextSid:2, nextRid:6,
@@ -7374,13 +7396,11 @@ function deleteSeason(slot) {
     body: JSON.stringify(emptyPayload)
   }).then(function(){
     localStorage.removeItem('fcw_v6_s'+slot);
-    if(_currentSeasonId === slot) {
-      // Switch to other slot
-      switchSeason(slot === 1 ? 2 : 1);
-    } else {
-      updateSeasonUI();
-    }
-    alert('Saison "'+label+'" gelöscht.');
+    // Always switch to the other slot immediately
+    var otherSlot = slot === 1 ? 2 : 1;
+    _currentSeasonId = otherSlot;
+    updateSeasonUI();
+    loadFromSupabase();
   });
 }
 
@@ -7393,23 +7413,35 @@ function switchSeason(id) {
 function updateSeasonUI() {
   var id = _currentSeasonId;
   updateSeasonLabels();
-  // Sidebar buttons
+  // Check if other season exists (has a name != '—')
+  var otherSlot = id === 1 ? 2 : 1;
+  var otherLabel = getSaisonLabel(otherSlot);
+  var hasOther = otherLabel && otherLabel !== '—';
+
+  // Sidebar buttons – hide if only one season
   var b1 = document.getElementById('sb-s1-btn');
   var b2 = document.getElementById('sb-s2-btn');
+  var saisonDiv = b1 && b1.parentElement;
+  if(saisonDiv) saisonDiv.style.display = hasOther ? '' : 'none';
   if(b1) { b1.style.background = id===1?'rgba(255,255,255,0.12)':'transparent'; b1.style.color = id===1?'#fff':'rgba(255,255,255,0.4)'; b1.style.borderColor = id===1?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
   if(b2) { b2.style.background = id===2?'rgba(255,255,255,0.12)':'transparent'; b2.style.color = id===2?'#fff':'rgba(255,255,255,0.4)'; b2.style.borderColor = id===2?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
+
+  // Mobile buttons
   var mb1 = document.getElementById('mob-s1-btn');
   var mb2 = document.getElementById('mob-s2-btn');
+  var mobDiv = mb1 && mb1.parentElement;
+  if(mobDiv) mobDiv.style.display = hasOther ? '' : 'none';
   if(mb1) { mb1.style.background = id===1?'#111':'#f4f4f4'; mb1.style.color = id===1?'#fff':'#999'; mb1.style.borderColor = id===1?'#111':'rgba(0,0,0,0.12)'; }
   if(mb2) { mb2.style.background = id===2?'#111':'#f4f4f4'; mb2.style.color = id===2?'#fff':'#999'; mb2.style.borderColor = id===2?'#111':'rgba(0,0,0,0.12)'; }
-  // Season cards on saison page
+
+  // Season cards
   var c1 = document.getElementById('sb-season-card-1');
   var c2 = document.getElementById('sb-season-card-2');
   if(c1) { c1.style.borderColor = id===1?'#22c55e':'var(--border)'; c1.style.background = id===1?'#f0fdf4':'#fff'; }
   if(c2) { c2.style.borderColor = id===2?'#22c55e':'var(--border)'; c2.style.background = id===2?'#f0fdf4':'#fff'; }
-  // Active label
+
   var lbl = document.getElementById('active-saison-lbl');
-  if(lbl) lbl.textContent = 'Aktiv: '+(id===1?'2025/26':'2026/27');
+  if(lbl) lbl.textContent = 'Aktiv: '+(id===1?getSaisonLabel(1):getSaisonLabel(2));
 }
 var _syncTimer     = null;
 var _syncOk        = false;
