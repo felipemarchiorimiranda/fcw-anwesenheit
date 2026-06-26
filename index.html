@@ -4878,6 +4878,7 @@ function showPage(id) {
 function renderAll() {
   // Always close open tooltips – buttons get re-created on every render
   closeTooltip();
+  updateActiveSaisonLabel();
   renderDashboard();
   renderTraining();
   renderKader();
@@ -7112,16 +7113,23 @@ function addSaison() {
 }
 
 function getSaisonLabel(slot) {
-  // If we're currently in this slot, use live settings
-  if(_currentSeasonId === slot && settings.seasonName) return settings.seasonName;
+  // Use live settings if this is the current slot and has a name
+  if(slot === _currentSeasonId && settings.seasonName && settings.seasonName !== '—') {
+    return settings.seasonName;
+  }
   try {
     var raw = localStorage.getItem('fcw_v6_s'+slot);
     if(raw) {
       var d = JSON.parse(raw);
-      if(d.settings && d.settings.seasonName) return d.settings.seasonName;
+      if(d.settings && d.settings.seasonName && d.settings.seasonName !== '—') return d.settings.seasonName;
     }
   } catch(e){}
   return slot===1 ? '2025/26' : '2026/27';
+}
+
+function updateActiveSaisonLabel() {
+  var el = document.getElementById('sb-active-season');
+  if(el) el.textContent = settings.seasonName || getSaisonLabel(_currentSeasonId);
 }
 
 function updateSeasonLabels() {
