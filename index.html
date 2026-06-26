@@ -212,12 +212,10 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <button id="mob-s2-btn" onclick="switchSeason(2)" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#f4f4f4;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;cursor:pointer;color:#999">2026/27</button>
     </div>
 
-    <!-- Nächste Einheiten -->
+    <!-- Trainings Anwesenheitsübersicht -->
     <div>
-      <div class="mob-section-title">Nächste Einheiten</div>
-      <div class="mob-upcoming" id="mob-upcoming-list">
-        <div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Lädt...</div>
-      </div>
+      <div class="mob-section-title">Trainings — Anwesenheit</div>
+      <div id="mob-training-overview"></div>
     </div>
 
     <!-- Absenz erfassen -->
@@ -4539,34 +4537,70 @@ function openMobDrawer(){}
 function closeMobDrawer(){}
 function buildMobNav(){}
 
-function mobRenderUpcoming() {
-  var el = document.getElementById('mob-upcoming-list');
+function mobRenderTrainingOverview() {
+  var el = document.getElementById('mob-training-overview');
   if(!el) return;
   var t = today();
-  var upcoming = events.filter(function(e){ return e.date >= t; })
+  var trainings = events.filter(function(e){ return e.type==='training' && e.date >= t; })
     .sort(function(a,b){ return a.date.localeCompare(b.date); })
-    .slice(0, 10);
-  if(!upcoming.length) {
-    el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
+    .slice(0, 8);
+
+  if(!trainings.length) {
+    el.innerHTML = '<div style="background:#fff;border-radius:12px;border:1.5px solid rgba(0,0,0,0.09);padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine Trainings geplant</div>';
     return;
   }
-  el.innerHTML = upcoming.map(function(e) {
-    var isSpiel = e.type === 'spiel';
-    var dotColor = isSpiel ? '#6366f1' : '#22a05a';
-    var badgeBg = isSpiel ? '#e0e7ff' : '#dcfce7';
-    var badgeColor = isSpiel ? '#4338ca' : '#15803d';
-    var badgeLabel = isSpiel ? 'Spiel' : 'Training';
+
+  var pl = players.filter(function(p){ return !p.isStaff; });
+
+  el.innerHTML = trainings.map(function(e){
     var parts = e.date.split('-');
     var dateStr = parts[2]+'.'+parts[1]+'.';
-    return '<div class="mob-upcoming-item" onclick="mobQuickSelectEvent('+e.id+')" style="cursor:pointer">'+
-      '<div class="mob-upcoming-dot" style="background:'+dotColor+'"></div>'+
-      '<div class="mob-upcoming-date">'+dateStr+'</div>'+
-      '<div class="mob-upcoming-name">'+e.name+'</div>'+
-      '<div class="mob-upcoming-badge" style="background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</div>'+
+    var dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    var wd = dayNames[new Date(e.date).getDay()];
+    var isToday = e.date === t;
+
+    var present = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; });
+    var absent  = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present; });
+
+    var pct = pl.length ? Math.round(present.length/pl.length*100) : 0;
+    var pctColor = pct>=75?'#15803d':pct>=50?'#b45309':'#dc2626';
+    var pctBg    = pct>=75?'#dcfce7':pct>=50?'#fef9c3':'#fee2e2';
+
+    return '<div style="background:#fff;border-radius:12px;border:1.5px solid '+(isToday?'#22c55e':'rgba(0,0,0,0.09)')+';margin-bottom:8px;overflow:hidden">'+
+      // Header
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:'+(isToday?'#f0fdf4':'#f9f9f9')+';border-bottom:1px solid rgba(0,0,0,0.07)">'+
+        '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:#6b6b67;min-width:60px">'+wd+' '+dateStr+'</div>'+
+        '<div style="font-size:13px;font-weight:600;flex:1">'+e.name+'</div>'+
+        '<div style="font-size:13px;font-weight:700;color:'+pctColor+';background:'+pctBg+';padding:2px 8px;border-radius:8px">'+present.length+'/'+pl.length+'</div>'+
+      '</div>'+
+      // Absent players (red)
+      (absent.length ? '<div style="padding:6px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'+
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#dc2626;margin-bottom:4px">✕ Abwesend</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
+        absent.map(function(p){
+          var entry = attendance[e.id][p.id];
+          var r = entry && entry.reason ? absenceReasons.find(function(x){ return x.id==entry.reason; }) : null;
+          return '<span style="background:#fee2e2;color:#dc2626;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500">'+
+            p.name.split(' ')[0]+(r?' ('+r.kuerzel+')':'')+
+          '</span>';
+        }).join('')+
+        '</div></div>' : '')+
+      // Present players (green, collapsed by default)
+      (present.length ? '<div style="padding:6px 14px">'+
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#15803d;margin-bottom:4px">✓ Anwesend ('+present.length+')</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
+        present.map(function(p){
+          return '<span style="background:#dcfce7;color:#15803d;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500">'+p.name.split(' ')[0]+'</span>';
+        }).join('')+
+        '</div></div>' : '')+
     '</div>';
   }).join('');
 }
 
+function mobRenderUpcoming() {
+  // kept for compatibility but now replaced by mobRenderTrainingOverview
+  mobRenderTrainingOverview();
+}
 function mobQuickSelectEvent(eid) {
   var sel = document.getElementById('mob-eid-sel');
   if(sel) { sel.value = eid; mobOnEidChange(); }
@@ -4787,8 +4821,8 @@ function mobRenderNextEvent() {
 }
 function mobInit() {
   if(window.innerWidth > 900) return;
-  _mobEventIdx = 0; // Start at first upcoming event
-  mobRenderUpcoming();
+  _mobEventIdx = 0;
+  mobRenderTrainingOverview();
   mobRenderSelects();
   mobRenderQuotes();
   mobRenderNextEvent();
@@ -7379,6 +7413,23 @@ var SUPABASE_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 var SUPABASE_TABLE = 'fcw_data';
 var _currentSeasonId = 1; // 1 = 2025/26, 2 = 2026/27
 
+function detectActiveSeasonSlot() {
+  // Check localStorage for which slot has actual data
+  for(var slot = 1; slot <= 2; slot++) {
+    try {
+      var raw = localStorage.getItem('fcw_v6_s'+slot);
+      if(raw) {
+        var d = JSON.parse(raw);
+        if(d.settings && d.settings.seasonName && d.settings.seasonName !== '—' &&
+           (d.players && d.players.length > 0 || d.events && d.events.length > 0)) {
+          return slot;
+        }
+      }
+    } catch(e){}
+  }
+  return 1; // fallback to slot 1
+}
+
 var SEASON_LABELS = {1: '2025/26', 2: '2026/27'};
 
 function deleteSeason(slot) {
@@ -7542,6 +7593,15 @@ function loadFromSupabase(silent) {
       return;
     }
     var d = JSON.parse(rows[0].data);
+
+    // If loaded slot is empty (deleted), auto-switch to other slot
+    if((!d.players || !d.players.length) && (!d.events || !d.events.length) &&
+       (!d.settings || !d.settings.seasonName || d.settings.seasonName === '—')) {
+      var otherSlot = _currentSeasonId === 1 ? 2 : 1;
+      _currentSeasonId = otherSlot;
+      if(!silent) showSyncStatus('Lade Saison '+otherSlot+'...', '#f59e0b');
+      return loadFromSupabase(silent);
+    }
     // Check if remote is newer than local
     var remoteTime = d.lastModified ? new Date(d.lastModified).getTime() : 0;
     var localTime  = _lastModifiedLocal || 0;
@@ -8085,6 +8145,8 @@ try{
     settings.teamLogo=_body.getAttribute('data-teamlogo')||settings.teamLogo;
   }
 }catch(_e){}
+// Auto-detect which season slot has data
+_currentSeasonId = detectActiveSeasonSlot();
 loadData();
 loadKpData();
 loadTpData();
