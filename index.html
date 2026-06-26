@@ -4387,17 +4387,32 @@ function today() { return new Date().toISOString().slice(0,10); }
 function fmtDate(d) { if(!d) return ''; var p=d.slice(0,10).split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
 function fmtShort(d) { if(!d) return ''; var p=d.slice(0,10).split('-'); return p[2]+'.'+p[1]; }
 function initials(n) { return n.split(' ').map(function(p){return p[0];}).join('').toUpperCase().slice(0,2); }
+function getSeasonYears() {
+  var name = settings.seasonName || '2025/26';
+  var m = name.match(/(\d{2,4})\/(\d{2,4})/);
+  var y1 = 2025, y2 = 2026;
+  if(m) {
+    y1 = parseInt(m[1]); y2 = parseInt(m[2]);
+    if(y1 < 100) y1 += 2000;
+    if(y2 < 100) y2 += 2000;
+  }
+  return {vr_start: y1+'-07-01', vr_end: y1+'-11-30', rr_start: y2+'-02-01', rr_end: y2+'-06-30'};
+}
+
 function currentRunde() {
   var t = today();
-  if(t >= '2025-07-17' && t <= '2025-11-30') return 'vorrunde';
-  if(t >= '2026-02-01') return 'rueckrunde';
-  return t < '2026-01-01' ? 'vorrunde' : 'rueckrunde';
+  var s = getSeasonYears();
+  if(t >= s.vr_start && t <= s.vr_end) return 'vorrunde';
+  if(t >= s.rr_start && t <= s.rr_end) return 'rueckrunde';
+  // Winterpause oder vor Saison → nächste Periode
+  return t < s.rr_start ? 'vorrunde' : 'vorrunde'; // nach Saison → neue VR
 }
+
 function getRunde(date) {
-  if(date >= '2025-07-17' && date <= '2025-11-30') return 'vorrunde';
-  if(date >= '2026-02-01' && date <= '2026-12-31') return 'rueckrunde';
-  // Fallback: before 2026 = vorrunde, 2026+ = rueckrunde
-  return date < '2026-01-01' ? 'vorrunde' : 'rueckrunde';
+  var s = getSeasonYears();
+  if(date >= s.vr_start && date <= s.vr_end) return 'vorrunde';
+  if(date >= s.rr_start && date <= s.rr_end) return 'rueckrunde';
+  return date < s.rr_start ? 'vorrunde' : 'other';
 }
 function pastEvts(type) {
   var t=today();
