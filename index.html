@@ -288,9 +288,10 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
   </div>
   <div class="nav" id="nav"></div>
   <div class="sb-footer">
-    <div style="margin-bottom:6px;font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em">Saison</div>
-    <div style="display:flex;gap:4px">
-      <button id="sb-s1-btn" onclick="switchSeason(1)" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.12);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace" id="sb-s1-btn">2025/26</button>
+    <div style="margin-bottom:4px;font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em">Aktive Saison</div>
+    <div id="sb-active-season" style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;margin-bottom:8px">—</div>
+    <div id="sb-season-btns" style="display:flex;gap:4px">
+      <button id="sb-s1-btn" onclick="switchSeason(1)" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.12);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace">2025/26</button>
       <button id="sb-s2-btn" onclick="switchSeason(2)" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.4);font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace">2026/27</button>
     </div>
   </div>
@@ -7479,7 +7480,11 @@ function switchSeason(id) {
 function updateSeasonUI() {
   var id = _currentSeasonId;
   updateSeasonLabels();
-  // Check if other season exists (has a name != '—')
+  // Always show active season label
+  var activeLbl = document.getElementById('sb-active-season');
+  if(activeLbl) activeLbl.textContent = getSaisonLabel(_currentSeasonId);
+
+  // Check if other season exists
   var otherSlot = id === 1 ? 2 : 1;
   var otherLabel = getSaisonLabel(otherSlot);
   var hasOther = otherLabel && otherLabel !== '—';
@@ -7487,7 +7492,7 @@ function updateSeasonUI() {
   // Sidebar buttons – hide if only one season
   var b1 = document.getElementById('sb-s1-btn');
   var b2 = document.getElementById('sb-s2-btn');
-  var saisonDiv = b1 && b1.parentElement;
+  var saisonDiv = document.getElementById('sb-season-btns');
   if(saisonDiv) saisonDiv.style.display = hasOther ? '' : 'none';
   if(b1) { b1.style.background = id===1?'rgba(255,255,255,0.12)':'transparent'; b1.style.color = id===1?'#fff':'rgba(255,255,255,0.4)'; b1.style.borderColor = id===1?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
   if(b2) { b2.style.background = id===2?'rgba(255,255,255,0.12)':'transparent'; b2.style.color = id===2?'#fff':'rgba(255,255,255,0.4)'; b2.style.borderColor = id===2?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.08)'; }
@@ -7639,8 +7644,8 @@ function loadFromSupabase(silent) {
       if(d.nextRid) nextRid = d.nextRid;
       _lastModifiedLocal = remoteTime;
       saveDataLocal();
-      if(hasNew && silent) { renderAll(); }  // new data found silently
-      else if(!silent) { renderAll(); updateSeasonUI(); }
+      if(hasNew && silent) { setUebersichtType(currentRunde()); renderAll(); }  // new data found silently
+      else if(!silent) { setUebersichtType(currentRunde()); renderAll(); updateSeasonUI(); }
     }
     var when = d.lastModified
       ? new Date(d.lastModified).toLocaleString('de-CH', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
