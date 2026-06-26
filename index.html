@@ -4695,81 +4695,6 @@ function mobRenderNextEvent() {
   if(!el) return;
 
   var t = today();
-  // Find current (today) or next upcoming event
-  var next = events.filter(function(e){ return e.date >= t; })
-    .sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
-
-  if(!next) {
-    el.innerHTML = '<div style="padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine bevorstehenden Einheiten</div>';
-    return;
-  }
-
-  var isToday = next.date === t;
-  var isSpiel = next.type === 'spiel';
-  var parts = next.date.split('-');
-  var dateStr = parts[2]+'.'+parts[1]+'.'+parts[0];
-  var typeLabel = isSpiel ? '⚽ Spiel' : '🏃 Training';
-
-  if(titleEl) titleEl.textContent = (isToday ? 'Heutige' : 'Nächste') + ' Einheit — Aufgebot';
-
-  var pl = players.filter(function(p){ return !p.isStaff; });
-
-  // Group by status
-  var present = [], absent = [], unknown = [];
-  pl.forEach(function(p){
-    var entry = attendance[next.id] && attendance[next.id][p.id];
-    if(!entry) unknown.push(p);
-    else if(entry.present) present.push(p);
-    else absent.push(p);
-  });
-
-  // Sort each group by name
-  [present, absent, unknown].forEach(function(g){ g.sort(function(a,b){return a.name.localeCompare(b.name);}); });
-
-  var pct = pl.length ? Math.round(present.length / pl.length * 100) : 0;
-  var pctColor = pct >= 75 ? '#15803d' : pct >= 50 ? '#b45309' : '#dc2626';
-  var pctBg    = pct >= 75 ? '#dcfce7' : pct >= 50 ? '#fef9c3' : '#fee2e2';
-
-  function playerRow(p, status) {
-    var dotColor = status === 'present' ? '#22a05a' : status === 'absent' ? '#e53e3e' : '#d1d5db';
-    var textColor = status === 'absent' ? '#6b6b67' : '#111';
-    var entry = attendance[next.id] && attendance[next.id][p.id];
-    var reason = '';
-    if(status === 'absent' && entry && entry.reason) {
-      var r = absenceReasons.find(function(x){ return x.id == entry.reason; });
-      if(r) reason = '<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+r.color+';background:'+r.color+'22;padding:1px 6px;border-radius:4px;margin-left:6px">'+r.kuerzel+'</span>';
-    }
-    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">' +
-      '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0"></div>' +
-      '<div style="font-size:13px;color:'+textColor+';flex:1">' + p.name + reason + '</div>' +
-    '</div>';
-  }
-
-  function groupHeader(label, count, color) {
-    return '<div style="padding:6px 14px;background:#f4f4f4;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:'+color+';font-family:\'DM Mono\',monospace;border-bottom:1px solid rgba(0,0,0,0.06)">'+label+' ('+count+')</div>';
-  }
-
-  var html = '<div style="padding:10px 14px;background:#f9f9f9;border-bottom:1px solid rgba(0,0,0,0.07);display:flex;align-items:center;justify-content:space-between">' +
-    '<div>' +
-      '<div style="font-size:13px;font-weight:600">'+next.name+'</div>' +
-      '<div style="font-size:11px;color:#6b6b67;margin-top:2px">'+typeLabel+' · '+dateStr+'</div>' +
-    '</div>' +
-    '<div style="font-size:15px;font-weight:700;color:'+pctColor+';background:'+pctBg+';padding:4px 10px;border-radius:8px">'+present.length+'/'+pl.length+'</div>' +
-  '</div>';
-
-  if(present.length) html += groupHeader('✓ Anwesend', present.length, '#15803d') + present.map(function(p){ return playerRow(p,'present'); }).join('');
-  if(absent.length)  html += groupHeader('✕ Abwesend', absent.length, '#dc2626')  + absent.map(function(p){ return playerRow(p,'absent'); }).join('');
-  if(unknown.length) html += groupHeader('? Unbekannt', unknown.length, '#9ca3af') + unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
-
-  el.innerHTML = html;
-}
-
-function mobRenderNextEvent() {
-  var el = document.getElementById('mob-nextevt-list');
-  var titleEl = document.getElementById('mob-nextevt-title');
-  if(!el) return;
-
-  var t = today();
   var evt = events.filter(function(e){ return e.date >= t; })
     .sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
 
@@ -5958,46 +5883,6 @@ function drawCanvas(runde) {
 // ═══════════════════════════════════════════════
 // SAISON + BULK IMPORT
 // ═══════════════════════════════════════════════
-function renderSaison() {
-  var active = seasons.find(function(s){return s.active;});
-  var lbl = document.getElementById('active-saison-lbl');
-  if(lbl && active) lbl.textContent = 'Aktiv: ' + active.name;
-  var sf = document.getElementById('sb-saison');
-  if(sf) sf.textContent = active ? active.name : '';
-  var el = document.getElementById('saison-list');
-  if(!el) return;
-  el.innerHTML = seasons.map(function(s){
-    var evCount = (s.events ? s.events.length : 0);
-    var canDelete = seasons.length > 1;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">'+
-      '<div style="flex:1;min-width:120px">'+
-        '<div style="font-size:14px;font-weight:'+(s.active?700:400)+'">'+s.name+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+
-          (s.active ? 'Aktive Saison' : evCount+' Einheiten archiviert')+
-        '</div>'+
-      '</div>'+
-      (s.active ? '<span class="badge badge-spiel">Aktiv</span>' :
-        '<button class="btn sm" onclick="switchSaison('+s.id+')">Aktivieren</button>')+
-      (canDelete && !s.active ?
-        '<button class="btn danger" style="border:1px solid #fca5a5" onclick="deleteSaison('+s.id+')">Löschen</button>' : '')+
-    '</div>';
-  }).join('');
-}
-
-function deleteSaison(id) {
-  var s = seasons.find(function(x){ return x.id === id; });
-  if(!s) return;
-  if(!confirm('Saison "'+s.name+'" wirklich löschen?')) return;
-  seasons = seasons.filter(function(x){ return x.id !== id; });
-  if(!seasons.find(function(x){return x.active;}) && seasons.length) {
-    var last = seasons[seasons.length-1];
-    last.active = true;
-    events = last.archivedEvents ? JSON.parse(JSON.stringify(last.archivedEvents)) : [];
-    attendance = last.archivedAttendance ? JSON.parse(JSON.stringify(last.archivedAttendance)) : {};
-    if(last.archivedPlayers) players = JSON.parse(JSON.stringify(last.archivedPlayers));
-  }
-  saveData(); renderAll();
-}
 function renderSaison() {
   var active = seasons.find(function(s){return s.active;});
   var lbl = document.getElementById('active-saison-lbl');
@@ -7498,6 +7383,8 @@ function deleteSeason(slot) {
     alert('Saison "'+label+'" gelöscht.');
   });
 }
+
+function switchSeason(id) {
   _currentSeasonId = id;
   updateSeasonUI();
   loadFromSupabase();
