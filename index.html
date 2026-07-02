@@ -4818,6 +4818,7 @@ function mobRenderNextEvent() {
   if(titleEl) titleEl.textContent = (isToday ? 'Heute' : 'Einheit') + ' — Aufgebot';
 
   var pl = players.filter(function(p){ return !p.isStaff; });
+  var staff = players.filter(function(p){ return p.isStaff; });
   var present = [], absent = [], unknown = [];
   pl.forEach(function(p){
     var entry = attendance[next.id] && attendance[next.id][p.id];
@@ -4825,7 +4826,13 @@ function mobRenderNextEvent() {
     else if(entry.present) present.push(p);
     else absent.push(p);
   });
-  [present, absent, unknown].forEach(function(g){ g.sort(function(a,b){return a.name.localeCompare(b.name);}); });
+  var staffPresent = [], staffAbsent = [];
+  staff.forEach(function(p){
+    var entry = attendance[next.id] && attendance[next.id][p.id];
+    if(!entry || entry.present) staffPresent.push(p);
+    else staffAbsent.push(p);
+  });
+  [present, absent, unknown, staffPresent, staffAbsent].forEach(function(g){ g.sort(function(a,b){return a.name.localeCompare(b.name);}); });
 
   var pct = pl.length ? Math.round(present.length / pl.length * 100) : 0;
   var pctColor = pct >= 75 ? '#15803d' : pct >= 50 ? '#b45309' : '#dc2626';
@@ -4861,6 +4868,13 @@ function mobRenderNextEvent() {
   if(present.length) html += groupHeader('✓ Anwesend', present.length, '#15803d') + present.map(function(p){ return playerRow(p,'present'); }).join('');
   if(absent.length)  html += groupHeader('✕ Abwesend', absent.length, '#dc2626')  + absent.map(function(p){ return playerRow(p,'absent'); }).join('');
   if(unknown.length) html += groupHeader('? Unbekannt', unknown.length, '#9ca3af') + unknown.map(function(p){ return playerRow(p,'unknown'); }).join('');
+
+  // Staff section
+  if(staff.length) {
+    html += groupHeader('👔 Staff', staff.length, '#7c3aed');
+    html += staffPresent.map(function(p){ return playerRow(p,'present'); }).join('');
+    html += staffAbsent.map(function(p){ return playerRow(p,'absent'); }).join('');
+  }
 
   el.innerHTML = html;
 }
