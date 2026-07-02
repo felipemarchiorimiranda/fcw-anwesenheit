@@ -4557,16 +4557,17 @@ function mobRenderTrainingOverview() {
   var el = document.getElementById('mob-training-overview');
   if(!el) return;
   var t = today();
-  var trainings = events.filter(function(e){ return e.type==='training' && e.date >= t; })
+  var trainings = events.filter(function(e){ return e.date >= t; })
     .sort(function(a,b){ return a.date.localeCompare(b.date); })
-    .slice(0, 8);
+    .slice(0, 15);
 
   if(!trainings.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:12px;border:1.5px solid rgba(0,0,0,0.09);padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine Trainings geplant</div>';
+    el.innerHTML = '<div style="background:#fff;border-radius:12px;border:1.5px solid rgba(0,0,0,0.09);padding:1rem;text-align:center;font-size:13px;color:#6b6b67">Keine Einheiten geplant</div>';
     return;
   }
 
-  var pl = players.filter(function(p){ return !p.isStaff; });
+  var pl    = players.filter(function(p){ return !p.isStaff; });
+  var staff = players.filter(function(p){ return p.isStaff; });
 
   el.innerHTML = trainings.map(function(e){
     var parts = e.date.split('-');
@@ -4574,41 +4575,69 @@ function mobRenderTrainingOverview() {
     var dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
     var wd = dayNames[new Date(e.date).getDay()];
     var isToday = e.date === t;
+    var isSpiel = e.type === 'spiel';
 
     var present = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; });
     var absent  = pl.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present; });
+
+    var staffPresent = staff.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&attendance[e.id][p.id].present; });
+    var staffAbsent  = staff.filter(function(p){ return attendance[e.id]&&attendance[e.id][p.id]&&!attendance[e.id][p.id].present; });
 
     var pct = pl.length ? Math.round(present.length/pl.length*100) : 0;
     var pctColor = pct>=75?'#15803d':pct>=50?'#b45309':'#dc2626';
     var pctBg    = pct>=75?'#dcfce7':pct>=50?'#fef9c3':'#fee2e2';
 
-    return '<div style="background:#fff;border-radius:12px;border:1.5px solid '+(isToday?'#22c55e':'rgba(0,0,0,0.09)')+';margin-bottom:8px;overflow:hidden">'+
+    var borderColor = isToday ? '#22c55e' : isSpiel ? '#3b82f6' : 'rgba(0,0,0,0.09)';
+    var headerBg = isToday ? '#f0fdf4' : isSpiel ? '#eff6ff' : '#f9f9f9';
+    var typeIcon = isSpiel ? '⚽' : '🏃';
+
+    return '<div style="background:#fff;border-radius:12px;border:1.5px solid '+borderColor+';margin-bottom:8px;overflow:hidden">'+
       // Header
-      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:'+(isToday?'#f0fdf4':'#f9f9f9')+';border-bottom:1px solid rgba(0,0,0,0.07)">'+
-        '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:#6b6b67;min-width:60px">'+wd+' '+dateStr+'</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:'+headerBg+';border-bottom:1px solid rgba(0,0,0,0.07)">'+
+        '<span style="font-size:14px">'+typeIcon+'</span>'+
+        '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:#6b6b67;min-width:54px">'+wd+' '+dateStr+'</div>'+
         '<div style="font-size:13px;font-weight:600;flex:1">'+e.name+'</div>'+
         '<div style="font-size:13px;font-weight:700;color:'+pctColor+';background:'+pctBg+';padding:2px 8px;border-radius:8px">'+present.length+'/'+pl.length+'</div>'+
       '</div>'+
-      // Absent players (red)
+
+      // Absent players
       (absent.length ? '<div style="padding:6px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'+
-        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#dc2626;margin-bottom:4px">✕ Abwesend</div>'+
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#dc2626;margin-bottom:4px">✕ Abwesend ('+absent.length+')</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
         absent.map(function(p){
-          var entry = attendance[e.id][p.id];
-          var r = entry && entry.reason ? absenceReasons.find(function(x){ return x.id==entry.reason; }) : null;
+          var entry = attendance[e.id]&&attendance[e.id][p.id];
+          var r = entry&&entry.reason ? absenceReasons.find(function(x){ return x.id==entry.reason; }) : null;
           return '<span style="background:#fee2e2;color:#dc2626;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500">'+
             p.name.split(' ')[0]+(r?' ('+r.kuerzel+')':'')+
           '</span>';
         }).join('')+
         '</div></div>' : '')+
-      // Present players (green, collapsed by default)
-      (present.length ? '<div style="padding:6px 14px">'+
+
+      // Present players
+      (present.length ? '<div style="padding:6px 14px;border-bottom:'+(staff.length?'1px solid rgba(0,0,0,0.05)':'none')+'">'+
         '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#15803d;margin-bottom:4px">✓ Anwesend ('+present.length+')</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
         present.map(function(p){
           return '<span style="background:#dcfce7;color:#15803d;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500">'+p.name.split(' ')[0]+'</span>';
         }).join('')+
         '</div></div>' : '')+
+
+      // Staff section
+      (staff.length ? '<div style="padding:6px 14px;background:#fafafa;border-top:1px solid rgba(0,0,0,0.05)">'+
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;margin-bottom:4px">👔 Staff</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
+        staff.map(function(p){
+          var entry = attendance[e.id]&&attendance[e.id][p.id];
+          var isPresent = entry ? entry.present : true;
+          var bg = isPresent ? '#ede9fe' : '#fee2e2';
+          var color = isPresent ? '#7c3aed' : '#dc2626';
+          var icon = isPresent ? '✓' : '✕';
+          return '<span style="background:'+bg+';color:'+color+';font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500">'+
+            icon+' '+p.name.split(' ')[0]+
+          '</span>';
+        }).join('')+
+        '</div></div>' : '')+
+
     '</div>';
   }).join('');
 }
