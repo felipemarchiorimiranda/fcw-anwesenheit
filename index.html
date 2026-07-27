@@ -7475,14 +7475,15 @@ function handleSpielplanCSV(input) {
     if(iGastB < 0) iGastB = 8;
 
     var added=0, skipped=0;
+    var firstRow = null;
     lines.slice(1).forEach(function(line){
       if(!line.trim()) return;
       var row = line.split(';').map(function(c){ return c.trim().replace(/"/g,'').replace(/\r/g,''); });
       var rawDate = row[iDate] || '';
       var heim    = row[iHeimA] || '';
       var gast    = row[iGastB] || '';
+      if(!firstRow) firstRow = {rawDate:rawDate, heim:heim, gast:gast};
 
-      // Parse DD.MM.YYYY
       var iso = '';
       var dm = rawDate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
       if(dm) {
@@ -7494,8 +7495,7 @@ function handleSpielplanCSV(input) {
       if(!iso.match(/^\d{4}-\d{2}-\d{2}$/)) return;
 
       var isHome = heim.toLowerCase().indexOf('wiesendangen')>=0;
-      var opp = (isHome ? gast : heim)
-        .replace(/ \d+\b.*/, '').trim() || 'Gegner';
+      var opp = (isHome ? gast : heim).replace(/ \d+\b.*/, '').trim() || 'Gegner';
       var name = (isHome ? 'Heim' : 'Auswärts') + ': ' + opp;
 
       if(events.find(function(e){ return e.date===iso && e.type==='spiel'; })) { skipped++; return; }
@@ -7506,7 +7506,8 @@ function handleSpielplanCSV(input) {
     events.sort(function(a,b){ return a.date.localeCompare(b.date); });
     saveData(); renderAll();
     input.value = '';
-    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' übersprungen)':'')+'.');
+    var debug = firstRow ? '\n\n[Debug] Erste Zeile: Datum="'+firstRow.rawDate+'" | Heim="'+firstRow.heim+'" | Gast="'+firstRow.gast+'"' : '';
+    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' übersprungen)':'')+'.'+debug);
   };
   reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
   reader.readAsText(file, 'latin1');
