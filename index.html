@@ -7454,36 +7454,62 @@ function handleSpielplanCSV(input) {
   var file = input.files[0]; if(!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
-    var lines = ev.target.result.split('\n');
-    var header = lines[0].split(';').map(function(h){return h.trim().replace(/"/g,'');});
-    function col(row,n){var i=header.indexOf(n);return i>=0?(row[i]||'').trim().replace(/"/g,''):''}
+    var lines = ev.target.result.split('\n').filter(function(l){ return l.trim(); });
+    if(!lines.length) { alert('Datei ist leer.'); return; }
+
+    var header = lines[0].split(';').map(function(h){ return h.trim().replace(/"/g,'').replace(/^\uFEFF/,''); });
+
+    // Find column indices dynamically
+    function findCol(names) {
+      for(var i=0; i<names.length; i++)
+        for(var j=0; j<header.length; j++)
+          if(header[j].toLowerCase().indexOf(names[i].toLowerCase())>=0) return j;
+      return -1;
+    }
+    var iDate  = findCol(['spieldatum','datum','date']);
+    var iHeimA = findCol(['teamname a','heim','team a','team1']);
+    var iGastB = findCol(['teamname b','gast','team b','team2']);
+    // Fallback positions if header not found
+    if(iDate  < 0) iDate  = 4;
+    if(iHeimA < 0) iHeimA = 6;
+    if(iGastB < 0) iGastB = 8;
+
     var added=0, skipped=0;
     lines.slice(1).forEach(function(line){
       if(!line.trim()) return;
-      var row = line.split(';');
-      var rawDate = col(row,'Datum')||( row[3]||'').trim().replace(/"/g,'');
-      var heim = col(row,'Heimteam')||( row[8]||'').replace(/"/g,'').trim();
-      var gast = col(row,'Gastteam')||( row[10]||'').replace(/"/g,'').trim();
-      var resultat = col(row,'Resultat')||( row[9]||'').replace(/"/g,'').trim();
-      var status = col(row,'Spielstatus')||( row[12]||'').replace(/"/g,'').trim();
-      var iso='';
-      if(rawDate.indexOf('.')>=0){var dp=rawDate.split('.');if(dp.length>=3) iso=dp[2].slice(0,4)+'-'+dp[1].padStart(2,'0')+'-'+dp[0].padStart(2,'0');}
-      else if(rawDate.match(/\d{4}-\d{2}-\d{2}/)) iso=rawDate.slice(0,10);
+      var row = line.split(';').map(function(c){ return c.trim().replace(/"/g,'').replace(/\r/g,''); });
+      var rawDate = row[iDate] || '';
+      var heim    = row[iHeimA] || '';
+      var gast    = row[iGastB] || '';
+
+      // Parse DD.MM.YYYY
+      var iso = '';
+      var dm = rawDate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+      if(dm) {
+        var yr = dm[3].length===2 ? '20'+dm[3] : dm[3];
+        iso = yr+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0');
+      } else if(rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+        iso = rawDate.slice(0,10);
+      }
       if(!iso.match(/^\d{4}-\d{2}-\d{2}$/)) return;
-      var isHome = heim.indexOf('Wiesendangen')>=0;
-      var opp = (isHome?gast:heim).replace(/ - \d+\. Liga.*/,'').replace(/^(FC|SC|SV|NK|AC|BSC) /,'').trim();
-      var name=(isHome?'Heim':'Auswärts')+': '+opp;
-      if(events.find(function(e){return e.date===iso&&e.type==='spiel';})){skipped++;return;}
-      events.push({id:nextEid++,date:iso,type:'spiel',name:name,resultat:resultat,status:status});
+
+      var isHome = heim.toLowerCase().indexOf('wiesendangen')>=0;
+      var opp = (isHome ? gast : heim)
+        .replace(/ \d+\b.*/, '').trim() || 'Gegner';
+      var name = (isHome ? 'Heim' : 'Auswärts') + ': ' + opp;
+
+      if(events.find(function(e){ return e.date===iso && e.type==='spiel'; })) { skipped++; return; }
+      events.push({id:nextEid++, date:iso, type:'spiel', name:name, resultat:'', status:''});
       added++;
     });
-    events.sort(function(a,b){return a.date.localeCompare(b.date);});
+
+    events.sort(function(a,b){ return a.date.localeCompare(b.date); });
     saveData(); renderAll();
-    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' bereits vorhanden)':'')+'.');
     input.value = '';
+    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' übersprungen)':'')+'.');
   };
   reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
-  reader.readAsText(file,'latin1');
+  reader.readAsText(file, 'latin1');
 }
 
 // ═══════════════════════════════════════════════
