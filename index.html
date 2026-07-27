@@ -507,7 +507,10 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
           <input type="text" id="ne-name" class="inp" placeholder="Bezeichnung / Gegner" style="flex:1;min-width:130px">
           <button class="btn pri" onclick="addEvent()">Eintragen</button>
           <button class="btn" onclick="openTrainingGenerator()">&#9889; Serientermin</button>
-          <button class="btn" onclick="openSpielplanImport()">&#8681; CSV Spielplan</button>
+          <label class="btn" style="cursor:pointer;margin:0">
+            ⬇ CSV Spielplan
+            <input type="file" accept=".csv,.txt" style="display:none" onchange="handleSpielplanCSV(this)">
+          </label>
         </div>
         <div class="type-tabs">
           <button class="type-tab active" id="etab-all" onclick="filterEvents('all')">Alle</button>
@@ -7476,9 +7479,10 @@ function handleSpielplanCSV(input) {
     });
     events.sort(function(a,b){return a.date.localeCompare(b.date);});
     saveData(); renderAll();
-    var res=document.getElementById('spielplan-result');
-    if(res){res.textContent=added+' Spiele importiert, '+skipped+' bereits vorhanden.';res.style.color='var(--green)';}
+    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' bereits vorhanden)':'')+'.');
+    input.value = '';
   };
+  reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
   reader.readAsText(file,'latin1');
 }
 
