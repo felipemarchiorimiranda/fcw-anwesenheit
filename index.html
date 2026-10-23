@@ -808,13 +808,13 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
   <div class="modal">
     <div class="modal-header"><span class="modal-title">CSV importieren</span><button class="btn" onclick="closeModal('import')" style="border:none;font-size:17px;padding:2px 6px">x</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Importiere eine CSV-Datei vom FVRZ. Spielminuten, Einsätze, Tore und Assists werden automatisch aktualisiert.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Importiere eine CSV- oder Excel-Datei vom FVRZ. Spielminuten, Einsätze, Tore und Assists werden automatisch aktualisiert.</p>
       <div class="import-drop" onclick="document.getElementById('csv-file').click()">
-        <div style="font-size:28px;margin-bottom:8px">+</div>
-        <div style="font-size:14px;font-weight:500;margin-bottom:4px">CSV-Datei klicken zum Auswählen</div>
-        <div style="font-size:12px;color:var(--muted)">Semikolon-getrennt, mit Vorname, Name, Rückennummer, Spielposition, Einsätze, Einsatzminuten, Tore, Assists</div>
+        <div style="font-size:28px;margin-bottom:8px">📂</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px">CSV oder Excel klicken zum Auswählen</div>
+        <div style="font-size:12px;color:var(--muted)">.csv / .xlsx / .xls · Spalten: Vorname, Name, Einsätze, Minuten, Tore</div>
       </div>
-      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVImport(this)">
+      <input type="file" id="csv-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleCSVImport(this)">
       <div id="import-preview" style="margin-top:1rem;font-size:12px;color:var(--muted)"></div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('import')">Schliessen</button></div>
@@ -4400,7 +4400,8 @@ function getSeasonYears() {
     if(y1 < 100) y1 += 2000;
     if(y2 < 100) y2 += 2000;
   }
-  return {vr_start: y1+'-07-01', vr_end: y1+'-11-30', rr_start: y2+'-02-01', rr_end: y2+'-06-30'};
+  // Rückrunde starts Jan 1 of the second year (all new calendar year = Rückrunde)
+  return {vr_start: y1+'-07-01', vr_end: y1+'-12-31', rr_start: y2+'-01-01', rr_end: y2+'-06-30'};
 }
 
 function currentRunde() {
@@ -7354,38 +7355,81 @@ function modalSave() {
   closeModal('add');saveData();renderAll();
 }
 function handleCSVImport(input) {
-  var file=input.files[0];if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var lines=e.target.result.split('\n');
-    var headers=lines[0].split(';').map(function(h){return h.trim().replace(/"/g,'');});
-    function col(row,name){var i=headers.indexOf(name);return i>=0?(row[i]||'').trim().replace(/"/g,''):''}
+  var file=input.files[0]; if(!file) return;
+  var isExcel=/\.(xlsx|xls)$/i.test(file.name);
+
+  function processRows(rows) {
+    if(!rows.length) return;
+    var headers=rows[0].map(function(h){return (h||'').toString().trim().replace(/"/g,'');});
+    function col(row,names){
+      if(typeof names==='string') names=[names];
+      for(var ni=0;ni<names.length;ni++){
+        for(var j=0;j<headers.length;j++){
+          if(headers[j].toLowerCase().indexOf(names[ni].toLowerCase())>=0 && row[j]!=null)
+            return (row[j]||'').toString().trim().replace(/"/g,'');
+        }
+      }
+      return '';
+    }
     function getZone(pos){pos=(pos||'').toLowerCase();
       if(/tor/.test(pos)) return 'Torwart';
-      if(/libero|verteidigung/.test(pos)) return 'Abwehr';
-      if(/sturm|mittelsturm/.test(pos)) return 'Angriff';
+      if(/libero|verteidigung|abwehr/.test(pos)) return 'Abwehr';
+      if(/sturm|angriff/.test(pos)) return 'Angriff';
       return 'Mittelfeld';}
     var updated=0,added=0;
-    lines.slice(1).forEach(function(line){
-      if(!line.trim()) return;
-      var row=line.split(';');
-      var fn=col(row,'Vorname'),ln=col(row,'Name');
-      var fullName=(fn+' '+ln).trim();if(!fullName||fullName===' ') return;
+    rows.slice(1).forEach(function(row){
+      if(!row||!row.length) return;
+      var fn=col(row,['Vorname','First']);
+      var ln=col(row,['Name','Nachname','Last','Familienname']);
+      var fullName=(fn+' '+ln).trim(); if(!fullName||fullName===' ') return;
       var existing=players.find(function(p){return p.name===fullName;});
-      var min=parseInt(col(row,'Einsatzminuten'))||0;
-      var ein=parseInt(col(row,'Eins\u00e4tze'))||0;
-      var tor=parseInt(col(row,'Tore'))||0;
-      if(existing){existing.minuten=min;existing.einsaetze=ein;existing.tore=tor;updated++;}
-      else{players.push({id:nextPid++,name:fullName,nr:col(row,'R\u00fcckennummer')||'--',
-        zone:getZone(col(row,'Spielposition')),pos1:col(row,'Spielposition'),pos2:'',
+      var min=parseInt(col(row,['Einsatzminuten','Minuten','Minutes']))||0;
+      var ein=parseInt(col(row,['Eins\u00e4tze','Einsaetze','Spiele','Games']))||0;
+      var tor=parseInt(col(row,['Tore','Goals']))||0;
+      if(existing){existing.minuten=(existing.minuten||0)+min;existing.einsaetze=(existing.einsaetze||0)+ein;existing.tore=(existing.tore||0)+tor;updated++;}
+      else{players.push({id:nextPid++,name:fullName,
+        nr:col(row,['R\u00fcckennummer','Nummer','Nr'])||'\u2014',
+        zone:getZone(col(row,['Spielposition','Position'])),
+        pos1:col(row,['Spielposition','Position']),pos2:'',
         minuten:min,einsaetze:ein,tore:tor,isStaff:false});added++;}
     });
     var prev=document.getElementById('import-preview');
-    if(prev) prev.innerHTML='<span style="color:var(--green)">'+updated+' aktualisiert, '+added+' neu</span>';
-    saveData();renderAll();
-  };
-  reader.readAsText(file,'latin1');
+    if(prev) prev.innerHTML='<span style="color:var(--green)">\u2713 '+updated+' aktualisiert, '+added+' neu</span>';
+    saveData(); renderAll();
+  }
+
+  if(isExcel) {
+    var loadXLSX=function(cb){
+      if(window.XLSX){cb();return;}
+      var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=cb; document.head.appendChild(s);
+    };
+    loadXLSX(function(){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var wb=XLSX.read(e.target.result,{type:'binary'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        processRows(rows);
+      };
+      reader.readAsBinaryString(file);
+    });
+  } else {
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var sep=';';
+      var content=e.target.result;
+      var firstLine=content.split('\n')[0]||'';
+      if((firstLine.match(/,/g)||[]).length>(firstLine.match(/;/g)||[]).length) sep=',';
+      var rows=content.split('\n').filter(function(l){return l.trim();})
+        .map(function(l){return l.split(sep).map(function(c){return c.trim().replace(/"/g,'').replace(/\r/g,'');});});
+      processRows(rows);
+    };
+    reader.readAsText(file,'latin1');
+  }
 }
+
 
 // ═══════════════════════════════════════════════
 // PERSISTENCE
