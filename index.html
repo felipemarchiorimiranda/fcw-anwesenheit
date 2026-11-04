@@ -7780,74 +7780,97 @@ function handleSpielplanCSV(input) {
   var file = input.files[0]; if(!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
-    var lines = ev.target.result.split('\n').filter(function(l){ return l.trim(); });
+    var buf = ev.target.result, text;
+    try { text = new TextDecoder('utf-8',{fatal:true}).decode(buf); }
+    catch(e) { text = new TextDecoder('windows-1252').decode(buf); }
+    text = text.replace(/^\uFEFF/,'');
+    var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
     if(!lines.length) { alert('Datei ist leer.'); return; }
 
-    var header = lines[0].split(';').map(function(h){ return h.trim().replace(/"/g,'').replace(/^\uFEFF/,''); });
+    var sep = lines[0].split(';').length >= lines[0].split(',').length ? ';' : ',';
+    function clean(c){ return c.trim().replace(/"/g,''); }
+    var header = lines[0].split(sep).map(clean);
 
-    // Find column indices dynamically
+    // Spalte per Kopfzeile finden: erst exakter Name, dann "enthält"
     function findCol(names) {
-      for(var i=0; i<names.length; i++)
-        for(var j=0; j<header.length; j++)
-          if(header[j].toLowerCase().indexOf(names[i].toLowerCase())>=0) return j;
+      var i,j;
+      for(i=0;i<names.length;i++) for(j=0;j<header.length;j++) if(header[j].toLowerCase()===names[i]) return j;
+      for(i=0;i<names.length;i++) for(j=0;j<header.length;j++) if(header[j].toLowerCase().indexOf(names[i])>=0) return j;
       return -1;
     }
-    var iDate  = findCol(['spieldatum','datum','date']);
-    var iHeimA = findCol(['teamname a','heim','team a','team1']);
-    var iGastB = findCol(['teamname b','gast','team b','team2']);
-    // Fallback positions if header not found
-    if(iDate  < 0) iDate  = 4;
-    if(iHeimA < 0) iHeimA = 6;
-    if(iGastB < 0) iGastB = 8;
-    var iZeit = findCol(['spielzeit']); if(iZeit < 0) iZeit = 5;
-    var iOrt  = findCol(['spielort']);  if(iOrt  < 0) iOrt  = 10;
+    var iHeim = findCol(['teamname a','heimteam']);
+    var iGast = findCol(['teamname b','gastteam']);
+    if(iHeim < 0) iHeim = 6;
+    if(iGast < 0) iGast = 8;
+    var iOrt  = findCol(['spielort','spielfeld']);
+    var iRes  = findCol(['resultat']);
+    var iStat = findCol(['spielstatus']);
+    var iNr   = findCol(['spielnummer','nummer']);
+    var iBem  = findCol(['bemerkung']);
+    var timeLimit = Math.min(iHeim, iGast);
 
-    var added=0, skipped=0, filled=0;
-    var firstRow = null;
+    // "FC Phönix Seen 2 - 3. Liga / -"  ->  "FC Phönix Seen 2"
+    function teamClean(t){ return (t||'').replace(/\s+-\s+.*Liga.*$/i,'').trim(); }
+
+    var added=0, updated=0, unchanged=0, moved=0, seenRows=0;
     lines.slice(1).forEach(function(line){
-      if(!line.trim()) return;
-      var row = line.split(';').map(function(c){ return c.trim().replace(/"/g,'').replace(/\r/g,''); });
-      var rawDate = row[iDate] || '';
-      var heim    = row[iHeimA] || '';
-      var gast    = row[iGastB] || '';
-      if(!firstRow) firstRow = {rawDate:rawDate, heim:heim, gast:gast};
+      var row = line.split(sep).map(clean);
 
-      var iso = '';
-      var dm = rawDate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
-      if(dm) {
-        var yr = dm[3].length===2 ? '20'+dm[3] : dm[3];
-        iso = yr+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0');
-      } else if(rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
-        iso = rawDate.slice(0,10);
+      // Datum und Uhrzeit in der Zeile suchen (die Kopfzeile ist in manchen Exporten verschoben)
+      var iso='', zeit='', k;
+      for(k=0;k<row.length && !iso;k++){
+        var dm = row[k].match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+        if(dm) iso = (dm[3].length===2?'20'+dm[3]:dm[3])+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0');
+        else if(/^\d{4}-\d{2}-\d{2}/.test(row[k])) iso = row[k].slice(0,10);
       }
-      if(!iso.match(/^\d{4}-\d{2}-\d{2}$/)) return;
+      if(!iso) return;
+      for(k=0;k<Math.min(timeLimit,row.length);k++){
+        if(/^\d{1,2}:\d{2}$/.test(row[k])){ zeit=row[k].padStart(5,'0'); break; }
+      }
+      seenRows++;
 
+      var heim = teamClean(row[iHeim]), gast = teamClean(row[iGast]);
       var isHome = heim.toLowerCase().indexOf('wiesendangen')>=0;
-      var oppFull = (isHome ? gast : heim).trim() || 'Gegner';
+      var oppFull = (isHome ? gast : heim) || 'Gegner';
       var oppOld  = oppFull.replace(/ \d+\b.*/, '').trim() || 'Gegner';
-      var name = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppFull;
+      var name    = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppFull;
       var oldName = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppOld;
-      var zeit = (row[iZeit] || '').trim();
-      var ort  = (row[iOrt]  || '').split(',')[0].trim();
+      var ort  = iOrt>=0 ? (row[iOrt]||'').split(',')[0].trim() : '';
+      var res  = iRes>=0 ? (row[iRes]||'') : '';
+      if(!/^\d+:\d+$/.test(res)) res = '';
+      var stat = iStat>=0 ? (row[iStat]||'') : '';
+      var nr   = iNr>=0 ? (row[iNr]||'') : '';
+      var bem  = iBem>=0 ? (row[iBem]||'') : '';
 
-      var ex = events.find(function(e){ return e.date===iso && e.type==='spiel'; });
+      // gleiches Spiel erkennen: erst Spielnummer, sonst Datum
+      var ex = nr ? events.find(function(e){ return e.type==='spiel' && e.spielnr===nr; }) : null;
+      if(!ex) ex = events.find(function(e){ return e.type==='spiel' && e.date===iso && (!e.spielnr || e.spielnr===nr); });
+
       if(ex) {
-        if(!ex.zeit && zeit) { ex.zeit = zeit; filled++; }
-        if(!ex.ort && ort) ex.ort = ort;
-        if(ex.name === oldName && oldName !== name) { ex.name = name; filled++; }
-        skipped++; return;
+        var ch=false;
+        if(nr) ex.spielnr = nr;
+        if(ex.date!==iso){ ex.date=iso; ch=true; moved++; }
+        if(zeit && ex.zeit!==zeit){ ex.zeit=zeit; ch=true; }
+        if(ort  && ex.ort!==ort){ ex.ort=ort; ch=true; }
+        if(res  && ex.resultat!==res){ ex.resultat=res; ch=true; }
+        if(stat && ex.status!==stat){ ex.status=stat; ch=true; }
+        if(bem  && !ex.bemerkung){ ex.bemerkung=bem; ch=true; }
+        if(ex.name===oldName && oldName!==name){ ex.name=name; ch=true; }
+        if(ch) updated++; else unchanged++;
+        return;
       }
-      events.push({id:nextEid++, date:iso, type:'spiel', name:name, resultat:'', status:'', zeit:zeit, ort:ort, bemerkung:''});
+      events.push({id:nextEid++, date:iso, type:'spiel', name:name, resultat:res, status:stat, zeit:zeit, ort:ort, bemerkung:bem, spielnr:nr});
       added++;
     });
 
+    input.value = '';
+    if(!seenRows) { alert('Keine Spiele erkannt.\nSpalten in der Datei: '+header.join(' | ')); return; }
     events.sort(function(a,b){ return a.date.localeCompare(b.date); });
     saveData(); renderAll();
-    input.value = '';
-    alert(added+' Spiele neu importiert'+(skipped?', '+skipped+' waren bereits vorhanden':'')+(filled?' (bei '+filled+' Zeit/Ort/Name ergänzt)':'')+'.');
+    alert(added+' Spiele neu importiert, '+updated+' aktualisiert (Zeit/Ort/Resultat'+(moved?', '+moved+' verschoben':'')+'), '+unchanged+' unverändert.');
   };
   reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
-  reader.readAsText(file, 'latin1');
+  reader.readAsArrayBuffer(file);
 }
 
 // ═══════════════════════════════════════════════
