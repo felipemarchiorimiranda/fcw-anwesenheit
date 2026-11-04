@@ -212,6 +212,8 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <button id="mob-s2-btn" onclick="switchSeason(2)" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid rgba(0,0,0,0.12);background:#f4f4f4;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;cursor:pointer;color:#999">2026/27</button>
     </div>
 
+    <div id="mob-sperren"></div>
+
     <!-- Trainings Anwesenheitsübersicht -->
     <div>
       <div class="mob-section-title">Trainings — Anwesenheit</div>
@@ -314,6 +316,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <div id="dash-clock" style="padding:0.6rem 0 0.4rem;display:flex;align-items:baseline;gap:8px"></div>
       <div id="dash-last-sync" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:0.7rem;background:var(--surface);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted)"><span id="dash-sync-dot" style="width:7px;height:7px;border-radius:50%;background:#d1d5db;flex-shrink:0"></span><span id="dash-sync-text">Verbinde mit Cloud...</span><span style="margin-left:auto;cursor:pointer;color:var(--muted)" onclick="loadFromSupabase()" title="Jetzt aktualisieren">&#8635;</span></div>
       <div class="stat-row" id="dash-stats"></div>
+      <div id="dash-sperren"></div>
       <div class="grid32">
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheitsübersicht</span><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace" id="dash-quote-label"></span></div>
           <table class="tbl"><thead><tr><th>Spieler</th><th id="dh1" class="c"></th><th id="dh2" class="c"></th><th id="dh3" class="c"></th><th>Quote</th></tr></thead><tbody id="dash-att"></tbody></table>
@@ -492,7 +495,8 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <option value="vorrunde">Vorrunde</option>
               <option value="rueckrunde">Rückrunde</option>
             </select>
-            <button class="btn sm" onclick="tpExportWord()">⬇ Word</button>
+            <button class="btn pri sm" onclick="openTpExport()">⬇ Terminplan (Word)</button>
+            <button class="btn sm" onclick="tpExportWord()" title="Monatsraster wie im Kalender">⬇ Raster</button>
             <button class="btn sm" onclick="tpAddEintrag()">+ Eintrag</button>
           </div>
         </div>
@@ -528,14 +532,16 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
             CSV aktualisieren
           </button>
         </div>
+        <div id="sperren-box" style="padding:0 1.1rem"></div>
         <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
           <colgroup>
-            <col style="min-width:140px;width:30%">
-            <col style="min-width:90px;width:15%">
-            <col style="min-width:70px;width:10%;text-align:right">
-            <col style="min-width:70px;width:10%;text-align:right">
-            <col style="min-width:50px;width:8%;text-align:right">
-            <col style="min-width:120px;width:27%">
+            <col style="min-width:140px;width:24%">
+            <col style="min-width:90px;width:12%">
+            <col style="min-width:70px;width:9%;text-align:right">
+            <col style="min-width:70px;width:9%;text-align:right">
+            <col style="min-width:50px;width:7%;text-align:right">
+            <col style="min-width:190px;width:21%">
+            <col style="min-width:110px;width:18%">
           </colgroup>
           <thead><tr>
             <th>Spieler</th>
@@ -543,6 +549,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
             <th style="text-align:right">Einsätze</th>
             <th style="text-align:right">Minuten</th>
             <th style="text-align:right">Tore</th>
+            <th style="text-align:right">Gelbe Karten</th>
             <th>Anteil</th>
           </tr></thead>
           <tbody id="minuten-tbody"></tbody>
@@ -4853,7 +4860,7 @@ function mobRenderNextEvent() {
     }
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">' +
       '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0"></div>' +
-      '<div style="font-size:13px;color:'+textColor+';flex:1">' + p.name + reason + '</div>' +
+      '<div style="font-size:13px;color:'+textColor+';flex:1">' + p.name + reason + sperreMark(p,next.id) + '</div>' +
     '</div>';
   }
 
@@ -4938,6 +4945,7 @@ function renderAll() {
   renderSettings();
   renderKaderplanung();
   renderTerminplanung();
+  renderSperrenBox();
   mobInit();
 }
 
@@ -5248,7 +5256,7 @@ function buildTrainingOverview(eid) {
       if(r) reason = ' <span style="font-size:9px;opacity:0.75">('+r.kuerzel+')</span>';
     }
     return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:500;background:'+bg+';color:'+color+';margin:2px">'+
-      p.name.split(' ')[0]+' '+p.name.split(' ').slice(1).join(' ')+reason+'</span>';
+      p.name.split(' ')[0]+' '+p.name.split(' ').slice(1).join(' ')+reason+sperreMark(p,eid)+'</span>';
   }
 
   html += '<div style="padding:12px 16px">';
@@ -5591,11 +5599,12 @@ function renderEvents() {
   var t=today();
   tbody.innerHTML=evts.map(function(e){
     var r=eventRate(e.id), isPast=e.date<=t;
-    var res=e.resultat?' <span style="font-family:monospace;font-size:10px;color:var(--muted)">('+e.resultat+')</span>':'';
+    var res=e.resultat?' <span style="font-family:monospace;font-size:10px;color:var(--muted)">('+tpEsc(e.resultat)+')</span>':'';
+    var sub=[e.zeit,e.ort,e.bemerkung].filter(Boolean).join(' · ');
     return '<tr id="evt-row-'+e.id+'">'+
       '<td style="font-family:monospace;font-size:12px">'+fmtDate(e.date)+'</td>'+
       '<td>'+typeBadge(e.type)+'</td>'+
-      '<td style="font-size:13px">'+e.name+res+'</td>'+
+      '<td style="font-size:13px">'+tpEsc(e.name)+res+(sub?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+tpEsc(sub)+'</div>':'')+'</td>'+
       '<td class="r" style="font-size:12px;color:var(--muted)">'+(isPast&&r?r.att+'/'+r.total:'—')+'</td>'+
       '<td>'+(isPast&&r?barHtml(r.pct,55):'<span style="font-size:11px;color:var(--muted)">ausstehend</span>')+'</td>'+
       '<td style="display:flex;gap:4px">'+
@@ -5616,7 +5625,14 @@ function openEditEvent(id) {
       '<option value="training"'+(e.type==='training'?' selected':'')+'>Training</option>'+
       '<option value="spiel"'+(e.type==='spiel'?' selected':'')+'>Spiel</option>'+
     '</select></td>'+
-    '<td><input type="text" class="inp" id="ee-name-'+id+'" value="'+e.name+'" style="width:100%;font-size:12px"></td>'+
+    '<td>'+
+      '<input type="text" class="inp" id="ee-name-'+id+'" value="'+tpEsc(e.name)+'" style="width:100%;font-size:12px" placeholder="Bezeichnung">'+
+      '<div style="display:flex;gap:6px;margin-top:6px">'+
+        '<input type="time" class="inp" id="ee-zeit-'+id+'" value="'+tpEsc(e.zeit)+'" style="width:100px;font-size:12px">'+
+        '<input type="text" class="inp" id="ee-ort-'+id+'" value="'+tpEsc(e.ort)+'" placeholder="Ort" style="flex:1;font-size:12px">'+
+      '</div>'+
+      '<input type="text" class="inp" id="ee-bem-'+id+'" value="'+tpEsc(e.bemerkung)+'" placeholder="Bemerkung" style="width:100%;font-size:12px;margin-top:6px">'+
+    '</td>'+
     '<td></td><td></td>'+
     '<td style="display:flex;gap:4px">'+
       '<button class="btn pri" onclick="saveEditEvent('+id+')" style="font-size:11px">✓</button>'+
@@ -5627,12 +5643,13 @@ function openEditEvent(id) {
 function saveEditEvent(id) {
   var e = events.find(function(x){ return x.id===id; });
   if(!e) return;
-  var d = document.getElementById('ee-date-'+id);
-  var t = document.getElementById('ee-type-'+id);
-  var n = document.getElementById('ee-name-'+id);
-  if(d && d.value) e.date = d.value;
-  if(t) e.type = t.value;
-  if(n && n.value.trim()) e.name = n.value.trim();
+  var g=function(k){var el=document.getElementById('ee-'+k+'-'+id);return el?el.value:null;};
+  if(g('date')) e.date = g('date');
+  if(g('type')) e.type = g('type');
+  if(g('name') && g('name').trim()) e.name = g('name').trim();
+  e.zeit = g('zeit')||'';
+  e.ort = (g('ort')||'').trim();
+  e.bemerkung = (g('bem')||'').trim();
   events.sort(function(a,b){ return a.date.localeCompare(b.date); });
   saveData();
   renderEvents();
@@ -5642,6 +5659,7 @@ function saveEditEvent(id) {
   renderUebersichtKeepScroll();
   renderTerminplanung();
 }
+
 function filterEvents(f) {
   eventsFilter=f;
   ['all','training','spiel'].forEach(function(id){var el=document.getElementById('etab-'+id);if(el)el.classList.toggle('active',f===id);});
@@ -6776,10 +6794,10 @@ function renderTerminplanung() {
       }
       evts.forEach(function(e){
         if(e.type === 'training') {
-          content += '<span style="color:#15803d;font-weight:500">Training</span>';
+          content += '<span style="color:#15803d;font-weight:500">'+(e.zeit?'<span style="color:#6b7280;font-weight:400">'+e.zeit+'</span> ':'')+'Training</span>';
         } else {
           var heim = e.name.indexOf('(H)') >= 0 ? ' <span style="background:#dbeafe;color:#1e40af;border-radius:3px;padding:0 3px;font-size:9px">H</span>' : e.name.indexOf('(A)') >= 0 ? ' <span style="background:#fee2e2;color:#991b1b;border-radius:3px;padding:0 3px;font-size:9px">A</span>' : '';
-          content += '<span style="color:#1d4ed8;font-weight:600">'+e.name.replace('(H)','').replace('(A)','')+heim+'</span>';
+          content += '<span style="color:#1d4ed8;font-weight:600">'+(e.zeit?'<span style="color:#6b7280;font-weight:400">'+e.zeit+'</span> ':'')+e.name.replace('(H)','').replace('(A)','')+heim+'</span>';
         }
       });
       extras.forEach(function(x){
@@ -6797,55 +6815,73 @@ function renderTerminplanung() {
   el.innerHTML = html;
 }
 
+function tpSetEvtField(id,field,val){
+  var e=events.find(function(x){return x.id===id;}); if(!e) return;
+  e[field]=(val||'').trim();
+  saveData(); renderTerminplanung(); renderEvents();
+}
+function tpDeleteEvent(id){
+  if(!confirm('Diese Einheit wirklich löschen?')) return;
+  tpCloseDay(); removeEvent(id);
+}
+
 function tpOpenDay(dateStr) {
-  var d = new Date(dateStr);
+  var d = new Date(dateStr+'T12:00:00');
   var wd = TP_WOCHENTAGE[d.getDay()];
-  var evtMap = {};
-  events.forEach(function(e){ if(e.date===dateStr) evtMap[e.id]=e; });
+  var dayEvts = events.filter(function(e){ return e.date===dateStr; });
   var extras = (tpData.extraEintraege||[]).filter(function(x){return x.date===dateStr;});
   var feiertag = getFeiertage(d.getFullYear()).find(function(f){return f.date===dateStr;});
 
-  var evtHtml = Object.values(evtMap).map(function(e){
-    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">'+
-      '<span style="font-size:12px;color:'+(e.type==='training'?'#15803d':'#1d4ed8')+';flex:1">'+
-        (e.type==='training'?'🏃 Training':'⚽ '+e.name)+
-      '</span>'+
-      '<span style="font-size:10px;color:var(--muted)">aus Einheiten</span>'+
+  var evtHtml = dayEvts.map(function(e){
+    var tr = e.type==='training';
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'+
+        '<span style="font-size:12px;font-weight:600;color:'+(tr?'#15803d':'#1d4ed8')+';flex:1">'+(tr?'🏃 ':'⚽ ')+tpEsc(e.name)+'</span>'+
+        '<span style="font-size:10px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 6px;cursor:pointer" onclick="tpDeleteEvent('+e.id+')">löschen</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px">'+
+        '<input type="time" class="inp" value="'+tpEsc(e.zeit)+'" style="width:100px;font-size:12px" onchange="tpSetEvtField('+e.id+',\'zeit\',this.value)">'+
+        '<input type="text" class="inp" placeholder="Ort" value="'+tpEsc(e.ort)+'" style="flex:1;font-size:12px" onchange="tpSetEvtField('+e.id+',\'ort\',this.value)">'+
+      '</div>'+
+      '<input type="text" class="inp" placeholder="Bemerkung" value="'+tpEsc(e.bemerkung)+'" style="width:100%;font-size:12px;margin-top:6px" onchange="tpSetEvtField('+e.id+',\'bemerkung\',this.value)">'+
     '</div>';
   }).join('');
 
-  var extraHtml = extras.map(function(x, i){
+  var extraHtml = extras.map(function(x){
     var globalIdx = (tpData.extraEintraege||[]).findIndex(function(e){ return e.date===dateStr && e.text===x.text && e.type===x.type; });
-    var col = x.type==='training'?'#15803d':x.type==='spiel'?'#1d4ed8':'#7c3aed';
-    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">'+
-      '<span style="font-size:12px;color:'+col+';flex:1">'+x.text+'</span>'+
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border)">'+
+      '<span style="font-size:12px;color:#7c3aed;flex:1">📌 '+tpEsc(x.text)+(x.zeit?' <span style="color:var(--muted)">· '+tpEsc(x.zeit)+'</span>':'')+(x.ort?' <span style="color:var(--muted)">· '+tpEsc(x.ort)+'</span>':'')+'</span>'+
       '<span style="font-size:10px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 6px;cursor:pointer" onclick="tpDeleteExtra('+globalIdx+')">löschen</span>'+
     '</div>';
   }).join('');
 
   var feierHtml = feiertag
-    ? '<div style="padding:4px 0;font-size:12px;color:#b45309;border-bottom:1px solid var(--border)">🎉 '+feiertag.text+'</div>'
+    ? '<div style="padding:4px 0;font-size:12px;color:#b45309;border-bottom:1px solid var(--border)">🎉 '+tpEsc(feiertag.text)+'</div>'
     : '';
 
   var pop = document.createElement('div');
   pop.id = 'tp-day-pop';
-  pop.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.25);width:360px;max-height:80vh;overflow-y:auto';
+  pop.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.25);width:380px;max-width:94vw;max-height:84vh;overflow-y:auto';
   pop.innerHTML =
     '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'+
       '<strong style="font-size:14px">'+wd+', '+fmtDate(dateStr)+'</strong>'+
       '<button onclick="tpCloseDay()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)">×</button>'+
     '</div>'+
     '<div style="padding:12px 16px">'+
-      (feierHtml||evtHtml||extraHtml ? feierHtml+evtHtml+extraHtml : '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Keine Einträge</div>')+
+      ((feierHtml||evtHtml||extraHtml) ? feierHtml+evtHtml+extraHtml : '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Keine Einträge</div>')+
       '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'+
         '<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase">Neuer Eintrag</div>'+
         '<div style="display:flex;flex-direction:column;gap:6px">'+
-          '<input id="tp-new-text" class="inp" placeholder="Bezeichnung (z.B. Trainingsweekend)" style="width:100%">'+
           '<select id="tp-new-type" class="inp">'+
-            '<option value="sonstiges">Sonstiges</option>'+
-            '<option value="training">Training</option>'+
-            '<option value="spiel">Spiel</option>'+
+            '<option value="training">Training (zählt in der Anwesenheit)</option>'+
+            '<option value="spiel">Spiel (zählt in der Anwesenheit)</option>'+
+            '<option value="sonstiges">Sonstiger Termin (z.B. Kick-off, Maskenball)</option>'+
           '</select>'+
+          '<input id="tp-new-text" class="inp" placeholder="Bezeichnung (bei Training optional)" style="width:100%">'+
+          '<div style="display:flex;gap:6px">'+
+            '<input id="tp-new-zeit" type="time" class="inp" style="width:100px">'+
+            '<input id="tp-new-ort" class="inp" placeholder="Ort" style="flex:1">'+
+          '</div>'+
           '<button class="btn pri" onclick="tpSaveExtra(\''+dateStr+'\')" style="width:100%">+ Hinzufügen</button>'+
         '</div>'+
       '</div>'+
@@ -6855,10 +6891,8 @@ function tpOpenDay(dateStr) {
   overlay.id = 'tp-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9998';
   overlay.onclick = tpCloseDay;
-
   document.body.appendChild(overlay);
   document.body.appendChild(pop);
-  setTimeout(function(){ var i=document.getElementById('tp-new-text'); if(i)i.focus(); }, 50);
 }
 
 function tpCloseDay() {
@@ -6869,14 +6903,21 @@ function tpCloseDay() {
 }
 
 function tpSaveExtra(dateStr) {
-  var txt = document.getElementById('tp-new-text');
-  var typ = document.getElementById('tp-new-type');
-  if(!txt || !txt.value.trim()) return;
-  if(!tpData.extraEintraege) tpData.extraEintraege = [];
-  tpData.extraEintraege.push({date:dateStr, text:txt.value.trim(), type:typ?typ.value:'sonstiges'});
-  saveTpData();
-  tpCloseDay();
-  renderTerminplanung();
+  var txt=document.getElementById('tp-new-text'), typ=document.getElementById('tp-new-type'),
+      zt=document.getElementById('tp-new-zeit'), ot=document.getElementById('tp-new-ort');
+  var type=typ?typ.value:'sonstiges';
+  var text=txt?txt.value.trim():'';
+  var zeit=zt?zt.value:'', ort=ot?ot.value.trim():'';
+  if(type==='training'||type==='spiel'){
+    events.push({id:nextEid++,date:dateStr,type:type,name:text||(type==='training'?'Training':'Spiel'),zeit:zeit,ort:ort,bemerkung:''});
+    events.sort(function(a,b){return a.date.localeCompare(b.date);});
+    saveData(); tpCloseDay(); renderAll();
+    return;
+  }
+  if(!text) return;
+  if(!tpData.extraEintraege) tpData.extraEintraege=[];
+  tpData.extraEintraege.push({date:dateStr,text:text,type:'sonstiges',zeit:zeit,ort:ort});
+  saveTpData(); tpCloseDay(); renderTerminplanung();
 }
 
 function tpDeleteExtra(idx) {
@@ -6885,6 +6926,194 @@ function tpDeleteExtra(idx) {
   saveTpData();
   tpCloseDay();
   renderTerminplanung();
+}
+
+function buildTerminplanDoc(D, o) {
+  var Paragraph=D.Paragraph, TextRun=D.TextRun, Table=D.Table, TableRow=D.TableRow, TableCell=D.TableCell,
+      WidthType=D.WidthType, ShadingType=D.ShadingType, AlignmentType=D.AlignmentType, BorderStyle=D.BorderStyle,
+      ImageRun=D.ImageRun, Footer=D.Footer, PageNumber=D.PageNumber, VerticalAlign=D.VerticalAlign;
+  var FONT='Arial';
+  var thin={style:BorderStyle.SINGLE,size:4,color:'BFBFBF'};
+  var cellBorders={top:thin,bottom:thin,left:thin,right:thin};
+  var none={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+  var noBorders={top:none,bottom:none,left:none,right:none};
+  var W=[1000,850,1150,700,2700,1500,2006];
+  var TOTAL=9906;
+
+  function run(t,opt){
+    opt=opt||{};
+    return new TextRun({text:t||'',font:FONT,size:opt.size||18,bold:!!opt.bold,italics:!!opt.italics,color:opt.color});
+  }
+  function cell(i,text,opt){
+    opt=opt||{};
+    return new TableCell({
+      width:{size:W[i],type:WidthType.DXA}, borders:cellBorders, verticalAlign:VerticalAlign.CENTER,
+      shading: opt.fill?{fill:opt.fill,type:ShadingType.CLEAR,color:'auto'}:undefined,
+      margins:{top:50,bottom:50,left:90,right:90},
+      children:[new Paragraph({children:[run(text,opt)]})]
+    });
+  }
+
+  var head=['Monat','Datum','Tag','Zeit','Art','Ort','Bemerkungen'];
+  var rows=[new TableRow({tableHeader:true,cantSplit:true,children:head.map(function(h,i){
+    return cell(i,h,{bold:true,color:'FFFFFF',fill:'1A1A1A'});
+  })})];
+  o.rows.forEach(function(r){
+    var fill=r.hl?'EEF2F7':undefined, b=!!r.hl;
+    rows.push(new TableRow({cantSplit:true,children:[
+      cell(0,r.monat,{bold:true,fill:fill}),
+      cell(1,r.datum,{bold:b,fill:fill}),
+      cell(2,r.tag,{bold:b,fill:fill}),
+      cell(3,r.zeit,{bold:b,fill:fill}),
+      cell(4,r.art,{bold:b,fill:fill}),
+      cell(5,r.ort,{bold:b,fill:fill}),
+      cell(6,r.bem,{fill:fill,italics:!!r.bem})
+    ]}));
+  });
+  var table=new Table({width:{size:TOTAL,type:WidthType.DXA},columnWidths:W,rows:rows});
+
+  var textParas=[
+    new Paragraph({spacing:{after:60},children:[run(o.title,{bold:true,size:32})]}),
+    new Paragraph({children:[run(o.sub,{size:24,color:'555555'})]})
+  ];
+  var top;
+  if(o.logo){
+    var lh=64, lw=Math.min(130,Math.round(lh*o.logo.ratio));
+    top=new Table({
+      width:{size:TOTAL,type:WidthType.DXA}, columnWidths:[1700,TOTAL-1700],
+      rows:[new TableRow({children:[
+        new TableCell({width:{size:1700,type:WidthType.DXA},borders:noBorders,verticalAlign:VerticalAlign.CENTER,
+          children:[new Paragraph({children:[new ImageRun({data:o.logo.bytes,type:o.logo.type,transformation:{width:lw,height:lh}})]})]}),
+        new TableCell({width:{size:TOTAL-1700,type:WidthType.DXA},borders:noBorders,verticalAlign:VerticalAlign.CENTER,children:textParas})
+      ]})]
+    });
+  }
+
+  var children=[];
+  if(top) children.push(top); else children=children.concat(textParas);
+  children.push(new Paragraph({spacing:{after:160},children:[run('')]}));
+  children.push(table);
+  (o.notes||[]).forEach(function(n,i){
+    children.push(new Paragraph({spacing:{before:i===0?200:60},children:[run(n,{italics:true,size:16,color:'444444'})]}));
+  });
+
+  var footer=new Footer({children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[
+    run('Stand: '+o.stand+'  ·  Seite ',{size:14,color:'888888'}),
+    new TextRun({children:[PageNumber.CURRENT],font:FONT,size:14,color:'888888'})
+  ]})]});
+
+  return new D.Document({
+    styles:{default:{document:{run:{font:FONT,size:18}}}},
+    sections:[{
+      properties:{page:{size:{width:11906,height:16838},margin:{top:900,right:1000,bottom:900,left:1000}}},
+      footers:{default:footer},
+      children:children
+    }]
+  });
+}
+
+
+var TP_TAGE_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+
+function loadDocxLib(cb){
+  if(window.docx && window.docx.Packer){ cb(true); return; }
+  var sc=document.createElement('script');
+  sc.src='https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js';
+  sc.onload=function(){ cb(!!(window.docx&&window.docx.Packer)); };
+  sc.onerror=function(){ cb(false); };
+  document.head.appendChild(sc);
+}
+
+function getLogoData(use,cb){
+  if(!use||!settings.vereinLogo){ cb(null); return; }
+  fetch(settings.vereinLogo).then(function(r){return r.blob();}).then(function(blob){
+    var url=URL.createObjectURL(blob), img=new Image();
+    img.onload=function(){
+      blob.arrayBuffer().then(function(buf){
+        URL.revokeObjectURL(url);
+        cb({bytes:new Uint8Array(buf),type:/png/i.test(blob.type)?'png':'jpg',ratio:(img.naturalWidth/img.naturalHeight)||1});
+      });
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
+    img.src=url;
+  }).catch(function(){ cb(null); });
+}
+
+function addDaysISO(iso,n){
+  var d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+tp2(d.getMonth()+1)+'-'+tp2(d.getDate());
+}
+
+function collectTerminRows(o){
+  var list=[];
+  events.forEach(function(e){
+    if(e.date<o.von||e.date>o.bis) return;
+    if(e.type==='training'&&!o.train) return;
+    if(e.type==='spiel'&&!o.spiel) return;
+    var art, zeit=e.zeit||'', ort=e.ort||'';
+    if(e.type==='training'){
+      art=(e.name&&e.name!=='Training')?e.name:'Training';
+      if(!zeit) zeit=o.stdZeit||''; if(!ort) ort=o.stdOrt||'';
+    } else {
+      var nm=e.name||'', h='';
+      if(/^Heim:\s*/i.test(nm)){ nm=nm.replace(/^Heim:\s*/i,''); h=' (H)'; }
+      else if(/^Ausw[aä]rts:\s*/i.test(nm)){ nm=nm.replace(/^Ausw[aä]rts:\s*/i,''); h=' (A)'; }
+      art='Spiel: '+nm+h;
+    }
+    list.push({date:e.date,zeit:zeit,art:art,ort:ort,bem:e.bemerkung||'',hl:e.type==='spiel'});
+  });
+  if(o.extra) (tpData.extraEintraege||[]).forEach(function(x){
+    if(x.date<o.von||x.date>o.bis) return;
+    list.push({date:x.date,zeit:x.zeit||'',art:x.text,ort:x.ort||'',bem:'',hl:true});
+  });
+  list.sort(function(a,b){ return a.date.localeCompare(b.date)||(a.zeit||'').localeCompare(b.zeit||''); });
+  var lastMonth='';
+  return list.map(function(r){
+    var d=new Date(r.date+'T12:00:00'), mKey=r.date.slice(0,7);
+    var monat = mKey!==lastMonth ? TP_MONATSNAMEN[d.getMonth()].toUpperCase() : '';
+    lastMonth=mKey;
+    return {monat:monat,datum:tp2(d.getDate())+'.'+tp2(d.getMonth()+1)+'.',tag:TP_TAGE_LANG[d.getDay()],zeit:r.zeit,art:r.art,ort:r.ort,bem:r.bem,hl:r.hl};
+  });
+}
+
+function openTpExport(){
+  var pr=tpData.exportPrefs||{};
+  var t=today();
+  var set=function(id,v){var el=document.getElementById(id); if(el) el.value=v;};
+  set('tpx-title','Terminplan '+(settings.clubName||'')+' '+(settings.teamName||''));
+  set('tpx-sub','Saison '+(settings.seasonName||''));
+  set('tpx-von',t); set('tpx-bis',addDaysISO(t,56));
+  set('tpx-zeit',pr.zeit||'19:50'); set('tpx-ort',pr.ort||'Rietsamen');
+  set('tpx-notes',pr.notes!=null?pr.notes:'Die Trainingszeiten gelten als Zeitpunkt, an dem ihr auf dem Platz seid');
+  var m=document.getElementById('tpx-msg'); if(m) m.textContent='';
+  openModal('tp-export');
+}
+
+function tpExportTerminplan(){
+  var v=function(id){var el=document.getElementById(id); return el?el.value:'';};
+  var c=function(id){var el=document.getElementById(id); return !!(el&&el.checked);};
+  var msg=document.getElementById('tpx-msg');
+  var o={von:v('tpx-von'),bis:v('tpx-bis'),train:c('tpx-train'),spiel:c('tpx-spiel'),extra:c('tpx-extra'),stdZeit:v('tpx-zeit'),stdOrt:v('tpx-ort').trim()};
+  if(!o.von||!o.bis||o.von>o.bis){ if(msg){msg.style.color='var(--red)';msg.textContent='Bitte einen gültigen Zeitraum wählen.';} return; }
+  var notes=v('tpx-notes').split('\n').map(function(n){return n.trim();}).filter(Boolean);
+  tpData.exportPrefs={zeit:o.stdZeit,ort:o.stdOrt,notes:v('tpx-notes')};
+  saveData();
+  var rows=collectTerminRows(o);
+  if(!rows.length){ if(msg){msg.style.color='var(--red)';msg.textContent='Im gewählten Zeitraum gibt es keine Einträge.';} return; }
+  if(msg){msg.style.color='var(--muted)';msg.textContent='Dokument wird erstellt …';}
+  loadDocxLib(function(ok){
+    if(!ok){ if(msg){msg.style.color='var(--red)';msg.textContent='Word-Bibliothek konnte nicht geladen werden (Internetverbindung?).';} return; }
+    getLogoData(c('tpx-logo'),function(logo){
+      var doc=buildTerminplanDoc(window.docx,{title:v('tpx-title'),sub:v('tpx-sub'),rows:rows,notes:notes,logo:logo,stand:fmtDate(today())});
+      window.docx.Packer.toBlob(doc).then(function(blob){
+        var a=document.createElement('a'), url=URL.createObjectURL(blob);
+        a.href=url; a.download='Terminplan_'+o.von+'_bis_'+o.bis+'.docx';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(url);},2000);
+        closeModal('tp-export');
+      });
+    });
+  });
 }
 
 function tpExportWord() {
@@ -6897,14 +7126,10 @@ function tpExportWord() {
   var monate = saison === 'vorrunde' ? [7,8,9,10,11] : [1,2,3,4,5,6];
 
   // Load docx library if not loaded
-  if(!window.docx) {
-    var script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
-    script.onload = function(){ _tpBuildWord(saison, saisonLabel, monate); };
-    document.head.appendChild(script);
-  } else {
+  loadDocxLib(function(ok){
+    if(!ok){ alert('Word-Bibliothek konnte nicht geladen werden (Internetverbindung?).'); return; }
     _tpBuildWord(saison, saisonLabel, monate);
-  }
+  });
 }
 
 function _tpBuildWord(saison, saisonLabel, monate) {
@@ -7360,15 +7585,23 @@ function handleCSVImport(input) {
 
   function processRows(rows) {
     if(!rows.length) return;
-    var headers=rows[0].map(function(h){return (h||'').toString().trim().replace(/"/g,'');});
+    var headers=rows[0].map(function(h){return (h||'').toString().trim().replace(/"/g,'').replace(/^\uFEFF/,'');});
+    function cellVal(row,j){ return (row[j]==null?'':row[j]).toString().trim().replace(/"/g,''); }
     function col(row,names){
       if(typeof names==='string') names=[names];
-      for(var ni=0;ni<names.length;ni++){
-        for(var j=0;j<headers.length;j++){
-          if(headers[j].toLowerCase().indexOf(names[ni].toLowerCase())>=0 && row[j]!=null)
-            return (row[j]||'').toString().trim().replace(/"/g,'');
+      var lower=names.map(function(n){return n.toLowerCase();});
+      var ni,j;
+      // 1. genauer Spaltenname (z.B. 'Name' darf nie 'Vorname' treffen)
+      for(ni=0;ni<lower.length;ni++)
+        for(j=0;j<headers.length;j++)
+          if(headers[j].toLowerCase()===lower[ni]) return cellVal(row,j);
+      // 2. Fallback: Spaltenname enthält den Suchbegriff
+      for(ni=0;ni<lower.length;ni++)
+        for(j=0;j<headers.length;j++){
+          var h=headers[j].toLowerCase();
+          if(lower[ni]==='name' && h.indexOf('vorname')>=0) continue;
+          if(h.indexOf(lower[ni])>=0) return cellVal(row,j);
         }
-      }
       return '';
     }
     function getZone(pos){pos=(pos||'').toLowerCase();
@@ -7376,7 +7609,7 @@ function handleCSVImport(input) {
       if(/libero|verteidigung|abwehr/.test(pos)) return 'Abwehr';
       if(/sturm|angriff/.test(pos)) return 'Angriff';
       return 'Mittelfeld';}
-    var updated=0,added=0;
+    var updated=0,added=0,seen={};
     rows.slice(1).forEach(function(row){
       if(!row||!row.length) return;
       var fn=col(row,['Vorname','First']);
@@ -7386,15 +7619,23 @@ function handleCSVImport(input) {
       var min=parseInt(col(row,['Einsatzminuten','Minuten','Minutes']))||0;
       var ein=parseInt(col(row,['Eins\u00e4tze','Einsaetze','Spiele','Games']))||0;
       var tor=parseInt(col(row,['Tore','Goals']))||0;
-      if(existing){existing.minuten=(existing.minuten||0)+min;existing.einsaetze=(existing.einsaetze||0)+ein;existing.tore=(existing.tore||0)+tor;updated++;}
-      else{players.push({id:nextPid++,name:fullName,
+      if(existing){existing.minuten=min;existing.einsaetze=ein;existing.tore=tor;seen[existing.id]=true;updated++;}
+      else{seen[nextPid]=true;players.push({id:nextPid++,name:fullName,
         nr:col(row,['R\u00fcckennummer','Nummer','Nr'])||'\u2014',
         zone:getZone(col(row,['Spielposition','Position'])),
         pos1:col(row,['Spielposition','Position']),pos2:'',
         minuten:min,einsaetze:ein,tore:tor,isStaff:false});added++;}
     });
+    // Die Verbands-Datei ist immer der aktuelle Stand: Spieler, die nicht darin vorkommen, auf 0
+    var zeroed=[];
+    if(updated+added>0) players.forEach(function(p){
+      if(p.isStaff||seen[p.id]) return;
+      if((p.minuten||0)||(p.einsaetze||0)||(p.tore||0)){ p.minuten=0; p.einsaetze=0; p.tore=0; zeroed.push(p.name); }
+    });
     var prev=document.getElementById('import-preview');
-    if(prev) prev.innerHTML='<span style="color:var(--green)">\u2713 '+updated+' aktualisiert, '+added+' neu</span>';
+    if(prev) prev.innerHTML='<span style="color:var(--green)">\u2713 '+updated+' aktualisiert, '+added+' neu</span>'+
+      (zeroed.length?'<br><span style="color:var(--muted)">Nicht in der Datei (Werte auf 0): '+zeroed.map(tpEsc).join(', ')+'</span>':'');
+    if(updated+added===0 && prev) prev.innerHTML='<span style="color:var(--red)">Keine Spieler erkannt – bitte Spaltennamen prüfen (Vorname, Name, Einsätze, Einsatzminuten, Tore).</span>';
     saveData(); renderAll();
   }
 
@@ -7558,8 +7799,10 @@ function handleSpielplanCSV(input) {
     if(iDate  < 0) iDate  = 4;
     if(iHeimA < 0) iHeimA = 6;
     if(iGastB < 0) iGastB = 8;
+    var iZeit = findCol(['spielzeit']); if(iZeit < 0) iZeit = 5;
+    var iOrt  = findCol(['spielort']);  if(iOrt  < 0) iOrt  = 10;
 
-    var added=0, skipped=0;
+    var added=0, skipped=0, filled=0;
     var firstRow = null;
     lines.slice(1).forEach(function(line){
       if(!line.trim()) return;
@@ -7580,19 +7823,28 @@ function handleSpielplanCSV(input) {
       if(!iso.match(/^\d{4}-\d{2}-\d{2}$/)) return;
 
       var isHome = heim.toLowerCase().indexOf('wiesendangen')>=0;
-      var opp = (isHome ? gast : heim).replace(/ \d+\b.*/, '').trim() || 'Gegner';
-      var name = (isHome ? 'Heim' : 'Auswärts') + ': ' + opp;
+      var oppFull = (isHome ? gast : heim).trim() || 'Gegner';
+      var oppOld  = oppFull.replace(/ \d+\b.*/, '').trim() || 'Gegner';
+      var name = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppFull;
+      var oldName = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppOld;
+      var zeit = (row[iZeit] || '').trim();
+      var ort  = (row[iOrt]  || '').split(',')[0].trim();
 
-      if(events.find(function(e){ return e.date===iso && e.type==='spiel'; })) { skipped++; return; }
-      events.push({id:nextEid++, date:iso, type:'spiel', name:name, resultat:'', status:''});
+      var ex = events.find(function(e){ return e.date===iso && e.type==='spiel'; });
+      if(ex) {
+        if(!ex.zeit && zeit) { ex.zeit = zeit; filled++; }
+        if(!ex.ort && ort) ex.ort = ort;
+        if(ex.name === oldName && oldName !== name) { ex.name = name; filled++; }
+        skipped++; return;
+      }
+      events.push({id:nextEid++, date:iso, type:'spiel', name:name, resultat:'', status:'', zeit:zeit, ort:ort, bemerkung:''});
       added++;
     });
 
     events.sort(function(a,b){ return a.date.localeCompare(b.date); });
     saveData(); renderAll();
     input.value = '';
-    var debug = firstRow ? '\n\n[Debug] Erste Zeile: Datum="'+firstRow.rawDate+'" | Heim="'+firstRow.heim+'" | Gast="'+firstRow.gast+'"' : '';
-    alert(added+' Spiele importiert'+(skipped?' ('+skipped+' übersprungen)':'')+'.'+debug);
+    alert(added+' Spiele neu importiert'+(skipped?', '+skipped+' waren bereits vorhanden':'')+(filled?' (bei '+filled+' Zeit/Ort/Name ergänzt)':'')+'.');
   };
   reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
   reader.readAsText(file, 'latin1');
@@ -7976,6 +8228,55 @@ if(window.innerWidth > 900) {
 }
 // Try to load fresh data from Google on startup
 
+// ═══════════════════════════════════════════════
+// GELBE KARTEN / SPERREN  (ab 4 Gelben gesperrt)
+// ═══════════════════════════════════════════════
+function tpEsc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function tp2(n){ return (n<10?'0':'')+n; }
+function isGesperrt(p){ return (p.gelb||0)>=4; }
+function sperreMark(p,eid){
+  var ev=events.find(function(e){return e.id===eid;});
+  if(!ev||ev.type!=='spiel') return '';
+  var g=p.gelb||0;
+  if(g>=4) return ' <span title="Gesperrt – 4 gelbe Karten" style="color:#dc2626;font-weight:700;font-size:11px">⛔ gesperrt</span>';
+  if(g===3) return ' <span title="3 gelbe Karten – nächste Karte = Sperre" style="font-size:11px">🟨3</span>';
+  return '';
+}
+function sperrenRefresh(){
+  renderMinuten(); renderSperrenBox(); renderTraining(); renderKader(); mobInit();
+}
+function setGelb(pid,delta){
+  var p=players.find(function(x){return x.id===pid;}); if(!p) return;
+  p.gelb=Math.max(0,(p.gelb||0)+delta);
+  saveData(); sperrenRefresh();
+}
+function sperreAbgesessen(pid){
+  var p=players.find(function(x){return x.id===pid;}); if(!p) return;
+  if(!confirm('Sperre von '+p.name+' abgesessen?\nDie gelben Karten werden auf 0 zurückgesetzt.')) return;
+  p.gelb=0;
+  saveData(); sperrenRefresh();
+}
+function sperrenHtml(readonly){
+  var pl=players.filter(function(p){return !p.isStaff;});
+  var ges=pl.filter(isGesperrt);
+  var warn=pl.filter(function(p){return (p.gelb||0)===3;});
+  if(!ges.length&&!warn.length) return '';
+  function chip(p,bg,col,withBtn){
+    return '<span style="display:inline-flex;align-items:center;gap:6px;background:'+bg+';color:'+col+';font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;margin:2px 4px 2px 0">'+tpEsc(p.name)+
+      (withBtn&&!readonly?' <button onclick="sperreAbgesessen('+p.id+')" title="Sperre abgesessen – Zähler auf 0" style="border:none;background:rgba(255,255,255,0.75);color:#991b1b;border-radius:99px;font-size:10px;padding:1px 8px;cursor:pointer;font-weight:600">abgesessen</button>':'')+'</span>';
+  }
+  var h='<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 0.9rem 0">';
+  if(ges.length) h+='<div style="flex:1;min-width:220px;background:#fee2e2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#dc2626;margin-bottom:6px">⛔ Gesperrt – 4 gelbe Karten</div>'+ges.map(function(p){return chip(p,'#fecaca','#991b1b',true);}).join('')+'</div>';
+  if(warn.length) h+='<div style="flex:1;min-width:220px;background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:10px 14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#b45309;margin-bottom:6px">🟨 3 gelbe Karten – nächste Karte = Sperre</div>'+warn.map(function(p){return chip(p,'#fde68a','#92400e',false);}).join('')+'</div>';
+  return h+'</div>';
+}
+function renderSperrenBox(){
+  ['dash-sperren','sperren-box','mob-sperren'].forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    el.innerHTML=sperrenHtml(id==='mob-sperren');
+  });
+}
+
 function renderMinuten() {
   var tbody=document.getElementById('minuten-tbody');
   if(!tbody) return;
@@ -7983,6 +8284,7 @@ function renderMinuten() {
   var sorted=[].concat(players).filter(function(p){return !p.isStaff;}).sort(function(a,b){return (b.minuten||0)-(a.minuten||0);});
   tbody.innerHTML=sorted.map(function(p){
     var pct=Math.round((p.minuten||0)/mx*100);
+    var g=p.gelb||0, gesp=g>=4, gbg=gesp?'#fee2e2':(g===3?'#fef9c3':'transparent');
     return '<tr>'+
       '<td style="min-width:140px"><div class="pc">'+avHtml(p.name)+'<div>'+
       '<div style="font-size:13px;font-weight:500">'+p.name+'</div>'+
@@ -7991,6 +8293,12 @@ function renderMinuten() {
       '<td style="min-width:70px;text-align:right;font-family:monospace;font-size:13px">'+(p.einsaetze||0)+'</td>'+
       '<td style="min-width:70px;text-align:right;font-family:monospace;font-size:14px;font-weight:700">'+(p.minuten||0)+'</td>'+
       '<td style="min-width:50px;text-align:right;font-family:monospace;font-size:13px;color:var(--green)">'+(p.tore||0)+'</td>'+
+      '<td style="min-width:190px"><div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap">'+
+        '<button class="btn sm" onclick="setGelb('+p.id+',-1)" style="padding:1px 8px;line-height:1.3">−</button>'+
+        '<span style="min-width:46px;text-align:center;font-family:monospace;font-size:13px;font-weight:700;padding:2px 6px;border-radius:6px;background:'+gbg+'">🟨 '+g+'</span>'+
+        '<button class="btn sm" onclick="setGelb('+p.id+',1)" style="padding:1px 8px;line-height:1.3">+</button>'+
+        (gesp?'<span style="font-size:10px;font-weight:700;color:#dc2626">GESPERRT</span><button class="btn sm" onclick="sperreAbgesessen('+p.id+')" style="font-size:10px;padding:1px 8px">abgesessen</button>':'')+
+      '</div></td>'+
       '<td style="min-width:120px"><div style="display:flex;align-items:center;gap:6px">'+
       '<div class="min-bar"><div class="min-fill" style="width:'+pct+'%"></div></div>'+
       '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'+pct+'%</span></div></td></tr>';
@@ -8448,6 +8756,36 @@ startAutoRefresh();
     </div>
   </div>
 </div>
+<div class="modal-bg" id="modal-tp-export" onclick="if(event.target===this)closeModal('tp-export')">
+  <div class="modal" style="width:560px">
+    <div class="modal-header"><span class="modal-title">Terminplan als Word exportieren</span><button class="btn" onclick="closeModal('tp-export')" style="border:none;font-size:17px;padding:2px 6px">x</button></div>
+    <div class="modal-body">
+      <div style="display:grid;gap:10px">
+        <div><label style="font-size:11px;color:var(--muted)">Titel</label><input id="tpx-title" class="inp" style="width:100%"></div>
+        <div><label style="font-size:11px;color:var(--muted)">Untertitel</label><input id="tpx-sub" class="inp" style="width:100%"></div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--muted)">Von</label><input type="date" id="tpx-von" class="inp" style="width:100%"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--muted)">Bis</label><input type="date" id="tpx-bis" class="inp" style="width:100%"></div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
+          <label><input type="checkbox" id="tpx-train" checked> Trainings</label>
+          <label><input type="checkbox" id="tpx-spiel" checked> Spiele</label>
+          <label><input type="checkbox" id="tpx-extra" checked> Weitere Termine</label>
+          <label><input type="checkbox" id="tpx-logo" checked> Vereinslogo</label>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--muted)">Standard-Zeit Training</label><input type="time" id="tpx-zeit" class="inp" style="width:100%"></div>
+          <div style="flex:2"><label style="font-size:11px;color:var(--muted)">Standard-Ort Training</label><input type="text" id="tpx-ort" class="inp" style="width:100%"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:-4px">Gilt nur für Trainings ohne eigene Zeit/Ort (Einheiten → ✏️ oder Tag im Kalender anklicken).</div>
+        <div><label style="font-size:11px;color:var(--muted)">Fussnoten (eine pro Zeile)</label><textarea id="tpx-notes" class="inp" rows="3" style="width:100%;resize:vertical;padding:8px"></textarea></div>
+      </div>
+      <div id="tpx-msg" style="margin-top:10px;font-size:12px;color:var(--muted)"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('tp-export')">Abbrechen</button><button class="btn pri" onclick="tpExportTerminplan()">Word erstellen</button></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-spielplan-import" onclick="if(event.target===this)closeModal('spielplan-import')">
   <div class="modal" style="width:520px">
     <div class="modal-header">
