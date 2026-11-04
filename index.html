@@ -222,13 +222,33 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .cal-todo{display:flex;align-items:center;gap:10px;font-size:13px;padding:4px 0}
 .cal-todo .n{min-width:22px;height:22px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
 @media (max-width:1180px){.cal-wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* ── Terminplanung: Raster wie im Excel ── */
+.tpx{border-collapse:collapse;width:100%;min-width:1740px;table-layout:fixed;font-family:'Arial Narrow','Barlow Condensed',Arial,sans-serif;font-size:13.5px;color:#000;background:#fff}
+.tpx th,.tpx td{border:1px solid #000;padding:0 6px;height:24px;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpx th{font-size:15px;font-weight:700;text-align:center;background:#fff;border-bottom-width:2px}
+.tpx col.c1{width:30px}
+.tpx col.c2{width:34px}
+.tpx td.n{text-align:right}
+.tpx td.w{text-align:left;padding-left:5px}
+.tpx td.t{text-align:center}
+.tpx td.we{background:#ff0}
+.tpx td.we.n{font-weight:700}
+.tpx td.b{font-weight:700}
+.tpx tbody td{cursor:pointer}
+.tpx tbody td:hover{filter:brightness(.95)}
+.tpx td.leer{background:#fff;cursor:default}
 /* ── Resultate ── */
 .res-chip{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;margin:1px 3px 1px 0}
 .res-chip i{font-style:normal;opacity:.6;font-size:9px;margin-left:3px}
 .res-chip.S{background:#dcfce7;color:#15803d}
 .res-chip.U{background:#f3f4f6;color:#4b5563}
 .res-chip.N{background:#fee2e2;color:#b91c1c}
+.res-chip.tst{background:transparent;border:1px dashed currentColor}
 .res-pts{font-family:'DM Mono',monospace;font-weight:700}
+.typ-b{font-size:11px;font-weight:600;padding:1px 9px;border-radius:99px}
+.typ-b.m{background:#1a1a1a;color:#fff}
+.typ-b.t{background:#e8edf3;color:#475569}
 
 
 .tbl{width:100%;border-collapse:collapse}
@@ -495,14 +515,13 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
                 <div class="dh-h-row"><h3 class="dh-h">Gelbe Karten &amp; Sperren</h3><button class="dh-link" onclick="showPage('minuten')">Karten erfassen →</button></div>
                 <div id="dash-karten"></div>
               </div>
-              <div class="dh-sec">
+            </div>
+            <div>
+              <div class="dh-wx" id="dh-weather"></div>
+              <div class="dh-sec" style="margin-top:1.5rem">
                 <div class="dh-h-row"><h3 class="dh-h">To-do</h3><span id="dash-todo-count" class="dh-muted"></span><button class="btn sm" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
                 <div class="dh-card" id="dash-todos-list"></div>
               </div>
-            </div>
-            <div>
-              <div class="dh-week" id="dh-week"></div>
-              <div class="dh-wx" id="dh-weather"></div>
             </div>
           </div>
         </div>
@@ -662,18 +681,16 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <div class="card-header">
           <span class="card-title">Terminplanung</span>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div class="cal-seg"><button id="tpv-cal" class="on" onclick="tpSetView('cal')">Kalender</button><button id="tpv-raster" onclick="tpSetView('raster')">Raster</button></div>
-            <select class="inp" id="tp-saison" onchange="renderTerminplanung()" style="width:120px;display:none">
+            <select class="inp" id="tp-saison" onchange="renderTerminplanung()" style="width:120px">
               <option value="vorrunde">Vorrunde</option>
               <option value="rueckrunde">Rückrunde</option>
             </select>
             <button class="btn pri sm" onclick="openTpExport()">⬇ Terminplan (Word)</button>
-            <button class="btn sm" id="tp-btn-raster" style="display:none" onclick="tpExportWord()" title="Monatsraster wie im Kalender">⬇ Raster</button>
+            <button class="btn sm" onclick="tpExportWord()" title="Monatsraster als Word">⬇ Raster</button>
             <button class="btn sm" onclick="tpAddEintrag()">+ Eintrag</button>
           </div>
         </div>
-        <div id="cal-termin" style="padding:1rem 1.1rem"></div>
-        <div id="tp-content" style="overflow-x:auto;padding:0.75rem 1.1rem;display:none"></div>
+        <div id="tp-content" style="overflow-x:auto;padding:0.75rem 1.1rem"></div>
       </div>
     </div>
     <div class="page" id="pg-einheiten">
@@ -686,7 +703,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
           <button class="btn" onclick="openTrainingGenerator()">&#9889; Serientermin</button>
           <label class="btn" style="cursor:pointer;margin:0">
             ⬇ CSV Spielplan
-            <input type="file" accept=".csv,.txt" style="display:none" onchange="handleSpielplanCSV(this)">
+            <input type="file" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleSpielplanCSV(this)">
           </label>
         </div>
         <div id="events-fixbar"></div>
@@ -747,7 +764,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <div class="card-header"><span class="card-title">Resultate &amp; Punkte</span><span class="dh-muted" id="res-sub"></span></div>
         <div class="type-tabs">
           <button class="type-tab active" id="rt-meister" onclick="resSet('typ','meister')">Meisterschaft</button>
-          <button class="type-tab" id="rt-test" onclick="resSet('typ','test')">Testspiele</button>
+          <button class="type-tab" id="rt-test" onclick="resSet('typ','test')">Trainingsspiele</button>
           <button class="type-tab" id="rt-alle" onclick="resSet('typ','alle')">Alle Spiele</button>
         </div>
         <div class="type-tabs">
@@ -5168,7 +5185,7 @@ function renderAll() {
 // ═══════════════════════════════════════════════
 // DASHBOARD  (Kopfkarte, Abschnitte, Woche, Abwesende)
 // ═══════════════════════════════════════════════
-var _dashWeek = 0, _dashAbsMode = 'training';
+var _dashAbsMode = 'training';
 var DH_LAT = 47.5375, DH_LON = 8.7333;   // Wiesendangen
 var DH_DAYS = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 var DH_ZONE = {'Torwart':'TW','Abwehr':'AB','Mittelfeld':'MF','Angriff':'ST','Staff':'SF'};
@@ -5228,27 +5245,24 @@ function dhEventCard(e){
   var i=dhInfo(e), zeit=dhZeit(e), ort=dhOrt(e), isG=e.type==='spiel';
   var d=new Date(e.date+'T12:00:00Z');
   var title=isG ? e.name : dhDateLong(e.date)+(zeit?' · '+zeit:'');
-  var sub=isG ? dhDateLong(e.date)+(zeit?' · '+zeit:'')+(ort?' · '+ort:'') : 'Training'+(ort?' · '+ort:'');
+  var subTxt=isG ? dhDateLong(e.date)+(zeit?' · '+zeit:'')+(ort?' · '+ort:'') : 'Training'+(ort?' · '+ort:'');
+  var staff='';
+  if(i.staff.length){
+    var st=' · Staff '+(i.staff.length-i.staffAbs.length)+'/'+i.staff.length+(i.staffAbs.length?' ('+i.staffAbs.map(function(p){return dhShort(p.name);}).join(', ')+' fehlt)':'');
+    staff=i.staffAbs.length?'<span style="color:#b91c1c">'+tpEsc(st)+'</span>':tpEsc(st);
+  }
   var h='<div class="dh-card"><div class="dh-row">'+
     '<div class="dh-tile"><div class="d">'+DH_DAYS[d.getUTCDay()].slice(0,2)+'</div><div class="n">'+d.getUTCDate()+'</div></div>'+
-    '<div class="dh-row-main"><div class="dh-row-title">'+tpEsc(title)+'</div><div class="dh-row-sub">'+tpEsc(sub)+' · <b>'+dhRel(e.date)+'</b></div></div>'+
+    '<div class="dh-row-main"><div class="dh-row-title">'+tpEsc(title)+'</div><div class="dh-row-sub">'+tpEsc(subTxt)+' · <b>'+dhRel(e.date)+'</b>'+staff+'</div></div>'+
     '<div class="dh-count" style="'+dhCountStyle(i.present,i.total)+'">'+i.present+'<span>/'+i.total+'</span></div></div>'+
     '<div class="dh-zones">'+i.zones.map(function(z){
       var col=z.total&&z.ok===z.total?'var(--green)':z.ok===0&&z.total?'var(--red)':'var(--amber)';
       return '<div class="dh-zone"><div class="dh-zone-l">'+DH_ZONE[z.z]+'</div><div class="dh-zone-v" style="color:'+col+'">'+z.ok+'<span>/'+z.total+'</span></div></div>';
-    }).join('')+'</div>';
-  h+='<div class="dh-block">'+(i.absent.length
-    ? '<div class="dh-block-l" style="color:#b91c1c">✕ Abwesend ('+i.absent.length+')</div>'+dhAbsChips(i)
-    : '<div class="dh-ok">✓ Alle Spieler verfügbar</div>')+'</div>';
-  if(i.staff.length) h+='<div class="dh-block"><div class="dh-block-l" style="color:#7c3aed">Staff '+(i.staff.length-i.staffAbs.length)+'/'+i.staff.length+'</div>'+
-    (i.staffAbs.length ? i.staffAbs.map(function(p){return '<span class="dh-chip" style="background:#fee2e2;color:#b91c1c">'+tpEsc(dhShort(p.name))+'</span>';}).join('') : '<span class="dh-muted">alle dabei</span>')+'</div>';
-  if(isG){
-    var ges=i.pl.filter(isGesperrt), warn=i.pl.filter(function(p){return (p.gelb||0)===3;});
-    if(ges.length||warn.length) h+='<div class="dh-block">'+
-      (ges.length?'<div class="dh-block-l" style="color:#b91c1c">⛔ Gesperrt</div>'+ges.map(function(p){return '<span class="dh-chip" style="background:#fecaca;color:#991b1b">'+tpEsc(dhShort(p.name))+'</span>';}).join(''):'')+
-      (warn.length?'<div class="dh-block-l" style="color:#b45309;margin-top:'+(ges.length?'6':'0')+'px">🟨 3 Gelbe</div>'+warn.map(function(p){return '<span class="dh-chip" style="background:#fde68a;color:#92400e">'+tpEsc(dhShort(p.name))+'</span>';}).join(''):'')+'</div>';
-  }
-  return h+'</div>';
+    }).join('')+'</div>'+
+    '<div class="dh-block">'+(i.absent.length
+      ? '<div class="dh-block-l" style="color:#b91c1c">✕ Abwesend ('+i.absent.length+')</div>'+dhAbsChips(i)
+      : '<div class="dh-ok">✓ Alle Spieler verfügbar</div>')+'</div></div>';
+  return h;
 }
 
 function dhRenderHero(){
@@ -5284,26 +5298,11 @@ function dhRenderHero(){
 }
 
 function dhRenderLeft(){
-  var t=today();
   var trEl=document.getElementById('dh-next-train'), gEl=document.getElementById('dh-next-game'), kEl=document.getElementById('dash-karten');
-  var tr=dhNext('training');
-  if(trEl){
-    if(!tr) trEl.innerHTML='<div class="dh-empty">Keine kommenden Trainings geplant.</div>';
-    else {
-      var after=events.filter(function(e){return e.type==='training'&&(e.date>tr.date);}).sort(function(a,b){return a.date.localeCompare(b.date);}).slice(0,3);
-      var card=dhEventCard(tr);
-      if(after.length){
-        card=card.replace(/<\/div>$/,'')+after.map(function(e){
-          var i=dhInfo(e), z=dhZeit(e);
-          return '<div class="dh-follow" onclick="showPage(\'training\')"><span class="dt">'+dhDateShort(e.date)+'</span><span class="nm">Training'+(z?' · '+z:'')+'</span><span class="rl">'+dhRel(e.date)+'</span><span class="dh-mini" style="'+dhCountStyle(i.present,i.total)+'">'+i.present+'/'+i.total+'</span></div>';
-        }).join('')+'</div>';
-      }
-      trEl.innerHTML=card;
-    }
-  }
-  var g=dhNext('spiel');
-  if(gEl) gEl.innerHTML=g?dhEventCard(g):'<div class="dh-empty">Kein kommendes Spiel geplant.</div>';
-  if(kEl) kEl.innerHTML=dhKartenHtml();
+  var tr=dhNext('training'), g=dhNext('spiel');
+  if(trEl) trEl.innerHTML=tr?dhEventCard(tr):'<div class="dh-empty">Keine kommenden Trainings geplant.</div>';
+  if(gEl)  gEl.innerHTML=g?dhEventCard(g):'<div class="dh-empty">Kein kommendes Spiel geplant.</div>';
+  if(kEl)  kEl.innerHTML=dhKartenHtml();
 }
 
 function dhKartenHtml(){
@@ -5329,30 +5328,6 @@ function dhIsoWeek(iso){
   var first=new Date(Date.UTC(d.getUTCFullYear(),0,4));
   return 1+Math.round(((d-first)/86400000-3+((first.getUTCDay()+6)%7))/7);
 }
-function dhWeekNav(n){ _dashWeek = n===0 ? 0 : _dashWeek+n; dhRenderWeek(); }
-function dhRenderWeek(){
-  var el=document.getElementById('dh-week'); if(!el) return;
-  var t=today(), monday=isoAddDays(t, -((isoWeekday(t)+6)%7)+7*_dashWeek);
-  var days=[0,1,2,3,4,5,6].map(function(i){return isoAddDays(monday,i);});
-  var weekEvts=events.filter(function(e){return e.date>=days[0]&&e.date<=days[6];}).sort(function(a,b){return a.date.localeCompare(b.date)||dhZeit(a).localeCompare(dhZeit(b));});
-  var h='<div class="dh-week-head"><h3 class="dh-h">'+(_dashWeek===0?'Diese Woche':'KW '+dhIsoWeek(monday))+'</h3>'+
-    '<button class="dh-nav" onclick="dhWeekNav(-1)" title="Vorherige Woche">‹</button>'+
-    (_dashWeek!==0?'<button class="dh-nav" style="width:auto;padding:0 8px;font-size:11px" onclick="dhWeekNav(0)">Heute</button>':'')+
-    '<button class="dh-nav" onclick="dhWeekNav(1)" title="Nächste Woche">›</button></div>';
-  h+='<div class="dh-wgrid">'+['Mo','Di','Mi','Do','Fr','Sa','So'].map(function(n){return '<div class="dh-wd">'+n+'</div>';}).join('')+
-    days.map(function(d){
-      var ev=events.filter(function(e){return e.date===d;});
-      return '<div class="dh-day'+(d<t?' past':'')+(d===t?' today':'')+'" onclick="tpOpenDay(\''+d+'\')" title="Tag bearbeiten"><span class="num">'+parseInt(d.slice(8),10)+'</span>'+
-        (ev.length?'<div class="dh-bars">'+ev.map(function(e){return '<div class="dh-bar '+(e.type==='spiel'?'sp':'tr')+'"></div>';}).join('')+'</div>':'')+'</div>';
-    }).join('')+'</div>';
-  h+=weekEvts.length ? weekEvts.map(function(e){
-      var i=dhInfo(e), z=dhZeit(e);
-      return '<div class="dh-follow" style="border-top:none;padding:7px 4px" onclick="showPage(\''+(e.type==='spiel'?'kader':'training')+'\')"><span class="dt" style="min-width:70px">'+dhDateShort(e.date)+'</span><span class="nm">'+(e.type==='spiel'?'⚽ '+tpEsc(e.name):'Training')+(z?' · '+z:'')+'</span><span class="dh-mini" style="'+dhCountStyle(i.present,i.total)+'">'+i.present+'/'+i.total+'</span></div>';
-    }).join('')
-    : '<div class="dh-empty">'+(_dashWeek===0?'Diese Woche':'In dieser Woche')+' stehen keine Einheiten an.</div>';
-  el.innerHTML=h;
-}
-
 function dhAbsMode(m){ _dashAbsMode=m; dhRenderSide(); }
 function dhRenderSide(){
   var el=document.getElementById('dh-side'); if(!el) return;
@@ -5446,7 +5421,6 @@ function dhWeatherLoad(){
 function renderDashboard() {
   dhRenderHero();
   dhRenderLeft();
-  dhRenderWeek();
   dhRenderSide();
   renderTodos();
   dhWeatherLoad();
@@ -6020,16 +5994,17 @@ function resCollect(){
   return {games:games,sched:sched,unknownTyp:unknownTyp,unknownHA:unknownHA};
 }
 function resAgg(list){
-  var a={n:list.length,s:0,u:0,l:0,gf:0,ga:0,pts:0};
-  list.forEach(function(g){ if(g.res==='S')a.s++; else if(g.res==='U')a.u++; else a.l++; a.gf+=g.gf; a.ga+=g.ga; a.pts+=g.pts; });
+  var a={n:list.length,nm:0,s:0,u:0,l:0,gf:0,ga:0,pts:0};
+  // Punkte zählen nur in der Meisterschaft, Trainingsspiele geben keine
+  list.forEach(function(g){ if(g.res==='S')a.s++; else if(g.res==='U')a.u++; else a.l++; a.gf+=g.gf; a.ga+=g.ga; if(g.ty==='meister'){ a.pts+=g.pts; a.nm++; } });
   return a;
 }
-function resChip(g){ return '<span class="res-chip '+g.res+'" title="'+tpEsc(fmtDate(g.date)+' · '+g.opp)+'">'+g.gf+':'+g.ga+'<i>'+(g.home?'H':'A')+'</i></span>'; }
+function resChip(g){ return '<span class="res-chip '+g.res+(g.ty==='test'?' tst':'')+'" title="'+tpEsc(fmtDate(g.date)+' · '+g.opp)+'">'+g.gf+':'+g.ga+'<i>'+(g.home?'H':'A')+'</i></span>'; }
 function renderResultate(){
   var body=document.getElementById('res-body'); if(!body) return;
   var c=resCollect(), g=c.games, T=resAgg(g);
   var hint=[];
-  if(c.unknownTyp) hint.push(c.unknownTyp+' Spiele mit Resultat haben noch keinen Spieltyp (Meisterschaft/Testspiel) und werden hier nicht gezählt. Spielplan-CSV unter Einheiten nochmals importieren, dann werden sie zugeordnet.');
+  if(c.unknownTyp) hint.push(c.unknownTyp+' Spiele mit Resultat haben noch keinen Spieltyp (Meisterschaft oder Trainingsspiel) und werden hier nicht gezählt. Den Spielplan nochmals einlesen, dann werden sie zugeordnet. <label class="dh-btn" style="padding:3px 10px;font-size:12px;margin-left:8px;cursor:pointer">Spielplan wählen<input type="file" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleSpielplanCSV(this)"></label>');
   if(c.unknownHA) hint.push(c.unknownHA+' Spiele haben kein «Heim:/Auswärts:» in der Bezeichnung, deshalb ist unklar, wer welche Tore geschossen hat.');
   var hEl=document.getElementById('res-hint');
   if(hEl) hEl.innerHTML=hint.length?'<div style="margin:0.6rem 1.1rem;padding:9px 14px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#92400e">⚠ '+hint.join('<br>⚠ ')+'</div>':'';
@@ -6038,9 +6013,17 @@ function renderResultate(){
 
   var diff=T.gf-T.ga;
   var kpi=function(l,v,sub,col){ return '<div class="stat-card"><div class="stat-label">'+l+'</div><div class="stat-value"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div><div class="stat-sub">'+sub+'</div></div>'; };
-  var h='<div class="stat-row" style="margin:1.1rem 0">'+
+  var split='';
+  if(_resTyp==='alle'){
+    var gm=resAgg(g.filter(function(x){return x.ty==='meister';})), gt=resAgg(g.filter(function(x){return x.ty==='test';}));
+    var line=function(l,a,pk){ return '<div style="flex:1;min-width:240px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px"><div class="dh-block-l" style="color:var(--muted);margin-bottom:4px">'+l+'</div><div style="font-size:14px"><b>'+a.n+'</b> Spiele · '+a.s+' S · '+a.u+' U · '+a.l+' N · Tore <b>'+a.gf+':'+a.ga+'</b>'+(pk?' · <b>'+a.pts+'</b> Punkte':' · keine Punkte')+'</div></div>'; };
+    split='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1.1rem">'+line('Meisterschaft',gm,true)+line('Trainingsspiele',gt,false)+'</div>';
+  }
+  var h=split+'<div class="stat-row" style="margin:1.1rem 0">'+
     kpi('Spiele',T.n,T.s+' S · '+T.u+' U · '+T.l+' N')+
-    kpi('Punkte',T.pts,(T.pts/T.n).toFixed(2)+' pro Spiel','var(--green)')+
+    (_resTyp==='test'
+      ? kpi('Punkte','–','Trainingsspiele geben keine Punkte')
+      : kpi('Punkte',T.pts,T.nm?(T.pts/T.nm).toFixed(2)+' pro Meisterschaftsspiel':'–','var(--green)'))+
     kpi('Tore',T.gf,'Ø '+(T.gf/T.n).toFixed(1)+' pro Spiel')+
     kpi('Gegentore',T.ga,'Ø '+(T.ga/T.n).toFixed(1)+' pro Spiel','var(--red)')+
     kpi('Tordifferenz',(diff>0?'+':'')+diff,'Tore minus Gegentore',diff>0?'var(--green)':diff<0?'var(--red)':'')+
@@ -6048,13 +6031,13 @@ function renderResultate(){
 
   // Heim / Auswärts + Form
   var heim=resAgg(g.filter(function(x){return x.home;})), ausw=resAgg(g.filter(function(x){return !x.home;}));
-  function haRow(l,a){ return '<tr><td><b>'+l+'</b></td><td class="r">'+a.n+'</td><td class="r">'+a.s+'</td><td class="r">'+a.u+'</td><td class="r">'+a.l+'</td><td class="r">'+a.gf+':'+a.ga+'</td><td class="r res-pts">'+a.pts+'</td></tr>'; }
+  function haRow(l,a){ return '<tr><td><b>'+l+'</b></td><td class="r">'+a.n+'</td><td class="r">'+a.s+'</td><td class="r">'+a.u+'</td><td class="r">'+a.l+'</td><td class="r">'+a.gf+':'+a.ga+'</td><td class="r res-pts">'+((_resTyp==='test'||!a.nm)?'–':a.pts)+'</td></tr>'; }
   var form=g.slice(-5).reverse().map(resChip).join('');
   h+='<div class="grid2"><div class="card"><div class="card-header"><span class="card-title">Heim / Auswärts</span></div>'+
     '<table class="tbl"><thead><tr><th></th><th class="r">Sp</th><th class="r">S</th><th class="r">U</th><th class="r">N</th><th class="r">Tore</th><th class="r">Pkt</th></tr></thead><tbody>'+
     haRow('Heim',heim)+haRow('Auswärts',ausw)+haRow('Total',T)+'</tbody></table></div>'+
     '<div class="card"><div class="card-header"><span class="card-title">Form (letzte 5)</span></div><div style="padding:1rem 1.1rem">'+form+
-    '<div class="dh-muted" style="margin-top:10px">Neustes Spiel zuerst · H = Heim, A = Auswärts</div></div></div></div>';
+    '<div class="dh-muted" style="margin-top:10px">Neustes Spiel zuerst · H = Heim, A = Auswärts'+(_resTyp==='alle'?' · gestrichelt = Trainingsspiel':'')+'</div></div></div></div>';
 
   // Gegner
   var map={}, order=[];
@@ -6064,14 +6047,14 @@ function renderResultate(){
   h+='<div class="card"><div class="card-header"><span class="card-title">Punkte pro Gegner</span><span class="dh-muted">Sieg 3 · Unentschieden 1 · Niederlage 0</span></div>'+
     '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Gegner</th><th class="r">Sp</th><th class="r">S</th><th class="r">U</th><th class="r">N</th><th class="r">Tore</th><th class="r">Pkt</th><th>Resultate</th></tr></thead><tbody>'+
     rows.map(function(r){
-      return '<tr><td style="font-weight:500">'+tpEsc(r.o)+'</td><td class="r">'+r.a.n+'</td><td class="r">'+r.a.s+'</td><td class="r">'+r.a.u+'</td><td class="r">'+r.a.l+'</td><td class="r">'+r.a.gf+':'+r.a.ga+'</td><td class="r res-pts" style="color:'+(r.a.pts>=(r.a.n*2)?'var(--green)':r.a.pts===0?'var(--red)':'inherit')+'">'+r.a.pts+'</td><td>'+r.list.map(resChip).join('')+'</td></tr>';
+      return '<tr><td style="font-weight:500">'+tpEsc(r.o)+'</td><td class="r">'+r.a.n+'</td><td class="r">'+r.a.s+'</td><td class="r">'+r.a.u+'</td><td class="r">'+r.a.l+'</td><td class="r">'+r.a.gf+':'+r.a.ga+'</td><td class="r res-pts" style="color:'+((_resTyp==='test'||!r.a.nm)?'inherit':r.a.pts>=(r.a.nm*2)?'var(--green)':r.a.pts===0?'var(--red)':'inherit')+'">'+((_resTyp==='test'||!r.a.nm)?'–':r.a.pts)+'</td><td>'+r.list.map(resChip).join('')+'</td></tr>';
     }).join('')+'</tbody></table></div></div>';
 
   // Alle Spiele
-  var tyLbl={meister:'Meisterschaft',test:'Testspiel',unbekannt:'–'};
+  var tyLbl={meister:'<span class="typ-b m">Meisterschaft</span>',test:'<span class="typ-b t">Trainingsspiel</span>',unbekannt:'–'};
   h+='<div class="card"><div class="card-header"><span class="card-title">Alle Spiele</span></div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Datum</th><th>H/A</th><th>Gegner</th><th class="r">Resultat</th><th>Typ</th></tr></thead><tbody>'+
     g.slice().reverse().map(function(x){
-      return '<tr><td style="font-family:monospace;font-size:12px">'+fmtDate(x.date)+'</td><td>'+(x.home?'Heim':'Auswärts')+'</td><td style="font-weight:500">'+tpEsc(x.opp)+'</td><td class="r">'+resChip(x)+'</td><td class="dh-muted">'+tyLbl[x.ty]+'</td></tr>';
+      return '<tr><td style="font-family:monospace;font-size:12px">'+fmtDate(x.date)+'</td><td>'+(x.home?'Heim':'Auswärts')+'</td><td style="font-weight:500">'+tpEsc(x.opp)+'</td><td class="r">'+resChip(x)+'</td><td>'+tyLbl[x.ty]+'</td></tr>';
     }).join('')+'</tbody></table></div></div>';
   body.innerHTML=h;
 }
@@ -6181,7 +6164,7 @@ function calPanelHtml(){
 }
 function calRender(only){
   calInit();
-  var ids=only?[only]:['cal-einheiten','cal-termin'];
+  var ids=only?[only]:['cal-einheiten'];
   var a=_cal.anchor, title;
   if(_cal.view==='month') title=TP_MONATSNAMEN[+a.slice(5,7)-1]+' '+a.slice(0,4);
   else { var mo=calMonday(a), su=isoAddDays(mo,6); title='KW '+dhIsoWeek(mo)+' · '+parseInt(mo.slice(8),10)+'. '+(mo.slice(5,7)!==su.slice(5,7)?TP_MONATSNAMEN[+mo.slice(5,7)-1]+' ':'')+'– '+parseInt(su.slice(8),10)+'. '+TP_MONATSNAMEN[+su.slice(5,7)-1]+' '+su.slice(0,4); }
@@ -6198,15 +6181,6 @@ function einView(v){
   if(l) l.style.display=v==='list'?'block':'none';
   ['cal','list'].forEach(function(k){var b=document.getElementById('evw-'+k); if(b) b.classList.toggle('active',k===v);});
 }
-var _tpView='cal';
-function tpSetView(v){
-  _tpView=v;
-  var show=function(id,on){var el=document.getElementById(id); if(el) el.style.display=on?'':'none';};
-  show('cal-termin',v==='cal'); show('tp-content',v==='raster'); show('tp-saison',v==='raster'); show('tp-btn-raster',v==='raster');
-  var a=document.getElementById('tpv-cal'), b=document.getElementById('tpv-raster');
-  if(a) a.classList.toggle('on',v==='cal'); if(b) b.classList.toggle('on',v==='raster');
-}
-
 function renderEvents() {
   calRender('cal-einheiten');
   var tbody=document.getElementById('events-tbody');
@@ -7349,119 +7323,49 @@ var TP_WOCHENTAGE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 var TP_MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 function renderTerminplanung() {
-  calRender('cal-termin');
   var el = document.getElementById('tp-content');
   if(!el) return;
-  var saison = (document.getElementById('tp-saison')||{}).value || 'rueckrunde';
+  var sel = document.getElementById('tp-saison');
+  if(sel && !window._tpInit){ sel.value = currentRunde()==='rueckrunde' ? 'rueckrunde' : 'vorrunde'; window._tpInit = true; }
+  var saison = (sel && sel.value) || 'rueckrunde';
+  var sy = getSeasonYears();
+  var jahr = +(saison==='vorrunde' ? sy.vr_start : sy.rr_start).slice(0,4);
+  var monate = saison==='vorrunde' ? [7,8,9,10,11,12] : [1,2,3,4,5,6];
+  var std = (tpData.exportPrefs||{}).zeit || '';
 
-  // Parse years from season name e.g. "2025/26" or "2026/27"
-  var seasonName = settings.seasonName || '2025/26';
-  var match = seasonName.match(/(\d{2,4})\/(\d{2,4})/);
-  var vrJahr = 2025, rrJahr = 2026;
-  if(match) {
-    var y1 = parseInt(match[1]);
-    var y2 = parseInt(match[2]);
-    // Handle 2-digit: "25/26" → 2025, 2026
-    if(y1 < 100) y1 += 2000;
-    if(y2 < 100) y2 += 2000;
-    vrJahr = y1; // Vorrunde = first year (Jul-Nov)
-    rrJahr = y2; // Rückrunde = second year (Jan-Jun)
-  }
+  var evtMap={}, extraMap={}, ferien={};
+  events.forEach(function(e){ (evtMap[e.date]=evtMap[e.date]||[]).push(e); });
+  (tpData.extraEintraege||[]).forEach(function(x){ (extraMap[x.date]=extraMap[x.date]||[]).push(x); });
+  getFeiertage(jahr).forEach(function(f){ ferien[f.date]=f.text; });
+  function uhr(z){ return z ? ' / '+z+' Uhr' : ''; }
 
-  var monate = saison === 'vorrunde' ? [7,8,9,10,11] : [1,2,3,4,5,6];
-
-  // Build event lookup
-  var evtMap = {};
-  events.forEach(function(e){
-    if(!evtMap[e.date]) evtMap[e.date] = [];
-    evtMap[e.date].push(e);
-  });
-  var extraMap = {};
-  (tpData.extraEintraege||[]).forEach(function(e){
-    if(!extraMap[e.date]) extraMap[e.date] = [];
-    extraMap[e.date].push(e);
-  });
-  // Dynamic feiertage
-  var ferienMap = {};
-  var jahre = saison === 'vorrunde' ? [vrJahr] : [rrJahr];
-  jahre.forEach(function(j){
-    getFeiertage(j).forEach(function(f){ ferienMap[f.date] = f.text; });
-  });
-
-  var maxDays = 31;
-  var html = '<table style="border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:'+(monate.length*220)+'px">';
-
-  // Header
-  html += '<thead><tr>';
-  monate.forEach(function(m){
-    var jahr = saison === 'vorrunde' ? vrJahr : rrJahr;
-    html += '<th colspan="3" style="background:#111;color:#fff;padding:5px 8px;text-align:center;font-size:12px;font-weight:700;border:1px solid #333">'+
-      jahr+' &nbsp; '+TP_MONATSNAMEN[m-1]+'</th>';
-  });
-  html += '</tr></thead><tbody>';
-
-  // Rows 1–31
-  for(var day = 1; day <= maxDays; day++){
-    html += '<tr>';
+  var html='<table class="tpx"><colgroup>'+monate.map(function(){return '<col class="c1"><col class="c2"><col>';}).join('')+'</colgroup><thead><tr>'+
+    monate.map(function(m){ return '<th colspan="2">'+jahr+'</th><th>'+TP_MONATSNAMEN[m-1]+'</th>'; }).join('')+'</tr></thead><tbody>';
+  for(var day=1; day<=31; day++){
+    html+='<tr>';
     monate.forEach(function(m){
-      var jahr = saison === 'vorrunde' ? vrJahr : rrJahr;
-      var daysInMonth = new Date(jahr, m, 0).getDate();
-      if(day > daysInMonth){
-        html += '<td colspan="3" style="border:1px solid #e5e7eb;background:#f9f9f9"></td>';
-        return;
-      }
-      var dateStr = jahr+'-'+(m<10?'0':'')+m+'-'+(day<10?'0':'')+day;
-      var d = new Date(jahr, m-1, day);
-      var wd = d.getDay(); // 0=So, 6=Sa
-      var isWE = wd === 0 || wd === 6;
-      var feiertag = ferienMap[dateStr];
-      var evts = evtMap[dateStr] || [];
-      var extras = extraMap[dateStr] || [];
-
-      var bgDay = isWE ? '#fef08a' : '#fff';
-      if(feiertag) bgDay = '#fef08a';
-
-      // Day number cell
-      html += '<td style="width:22px;text-align:right;padding:2px 3px;border:1px solid #e5e7eb;background:'+bgDay+';font-weight:'+(isWE?'700':'400')+';font-family:\'DM Mono\',monospace;font-size:11px;color:'+(isWE?'#111':'#555')+'">'+(isWE||day===1?'<strong>'+day+'</strong>':day)+'</td>';
-      // Weekday
-      html += '<td style="width:22px;text-align:center;padding:2px 3px;border:1px solid #e5e7eb;background:'+bgDay+';font-size:10px;color:var(--muted)">'+TP_WOCHENTAGE[wd]+'</td>';
-
-      // Content cell
-      var content = '';
-      if(feiertag && !evts.length && !extras.length) {
-        content = '<span style="color:#b45309;font-weight:600">'+feiertag+'</span>';
-      }
-      evts.forEach(function(e){
-        if(e.type === 'training') {
-          content += '<span style="color:#15803d;font-weight:500">'+(e.zeit?'<span style="color:#6b7280;font-weight:400">'+e.zeit+'</span> ':'')+'Training</span>';
-        } else {
-          var heim = e.name.indexOf('(H)') >= 0 ? ' <span style="background:#dbeafe;color:#1e40af;border-radius:3px;padding:0 3px;font-size:9px">H</span>' : e.name.indexOf('(A)') >= 0 ? ' <span style="background:#fee2e2;color:#991b1b;border-radius:3px;padding:0 3px;font-size:9px">A</span>' : '';
-          content += '<span style="color:#1d4ed8;font-weight:600">'+(e.zeit?'<span style="color:#6b7280;font-weight:400">'+e.zeit+'</span> ':'')+e.name.replace('(H)','').replace('(A)','')+heim+'</span>';
+      if(day > new Date(Date.UTC(jahr,m,0)).getUTCDate()){ html+='<td class="leer"></td><td class="leer"></td><td class="leer"></td>'; return; }
+      var ds=jahr+'-'+tp2(m)+'-'+tp2(day), wd=new Date(ds+'T12:00:00Z').getUTCDay(), we=(wd===0||wd===6);
+      var parts=[], bold=false, dayEvs=(evtMap[ds]||[]).sort(function(a,b){return (a.zeit||'').localeCompare(b.zeit||'');});
+      var hasGame=dayEvs.some(function(e){return e.type==='spiel';});
+      dayEvs.forEach(function(e){
+        if(e.type==='spiel'){ parts.push(dhOpp(e)+uhr(e.zeit)); bold=true; }
+        else {
+          if(hasGame && (!e.name||e.name==='Training')) return;   // Spiel ersetzt das normale Training
+          var nm=(e.name&&e.name!=='Training')?e.name:'Training';
+          parts.push(nm+((e.zeit&&e.zeit!==std)?' ('+e.zeit+')':''));
         }
       });
-      extras.forEach(function(x){
-        var col = x.type==='training'?'#15803d':x.type==='spiel'?'#1d4ed8':'#7c3aed';
-        content += (content?'<br>':'')+'<span style="color:'+col+';font-weight:500">'+x.text+'</span>';
-      });
-
-      html += '<td style="padding:2px 5px;border:1px solid #e5e7eb;background:'+bgDay+';max-width:180px;white-space:nowrap;overflow:hidden;cursor:pointer" onclick="tpOpenDay(\''+dateStr+'\')" title="Klicken zum Bearbeiten">'+
-        (content || '<span style="color:#ddd;font-size:9px">+</span>')+'</td>';
+      (extraMap[ds]||[]).forEach(function(x){ parts.push(x.text+uhr(x.zeit)); bold=true; });
+      if(ferien[ds]){ parts.push(ferien[ds]); bold=true; }
+      var txt=parts.join(' · ');
+      var cls=(we?' we':''), click=' onclick="tpOpenDay(\''+ds+'\')"';
+      html+='<td class="n'+cls+'"'+click+'>'+day+'</td><td class="w'+cls+'"'+click+'>'+TP_WOCHENTAGE[wd]+'</td>'+
+        '<td class="t'+cls+(bold?' b':'')+'"'+click+(txt?' title="'+tpEsc(txt)+'"':'')+'>'+tpEsc(txt)+'</td>';
     });
-    html += '</tr>';
+    html+='</tr>';
   }
-
-  html += '</tbody></table>';
-  el.innerHTML = html;
-}
-
-function tpSetEvtField(id,field,val){
-  var e=events.find(function(x){return x.id===id;}); if(!e) return;
-  e[field]=(val||'').trim();
-  saveData(); renderTerminplanung(); renderEvents();
-}
-function tpDeleteEvent(id){
-  if(!confirm('Diese Einheit wirklich löschen?')) return;
-  tpCloseDay(); removeEvent(id);
+  el.innerHTML=html+'</tbody></table>';
 }
 
 function tpOpenDay(dateStr) {
@@ -7905,7 +7809,7 @@ function _tpBuildWord(saison, saisonLabel, monate) {
 }
 
 function tpAddEintrag() {
-  tpOpenDay(_cal.sel||today());
+  tpOpenDay(today());
 }
 
 function saveTpData() { saveData(); }
@@ -8441,20 +8345,50 @@ function openSpielplanImport() {
   var m = document.getElementById('modal-spielplan-import');
   if(m) { document.getElementById('spielplan-file').value=''; document.getElementById('spielplan-result').textContent=''; m.classList.add('open'); }
 }
+function loadXlsxLib(cb){
+  if(window.XLSX){ cb(true); return; }
+  var sc=document.createElement('script');
+  sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  sc.onload=function(){ cb(!!window.XLSX); }; sc.onerror=function(){ cb(false); };
+  document.head.appendChild(sc);
+}
+// Excel speichert Uhrzeiten/Resultate wie "3:1" als Tagesbruchteil und Datum als Seriennummer – zurück in Text wandeln
+function xlCell(v){
+  if(typeof v==='number'){
+    if(v>=0 && v<1){ var mins=Math.round(v*1440); return tp2(Math.floor(mins/60))+':'+tp2(mins%60); }
+    if(v>20000 && v<80000){ var dd=new Date(Math.round((v-25569)*86400000)); return tp2(dd.getUTCDate())+'.'+tp2(dd.getUTCMonth()+1)+'.'+dd.getUTCFullYear(); }
+  }
+  return String(v==null?'':v).trim();
+}
 function handleSpielplanCSV(input) {
   var file = input.files[0]; if(!file) return;
+  var isXl = /\.(xlsx|xls)$/i.test(file.name);
   var reader = new FileReader();
+  reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
   reader.onload = function(ev) {
-    var buf = ev.target.result, text;
+    var buf = ev.target.result;
+    if(isXl){
+      loadXlsxLib(function(ok){
+        if(!ok){ alert('Excel-Bibliothek konnte nicht geladen werden (Internetverbindung?). Bitte als CSV speichern.'); return; }
+        var wb=XLSX.read(new Uint8Array(buf),{type:'array'}), ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+        runSpielplanImport(rows.map(function(r){ return r.map(xlCell); }), input);
+      });
+      return;
+    }
+    var text;
     try { text = new TextDecoder('utf-8',{fatal:true}).decode(buf); }
     catch(e) { text = new TextDecoder('windows-1252').decode(buf); }
     text = text.replace(/^\uFEFF/,'');
     var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
     if(!lines.length) { alert('Datei ist leer.'); return; }
-
     var sep = lines[0].split(';').length >= lines[0].split(',').length ? ';' : ',';
-    function clean(c){ return c.trim().replace(/"/g,''); }
-    var header = lines[0].split(sep).map(clean);
+    runSpielplanImport(lines.map(function(l){ return l.split(sep).map(function(c){ return c.trim().replace(/"/g,''); }); }), input);
+  };
+  reader.readAsArrayBuffer(file);
+}
+function runSpielplanImport(matrix, input) {
+    var header = (matrix[0]||[]).map(function(h){ return String(h).replace(/^\uFEFF/,'').trim(); });
 
     // Spalte per Kopfzeile finden: erst exakter Name, dann "enthält"
     function findCol(names) {
@@ -8479,19 +8413,18 @@ function handleSpielplanCSV(input) {
     function teamClean(t){ return (t||'').replace(/\s+-\s+.*Liga.*$/i,'').trim(); }
 
     var added=0, updated=0, unchanged=0, moved=0, merged=0, seenRows=0;
-    lines.slice(1).forEach(function(line){
-      var row = line.split(sep).map(clean);
-
+    matrix.slice(1).forEach(function(row){
       // Datum und Uhrzeit in der Zeile suchen (die Kopfzeile ist in manchen Exporten verschoben)
-      var iso='', zeit='', k;
+      var iso='', zeit='', k, tm;
       for(k=0;k<row.length && !iso;k++){
-        var dm = row[k].match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+        var dm = String(row[k]).match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
         if(dm) iso = (dm[3].length===2?'20'+dm[3]:dm[3])+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0');
-        else if(/^\d{4}-\d{2}-\d{2}/.test(row[k])) iso = row[k].slice(0,10);
+        else if(/^\d{4}-\d{2}-\d{2}/.test(row[k])) iso = String(row[k]).slice(0,10);
       }
       if(!iso) return;
       for(k=0;k<Math.min(timeLimit,row.length);k++){
-        if(/^\d{1,2}:\d{2}$/.test(row[k])){ zeit=row[k].padStart(5,'0'); break; }
+        tm = String(row[k]).match(/^(\d{1,2}):(\d{2})(:\d{2})?$/);
+        if(tm){ zeit=tp2(+tm[1])+':'+tm[2]; break; }
       }
       seenRows++;
 
@@ -8501,13 +8434,13 @@ function handleSpielplanCSV(input) {
       var oppOld  = oppFull.replace(/ \d+\b.*/, '').trim() || 'Gegner';
       var name    = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppFull;
       var oldName = (isHome ? 'Heim' : 'Auswärts') + ': ' + oppOld;
-      var ort  = iOrt>=0 ? (row[iOrt]||'').split(',')[0].trim() : '';
-      var res  = iRes>=0 ? (row[iRes]||'') : '';
-      if(!/^\d+:\d+$/.test(res)) res = '';
-      var stat = iStat>=0 ? (row[iStat]||'') : '';
-      var nr   = iNr>=0 ? (row[iNr]||'') : '';
-      var bem  = iBem>=0 ? (row[iBem]||'') : '';
-      var typ  = iTyp>=0 ? (row[iTyp]||'') : '';
+      var ort  = iOrt>=0 ? String(row[iOrt]||'').split(',')[0].trim() : '';
+      var res  = iRes>=0 ? String(row[iRes]||'') : '';
+      var rm   = res.match(/^(\d+)\s*:\s*(\d+)/); res = rm ? (+rm[1])+':'+(+rm[2]) : '';
+      var stat = iStat>=0 ? String(row[iStat]||'') : '';
+      var nr   = iNr>=0 ? String(row[iNr]||'') : '';
+      var bem  = iBem>=0 ? String(row[iBem]||'') : '';
+      var typ  = iTyp>=0 ? String(row[iTyp]||'') : '';
 
       // gleiches Spiel erkennen: erst Spielnummer, sonst Datum
       var ex = nr ? events.find(function(e){ return e.type==='spiel' && e.spielnr===nr; }) : null;
@@ -8554,10 +8487,8 @@ function handleSpielplanCSV(input) {
     events.sort(function(a,b){ return a.date.localeCompare(b.date); });
     saveData(); renderAll();
     alert(added+' Spiele neu importiert, '+updated+' aktualisiert (Zeit/Ort/Resultat'+(moved?', '+moved+' verschoben':'')+'), '+unchanged+' unverändert'+(merged?', '+merged+' doppelte Spiele zusammengeführt':'')+'.');
-  };
-  reader.onerror = function(){ alert('Fehler beim Lesen der Datei.'); };
-  reader.readAsArrayBuffer(file);
 }
+
 
 // ═══════════════════════════════════════════════
 // GOOGLE SHEETS SYNC
