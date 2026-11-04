@@ -63,28 +63,33 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 /* ── Dashboard-Layout ── */
 .dh-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:1.5rem;align-items:start}
 .dh-main{min-width:0}
-.dh-hero{display:grid;grid-template-columns:300px minmax(0,1fr);background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-.dh-hero-img{background:linear-gradient(145deg,#161616,#2d2d2d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;min-height:250px}
-.dh-hero-img img{width:140px;max-height:160px;object-fit:contain;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
-.dh-hero-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;min-width:0}
-.dh-eyebrow{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
-.dh-pill{font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;padding:1px 9px;border-radius:99px;background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
-.dh-title{font-size:26px;font-weight:600;line-height:1.2;margin:0 0 12px}
-.dh-meta{display:flex;flex-direction:column;gap:8px;font-size:14px;margin-bottom:14px}
-.dh-meta-row{display:flex;align-items:baseline;gap:9px;min-width:0;flex-wrap:wrap}
-.dh-meta-row svg{align-self:center}
-.dh-meta-row svg{width:16px;height:16px;flex-shrink:0;stroke:var(--muted);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.dh-meta-l{color:var(--muted);flex-shrink:0}
-.dh-meta-v{font-weight:600;min-width:0}
-.dh-meta-x{color:var(--muted);font-weight:400;font-size:12px;flex-shrink:0}
-.dh-hero-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap}
-.dh-stat-l{font-size:11px;color:var(--muted)}
-.dh-stat-v{font-size:21px;font-weight:600;line-height:1.25}
-.dh-actions{margin-left:auto;display:flex;gap:8px}
+.dh-hero{position:relative;overflow:hidden;border-radius:16px;margin-bottom:1.5rem;padding:22px 26px 18px;color:#fff;background:linear-gradient(120deg,#0e0e0f 0%,#1c1f1d 55%,#133a24 100%);background-size:cover;background-position:center;box-shadow:0 2px 12px rgba(0,0,0,.14)}
+.dh-hero::after{content:'';position:absolute;right:-70px;top:-70px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(34,160,90,.38),transparent 70%);pointer-events:none}
+.dh-hero-top{display:flex;align-items:center;gap:20px;position:relative;z-index:1;flex-wrap:wrap}
+.dh-logo{width:84px;height:84px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.dh-logo img{width:70px;height:70px;object-fit:contain}
+.dh-hero-id{flex:1;min-width:240px}
+.dh-eyebrow{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,.65);margin-bottom:4px}
+.dh-pill{font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;padding:1px 10px;border-radius:99px;background:rgba(34,160,90,.25);color:#7ee2a8;border:1px solid rgba(126,226,168,.35)}
+.dh-title{font-size:30px;font-weight:700;line-height:1.15;margin:0;letter-spacing:-.2px}
+.dh-actions{display:flex;gap:8px;flex-shrink:0}
 .dh-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:inherit}
 .dh-btn:hover{background:var(--surface)}
-.dh-btn.green{background:var(--green);border-color:var(--green);color:#fff}
-.dh-btn.green:hover{background:#1c8a4d}
+.dh-hero .dh-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);color:#fff}
+.dh-hero .dh-btn:hover{background:rgba(255,255,255,.2)}
+.dh-hero .dh-btn.green,.dh-btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.dh-hero .dh-btn.green:hover,.dh-btn.green:hover{background:#1c8a4d}
+.dh-next{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;position:relative;z-index:1}
+.dh-nx{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 16px;min-width:0}
+.dh-nx-ico{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dh-nx-ico svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dh-nx-b{min-width:0}
+.dh-nx-l{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.dh-nx-v{font-size:18px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh-nx-s{font-size:12px;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh-kpis{display:flex;gap:30px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);flex-wrap:wrap;position:relative;z-index:1}
+.dh-kpi .v{display:block;font-size:24px;font-weight:700;line-height:1.1}
+.dh-kpi .l{font-size:11px;color:rgba(255,255,255,.62)}
 .dh-two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:1.5rem;align-items:start}
 .dh-sec{margin-bottom:1.5rem}
 .dh-h{font-size:17px;font-weight:600;margin:0 0 10px}
@@ -110,6 +115,14 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-zone-l{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);font-family:'DM Mono',monospace}
 .dh-zone-v{font-size:19px;font-weight:700}
 .dh-zone-v span{font-size:12px;color:var(--muted);font-weight:400}
+.dh-zl{margin-top:6px}
+.dh-pl{display:flex;align-items:center;gap:5px;font-size:12.5px;line-height:1.6;white-space:nowrap;overflow:hidden}
+.dh-pl .nm{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dh-pl .ps{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border-radius:4px;padding:0 4px;flex-shrink:0}
+.dh-pl.ab{color:#9ca3af}
+.dh-pl.ab .nm{text-decoration:line-through}
+.dh-pl.sp{color:#b91c1c}
+.dh-pl .rs{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0}
 .dh-block{padding:10px 16px;border-top:1px solid var(--border)}
 .dh-block-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .dh-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:99px;margin:2px 4px 2px 0;background:var(--surface)}
@@ -157,72 +170,35 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-tabs{display:inline-flex;gap:2px;background:var(--surface);border-radius:8px;padding:2px;margin-bottom:10px}
 .dh-tabs button{border:none;background:transparent;font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-family:inherit}
 .dh-tabs button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.dh-grp{margin-bottom:14px}
-.dh-grp-h{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;margin-bottom:4px}
-.dh-grp-ico{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:700;font-size:13px;background:#fff;flex-shrink:0}
+.dh-sess{display:flex;align-items:center;gap:12px;background:#161616;color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.dh-sess-tile{width:46px;text-align:center;background:rgba(255,255,255,.12);border-radius:10px;padding:5px 0;flex-shrink:0}
+.dh-sess-tile .d{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.dh-sess-tile .n{font-size:21px;font-weight:700;line-height:1.1}
+.dh-sess-main{flex:1;min-width:0}
+.dh-sess-k{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#7ee2a8}
+.dh-sess-t{font-size:15px;font-weight:700;line-height:1.25}
+.dh-sess-s{font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.35}
+.dh-sess-nav{display:flex;flex-direction:column;gap:4px}
+.dh-sess-nav button{width:26px;height:24px;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:transparent;color:#fff;cursor:pointer;font-size:14px;line-height:1}
+.dh-sess-nav button:hover:not(:disabled){background:rgba(255,255,255,.18)}
+.dh-sess-nav button:disabled{opacity:.3;cursor:default}
+.dh-sum{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.dh-sum-n{font-size:30px;font-weight:700;line-height:1;font-family:'Barlow Condensed',sans-serif}
+.dh-sum-t{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
+.dh-sum-t b{font-size:13px;color:var(--text)}
+.dh-sum-bar{grid-column:1/-1;height:5px;background:var(--surface);border-radius:99px;margin-top:8px;overflow:hidden}
+.dh-sum-bar i{display:block;height:100%;border-radius:99px}
+.dh-allok{background:#effaf3;border:1px solid #bfe6cd;color:#15803d;border-radius:12px;padding:14px;font-weight:600;font-size:13px;text-align:center}
+.dh-grp{background:#fff;border:1px solid var(--border);border-left:4px solid #9ca3af;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.dh-grp-h{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;margin-bottom:4px}
+.dh-grp-ico{width:30px;height:30px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:700;font-size:13px;background:#fff;flex-shrink:0}
 .dh-grp-n{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500}
-.dh-person{display:flex;align-items:center;gap:10px;padding:5px 0 5px 44px;font-size:13.5px}
+.dh-person{display:flex;align-items:center;gap:10px;padding:5px 0 5px 4px;font-size:13.5px}
 .dh-person .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dh-badge{width:26px;height:26px;border-radius:7px;background:#5b6472;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media (max-width:1500px){.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-hero{grid-template-columns:230px minmax(0,1fr)}.dh-title{font-size:23px}.dh-hero-img img{width:110px}.dh-two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
+@media (max-width:1500px){.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
 @media (max-width:1180px){.dh-grid{grid-template-columns:minmax(0,1fr)}.dh-two{grid-template-columns:minmax(0,1fr)}.dh-side{position:static}}
-@media (max-width:900px){.dh-hero{grid-template-columns:minmax(0,1fr)}.dh-hero-img{min-height:150px}}
-/* ── Kalender ── */
-.cal-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:1.25rem;align-items:start}
-.cal-main{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
-.cal-head{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.cal-title{font-size:15px;font-weight:600;flex:1;min-width:140px}
-.cal-seg{display:inline-flex;background:var(--surface);border-radius:8px;padding:2px}
-.cal-seg button{border:none;background:transparent;padding:4px 12px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:600;font-family:inherit}
-.cal-seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.cal-arrow{width:28px;height:28px;border:1px solid var(--border);border-radius:7px;background:#fff;cursor:pointer;color:var(--muted);font-size:15px;line-height:1}
-.cal-arrow:hover{background:var(--surface);color:var(--text)}
-.cal-today{padding:5px 14px;border:none;border-radius:8px;background:var(--green);color:#fff;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
-.cal-wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid var(--border)}
-.cal-wd div{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.cal-cell{min-height:112px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 6px 8px;cursor:pointer;min-width:0}
-.cal-cell:nth-child(7n){border-right:none}
-.cal-cell.out{background:#f8f9fb;cursor:default}
-.cal-cell:not(.out):hover{background:#fafcfb}
-.cal-cell.today{background:#e8f6ed;box-shadow:inset 0 0 0 1.5px #a7d9b8}
-.cal-cell.sel:not(.today){box-shadow:inset 0 0 0 1.5px #1a1a1a}
-.cal-num{display:block;text-align:right;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;min-height:20px}
-.cal-cell.today .cal-num span{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;align-items:center;justify-content:center}
-.cal-chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;border-radius:5px;padding:2px 6px;margin-bottom:3px;white-space:nowrap;overflow:hidden;min-width:0}
-.cal-chip.tr{background:#dcfce7;color:#166534}
-.cal-chip.sp{background:#1a1a1a;color:#fff}
-.cal-chip.ex{background:#ede9fe;color:#5b21b6}
-.cal-chip.ft{background:#fef3c7;color:#92400e}
-.cal-chip .t{opacity:.7;font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0}
-.cal-chip .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.cal-chip b{font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0}
-.cal-chip em{font-style:normal;font-family:'DM Mono',monospace;font-size:10px;opacity:.75;flex-shrink:0}
-.cal-chip.big{flex-wrap:wrap;white-space:normal;padding:6px 8px;gap:2px 6px;font-size:12px}
-.cal-chip.big .sub{flex-basis:100%;font-size:10px;opacity:.75}
-.cal-chip.big .nm{white-space:normal;overflow:visible;text-overflow:clip;flex:1 1 55%}
-.cal-more{font-size:10px;color:var(--muted);padding-left:4px}
-.cal-cell.past .cal-chip,.cal-wcol.past .cal-chip{opacity:.7}
-.cal-wgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.cal-wcol{min-height:320px;border-right:1px solid var(--border);padding:8px;cursor:pointer;min-width:0}
-.cal-wcol:last-child{border-right:none}
-.cal-wcol.today{background:#e8f6ed}
-.cal-wcol.sel:not(.today){box-shadow:inset 0 0 0 1.5px #1a1a1a}
-.cal-wcol .hd{text-align:center;margin-bottom:8px}
-.cal-wcol .hd .d{font-size:11px;color:var(--muted)}
-.cal-wcol .hd .n{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;font-weight:700}
-.cal-wcol.today .hd .n{background:var(--green);color:#fff}
-.cal-side>*+*{margin-top:1.25rem}
-.cal-pcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
-.cal-ph{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
-.cal-ph h3{font-size:15px;font-weight:600;margin:0;flex:1}
-.cal-empty{border:1px dashed #86d3a3;background:#effaf3;border-radius:10px;padding:12px 14px;font-size:13px;color:#2f7a4d;margin-bottom:10px}
-.cal-act{display:flex;gap:6px;margin-top:6px}
-.cal-act .dh-btn{padding:5px 10px;font-size:12px}
-.cal-todo{display:flex;align-items:center;gap:10px;font-size:13px;padding:4px 0}
-.cal-todo .n{min-width:22px;height:22px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
-@media (max-width:1180px){.cal-wrap{grid-template-columns:minmax(0,1fr)}}
-
+@media (max-width:900px){.dh-next{grid-template-columns:minmax(0,1fr)}.dh-title{font-size:24px}}
 /* ── Terminplanung: Raster wie im Excel ── */
 .tpx{border-collapse:collapse;width:100%;min-width:1740px;table-layout:fixed;font-family:'Arial Narrow','Barlow Condensed',Arial,sans-serif;font-size:13.5px;color:#000;background:#fff}
 .tpx th,.tpx td{border:1px solid #000;padding:0 6px;height:24px;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -708,12 +684,6 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         </div>
         <div id="events-fixbar"></div>
         <div class="type-tabs">
-          <button class="type-tab active" id="evw-cal" onclick="einView('cal')">Kalender</button>
-          <button class="type-tab" id="evw-list" onclick="einView('list')">Liste</button>
-        </div>
-        <div id="cal-einheiten" style="padding:0.5rem 1.1rem 1.1rem"></div>
-        <div id="ein-list" style="display:none">
-        <div class="type-tabs">
           <button class="type-tab active" id="etab-all" onclick="filterEvents('all')">Alle</button>
           <button class="type-tab" id="etab-training" onclick="filterEvents('training')">Training</button>
           <button class="type-tab" id="etab-spiel" onclick="filterEvents('spiel')">Spiele</button>
@@ -724,7 +694,6 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
           <button class="type-tab" id="erab-rueckrunde" onclick="filterEventsRunde('rueckrunde')">Rückrunde</button>
         </div>
         <table class="tbl"><thead><tr><th>Datum</th><th>Typ</th><th>Bezeichnung</th><th>Anwesend</th><th>Quote</th><th></th></tr></thead><tbody id="events-tbody"></tbody></table>
-        </div>
       </div>
     </div>
     <div class="page" id="pg-minuten">
@@ -789,25 +758,30 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     </div>
     <div class="page" id="pg-statistik">
       <div id="stat-top"></div><div class="stat-row" id="stat-kpis" style="padding:0 0 1rem"></div>
-      <div class="grid2">
+      <div id="stat-excused"></div>
+      <div class="grid2" style="grid-template-columns:minmax(0,1fr)">
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Trainings</span></div>
           <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
-            <colgroup><col style="min-width:150px;width:35%"><col style="min-width:90px;width:15%"><col style="min-width:45px;width:8%"><col style="min-width:45px;width:8%"><col style="min-width:110px;width:34%"></colgroup>
+            <colgroup><col style="width:21%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:30%"><col style="width:13%"><col style="width:13%"></colgroup>
             <thead><tr>
-              <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
-              <th style="text-align:right;cursor:pointer">Anw.</th>
-              <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote </th>
+              <th>Spieler</th><th>Zone</th>
+              <th style="text-align:right">Anw.</th>
+              <th style="text-align:right">Abs.</th>
+              <th>Gründe der Abwesenheit</th>
+              <th>Quote</th>
+              <th title="Entschuldigte Gründe (oben wählbar, z.B. Verletzung) zählen nicht gegen die Quote">Bereinigt</th>
             </tr></thead><tbody id="stat-train-tbody"></tbody></table></div>
         </div>
         <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Spiele</span></div>
           <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
-            <colgroup><col style="min-width:150px;width:35%"><col style="min-width:90px;width:15%"><col style="min-width:45px;width:8%"><col style="min-width:45px;width:8%"><col style="min-width:110px;width:34%"></colgroup>
+            <colgroup><col style="width:21%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:30%"><col style="width:13%"><col style="width:13%"></colgroup>
             <thead><tr>
-              <th style="cursor:pointer">Spieler</th><th style="cursor:pointer">Zone</th>
-              <th style="text-align:right;cursor:pointer">Anw.</th>
-              <th style="text-align:right;cursor:pointer">Abs.</th>
-              <th style="cursor:pointer">Quote </th>
+              <th>Spieler</th><th>Zone</th>
+              <th style="text-align:right">Anw.</th>
+              <th style="text-align:right">Abs.</th>
+              <th>Gründe der Abwesenheit</th>
+              <th>Quote</th>
+              <th title="Entschuldigte Gründe (oben wählbar, z.B. Verletzung) zählen nicht gegen die Quote">Bereinigt</th>
             </tr></thead><tbody id="stat-spiel-tbody"></tbody></table></div>
         </div>
       </div>
@@ -981,9 +955,10 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <div class="field"><label>Aufgabe</label><input type="text" id="todo-text" class="inp" style="width:100%" placeholder="Was muss erledigt werden?"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div class="field"><label>Verantwortlich</label>
-          <select id="todo-owner" class="inp" style="width:100%">
+          <select id="todo-owner" class="inp" style="width:100%" onchange="todoOwnerChanged()">
             <option value="">– Niemand –</option>
           </select>
+          <input type="text" id="todo-owner-ext" class="inp" placeholder="Name der externen Person" style="width:100%;margin-top:6px;display:none">
         </div>
         <div class="field"><label>Status</label>
           <select id="todo-status" class="inp" style="width:100%">
@@ -5185,7 +5160,7 @@ function renderAll() {
 // ═══════════════════════════════════════════════
 // DASHBOARD  (Kopfkarte, Abschnitte, Woche, Abwesende)
 // ═══════════════════════════════════════════════
-var _dashAbsMode = 'training';
+var _dashAbsMode = 'training', _dashAbsIdx = 0;
 var DH_LAT = 47.5375, DH_LON = 8.7333;   // Wiesendangen
 var DH_DAYS = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 var DH_ZONE = {'Torwart':'TW','Abwehr':'AB','Mittelfeld':'MF','Angriff':'ST','Staff':'SF'};
@@ -5235,11 +5210,35 @@ function dhCountStyle(present,total){
   var pct=total?present/total:0;
   return pct>=0.75?'background:#dcfce7;color:#15803d':pct>=0.5?'background:#fef9c3;color:#92400e':'background:#fee2e2;color:#b91c1c';
 }
-function dhAbsChips(info){
-  return info.absent.map(function(p){
-    var r=dhReason(info.att,p.id);
-    return '<span class="dh-chip" style="'+(r?'background:'+r.color+'22;color:#222':'background:#fee2e2;color:#b91c1c')+'">'+tpEsc(dhShort(p.name))+(r?' <b style="color:'+r.color+'">'+tpEsc(r.kuerzel)+'</b>':'')+'</span>';
-  }).join('');
+var DH_POS = {'Torwart':'TW','Innenverteidiger':'IV','Aussenverteidiger Links':'LV','Aussenverteidiger Rechts':'RV','Mittelfeld':'MF','Linkes Mittelfeld':'LM','Rechtes Mittelfeld':'RM','Linker Flügel':'LF','Rechter Flügel':'RF','Stürmer':'ST'};
+function dhPosShort(pos){
+  if(!pos) return '';
+  if(DH_POS[pos]) return DH_POS[pos];
+  var t=pos.toLowerCase();
+  if(/^tor|^tw$|goalie/.test(t)) return 'TW';
+  if(/innen/.test(t)) return 'IV';
+  if(/verteid|abwehr|libero|back/.test(t)) return /link/.test(t)?'LV':/recht/.test(t)?'RV':'VT';
+  if(/fl[üu]e?gel/.test(t)) return /link/.test(t)?'LF':/recht/.test(t)?'RF':'FL';
+  if(/mittelfeld|zentr|sechs|acht|zehn|\bmf\b/.test(t)) return /link/.test(t)?'LM':/recht/.test(t)?'RM':'MF';
+  if(/st[üu]rm|sturm|angriff/.test(t)) return 'ST';
+  return pos.replace(/[^A-Za-zÄÖÜäöü]/g,'').slice(0,2).toUpperCase();
+}
+function dhPosOrder(p){ var i=positions.indexOf(p.pos1); return i<0?99:i; }
+function dhZoneRows(i,zone,isG){
+  var all=i.pl.filter(function(p){return p.zone===zone;});
+  var isAbs=function(p){ return i.att[p.id] && !i.att[p.id].present; };
+  var unav=function(p){ return isAbs(p) || (isG && isGesperrt(p)); };
+  var sorter=function(a,b){ return dhPosOrder(a)-dhPosOrder(b) || a.name.localeCompare(b.name); };
+  var avail=all.filter(function(p){return !unav(p);}).sort(sorter), out=all.filter(unav).sort(sorter);
+  var row=function(p,isOut){
+    var ps=dhPosShort(p.pos1), r=isAbs(p)?dhReason(i.att,p.id):null, sus=isG&&isGesperrt(p);
+    return '<div class="dh-pl'+(isOut?' ab':'')+(sus?' sp':'')+'" title="'+tpEsc(p.name+(p.pos1?' · '+p.pos1:'')+(r?' – '+r.label:'')+(sus?' – gesperrt (4 Gelbe)':''))+'">'+
+      (sus?'<span>⛔</span>':'')+'<span class="nm">'+tpEsc(dhShort(p.name))+'</span>'+
+      (!isOut&&ps?'<span class="ps">'+ps+'</span>':'')+
+      (isOut&&r?'<span class="rs" style="color:'+r.color+'">'+tpEsc(r.kuerzel)+'</span>':'')+
+      (isOut&&sus&&!r?'<span class="rs">gesp.</span>':'')+'</div>';
+  };
+  return {ok:avail.length,total:all.length,html:avail.map(function(p){return row(p,false);}).join('')+out.map(function(p){return row(p,true);}).join('')};
 }
 function dhEventCard(e){
   var i=dhInfo(e), zeit=dhZeit(e), ort=dhOrt(e), isG=e.type==='spiel';
@@ -5251,18 +5250,16 @@ function dhEventCard(e){
     var st=' · Staff '+(i.staff.length-i.staffAbs.length)+'/'+i.staff.length+(i.staffAbs.length?' ('+i.staffAbs.map(function(p){return dhShort(p.name);}).join(', ')+' fehlt)':'');
     staff=i.staffAbs.length?'<span style="color:#b91c1c">'+tpEsc(st)+'</span>':tpEsc(st);
   }
-  var h='<div class="dh-card"><div class="dh-row">'+
+  var zones=['Torwart','Abwehr','Mittelfeld','Angriff'].map(function(z){ return {z:z,r:dhZoneRows(i,z,isG)}; });
+  var avail=zones.reduce(function(s,z){return s+z.r.ok;},0), tot=zones.reduce(function(s,z){return s+z.r.total;},0);
+  return '<div class="dh-card"><div class="dh-row">'+
     '<div class="dh-tile"><div class="d">'+DH_DAYS[d.getUTCDay()].slice(0,2)+'</div><div class="n">'+d.getUTCDate()+'</div></div>'+
     '<div class="dh-row-main"><div class="dh-row-title">'+tpEsc(title)+'</div><div class="dh-row-sub">'+tpEsc(subTxt)+' · <b>'+dhRel(e.date)+'</b>'+staff+'</div></div>'+
-    '<div class="dh-count" style="'+dhCountStyle(i.present,i.total)+'">'+i.present+'<span>/'+i.total+'</span></div></div>'+
-    '<div class="dh-zones">'+i.zones.map(function(z){
-      var col=z.total&&z.ok===z.total?'var(--green)':z.ok===0&&z.total?'var(--red)':'var(--amber)';
-      return '<div class="dh-zone"><div class="dh-zone-l">'+DH_ZONE[z.z]+'</div><div class="dh-zone-v" style="color:'+col+'">'+z.ok+'<span>/'+z.total+'</span></div></div>';
-    }).join('')+'</div>'+
-    '<div class="dh-block">'+(i.absent.length
-      ? '<div class="dh-block-l" style="color:#b91c1c">✕ Abwesend ('+i.absent.length+')</div>'+dhAbsChips(i)
-      : '<div class="dh-ok">✓ Alle Spieler verfügbar</div>')+'</div></div>';
-  return h;
+    '<div class="dh-count" style="'+dhCountStyle(avail,tot)+'" title="'+(isG?'Verfügbar (ohne Abwesende und Gesperrte)':'Anwesend')+'">'+avail+'<span>/'+tot+'</span></div></div>'+
+    '<div class="dh-zones">'+zones.map(function(x){
+      var col=x.r.total&&x.r.ok===x.r.total?'var(--green)':x.r.ok===0&&x.r.total?'var(--red)':'var(--amber)';
+      return '<div class="dh-zone"><div class="dh-zone-l">'+DH_ZONE[x.z]+'</div><div class="dh-zone-v" style="color:'+col+'">'+x.r.ok+'<span>/'+x.r.total+'</span></div><div class="dh-zl">'+x.r.html+'</div></div>';
+    }).join('')+'</div></div>';
 }
 
 function dhRenderHero(){
@@ -5275,26 +5272,28 @@ function dhRenderHero(){
   var avg=rates.length?Math.round(rates.reduce(function(s,r){return s+r.pct;},0)/rates.length):null;
   var ges=pl.filter(isGesperrt).length;
   var open=todos.filter(function(t){return (t.status||'offen')!=='erledigt'&&!t.done;}).length;
-  function meta(icon,label,e){
-    var v='—', x='';
-    if(e){ var z=dhZeit(e), o=dhOrt(e); v=dhDateShort(e.date)+(z?' · '+z:'')+(e.type==='spiel'?' · '+dhOpp(e):''); x=dhRel(e.date); }
-    return '<div class="dh-meta-row">'+DH_ICON[icon]+'<span class="dh-meta-l">'+label+'</span><span class="dh-meta-v">'+tpEsc(v)+'</span><span class="dh-meta-x">'+tpEsc(x)+'</span></div>';
+  function tile(icon,label,e,isG){
+    var v='Nichts geplant', s2='';
+    if(e){
+      var z=dhZeit(e), o=dhOrt(e);
+      v=dhDateShort(e.date)+(z?' · '+z:'');
+      s2=(isG?dhOpp(e):'Training'+(o?' · '+o:''))+' · '+dhRel(e.date);
+    }
+    return '<div class="dh-nx"><div class="dh-nx-ico">'+DH_ICON[icon]+'</div><div class="dh-nx-b"><div class="dh-nx-l">'+label+'</div><div class="dh-nx-v">'+tpEsc(v)+'</div><div class="dh-nx-s">'+tpEsc(s2)+'</div></div></div>';
   }
-  var img=settings.heroImage?' style="background-image:url(\''+settings.heroImage+'\')"':'';
+  var kpi=function(l,v,col){ return '<div class="dh-kpi"><span class="v"'+(col?' style="color:'+col+'"':'')+'>'+v+'</span><span class="l">'+l+'</span></div>'; };
+  el.style.backgroundImage=settings.heroImage?"linear-gradient(90deg,rgba(8,8,8,.93) 0%,rgba(8,8,8,.74) 55%,rgba(8,8,8,.42) 100%),url('"+settings.heroImage+"')":'';
   el.innerHTML=
-    '<div class="dh-hero-img"'+img+'>'+(!settings.heroImage&&settings.vereinLogo?'<img src="'+settings.vereinLogo+'" alt="">':'')+'</div>'+
-    '<div class="dh-hero-body">'+
-      '<div class="dh-eyebrow"><span>'+tpEsc(settings.seasonName||'')+'</span><span class="dh-pill">'+rLabel+'</span></div>'+
-      '<h1 class="dh-title">'+tpEsc((settings.clubName||'')+' '+(settings.teamName||''))+'</h1>'+
-      '<div class="dh-meta">'+meta('cal','Nächste Einheit',tr)+meta('ball','Nächstes Spiel',sp)+
-        '<div class="dh-meta-row">'+DH_ICON.flag+'<span class="dh-meta-l">Runde</span><span class="dh-meta-v">'+rLabel+'</span></div></div>'+
-      '<div class="dh-hero-foot">'+
-        '<div><div class="dh-stat-l">Kader</div><div class="dh-stat-v">'+pl.length+'</div></div>'+
-        '<div><div class="dh-stat-l">Ø Training '+(curR==='vorrunde'?'VR':'RR')+'</div><div class="dh-stat-v" style="color:'+(avg==null?'var(--muted)':avg>=75?'var(--green)':avg>=50?'var(--amber)':'var(--red)')+'">'+(avg==null?'–':avg+'%')+'</div></div>'+
-        '<div><div class="dh-stat-l">Gesperrt</div><div class="dh-stat-v" style="color:'+(ges?'var(--red)':'inherit')+'">'+ges+'</div></div>'+
-        '<div><div class="dh-stat-l">Offene To-dos</div><div class="dh-stat-v">'+open+'</div></div>'+
-        '<div class="dh-actions"><button class="dh-btn" onclick="showPage(\'einheiten\')">Einheiten</button><button class="dh-btn green" onclick="showPage(\'uebersicht\')">Zur Anwesenheit →</button></div>'+
-      '</div></div>';
+    '<div class="dh-hero-top">'+
+      (settings.vereinLogo?'<div class="dh-logo"><img src="'+settings.vereinLogo+'" alt=""></div>':'')+
+      '<div class="dh-hero-id"><div class="dh-eyebrow"><span>'+tpEsc(settings.seasonName||'')+'</span><span class="dh-pill">'+rLabel+'</span></div>'+
+        '<h1 class="dh-title">'+tpEsc((settings.clubName||'')+' '+(settings.teamName||''))+'</h1></div>'+
+      '<div class="dh-actions"><button class="dh-btn" onclick="showPage(\'einheiten\')">Einheiten</button><button class="dh-btn green" onclick="showPage(\'uebersicht\')">Zur Anwesenheit →</button></div>'+
+    '</div>'+
+    '<div class="dh-next">'+tile('cal','Nächste Einheit',tr,false)+tile('ball','Nächstes Spiel',sp,true)+'</div>'+
+    '<div class="dh-kpis">'+kpi('Kader',pl.length)+
+      kpi('Ø Training '+(curR==='vorrunde'?'VR':'RR'),avg==null?'–':avg+'%',avg==null?'':avg>=75?'#4ade80':avg>=50?'#fbbf24':'#f87171')+
+      kpi('Gesperrt',ges,ges?'#f87171':'')+kpi('Offene To-dos',open)+'</div>';
 }
 
 function dhRenderLeft(){
@@ -5322,20 +5321,25 @@ function dhKartenHtml(){
   return h+'</div>';
 }
 
-function dhIsoWeek(iso){
-  var d=new Date(iso+'T12:00:00Z'); var day=(d.getUTCDay()+6)%7;
-  d.setUTCDate(d.getUTCDate()-day+3);
-  var first=new Date(Date.UTC(d.getUTCFullYear(),0,4));
-  return 1+Math.round(((d-first)/86400000-3+((first.getUTCDay()+6)%7))/7);
+function dhUpcoming(type){
+  var t=today();
+  return events.filter(function(e){return e.type===type&&e.date>=t;})
+    .sort(function(a,b){return a.date.localeCompare(b.date)||dhZeit(a).localeCompare(dhZeit(b));});
 }
-function dhAbsMode(m){ _dashAbsMode=m; dhRenderSide(); }
+function dhAbsMode(m){ _dashAbsMode=m; _dashAbsIdx=0; dhRenderSide(); }
+function dhAbsNav(n){ _dashAbsIdx=Math.max(0,_dashAbsIdx+n); dhRenderSide(); }
 function dhRenderSide(){
   var el=document.getElementById('dh-side'); if(!el) return;
   var m=_dashAbsMode==='spiel'?'spiel':'training';
-  var e=dhNext(m);
+  var list=dhUpcoming(m);
+  if(_dashAbsIdx>list.length-1) _dashAbsIdx=Math.max(0,list.length-1);
+  var e=list[_dashAbsIdx]||null;
   var tabs='<div class="dh-tabs"><button class="'+(m==='training'?'on':'')+'" onclick="dhAbsMode(\'training\')">Training</button><button class="'+(m==='spiel'?'on':'')+'" onclick="dhAbsMode(\'spiel\')">Spiel</button></div>';
-  if(!e){ el.innerHTML='<div class="dh-side-h"><h3 class="dh-h">Abwesende</h3></div>'+tabs+'<div class="dh-empty">Keine kommende Einheit.</div>'; return; }
-  var i=dhInfo(e), groups={}, order=[];
+  var head='<div class="dh-side-h"><h3 class="dh-h">Abwesende</h3></div>'+tabs;
+  if(!e){ el.innerHTML=head+'<div class="dh-empty">Keine kommende Einheit.</div>'; return; }
+
+  var i=dhInfo(e), z=dhZeit(e), o=dhOrt(e), d=new Date(e.date+'T12:00:00Z'), isG=e.type==='spiel';
+  var groups={}, order=[];
   i.absent.forEach(function(p){
     var r=dhReason(i.att,p.id), k=r?String(r.id):'none';
     if(!groups[k]){ groups[k]={r:r,list:[]}; order.push(k); }
@@ -5346,21 +5350,29 @@ function dhRenderSide(){
     var ib=b==='none'?999:absenceReasons.findIndex(function(r){return String(r.id)===b;});
     return ia-ib;
   });
-  function person(p){ return '<div class="dh-person">'+avHtml(p.name)+'<span class="nm">'+tpEsc(p.name)+'</span><span class="dh-badge" title="'+tpEsc(p.zone)+'">'+(DH_ZONE[p.zone]||'')+'</span></div>'; }
+  var person=function(p,extra){ return '<div class="dh-person">'+avHtml(p.name)+'<span class="nm">'+tpEsc(p.name)+'</span>'+(extra||'')+'<span class="dh-badge" title="'+tpEsc(p.zone)+'">'+(DH_ZONE[p.zone]||'')+'</span></div>'; };
+  var grp=function(color,ico,label,items,icoStyle){
+    return '<div class="dh-grp" style="border-left-color:'+color+'"><div class="dh-grp-h"><div class="dh-grp-ico" style="'+(icoStyle||'')+'">'+ico+'</div><span>'+label+'</span><span class="dh-grp-n">'+items.length+'</span></div>'+items.join('')+'</div>';
+  };
   var body=order.map(function(k){
     var g=groups[k], r=g.r;
     g.list.sort(function(a,b){return a.name.localeCompare(b.name);});
-    return '<div class="dh-grp"><div class="dh-grp-h"><div class="dh-grp-ico" style="'+(r?'color:'+r.color+';background:'+r.color+'18':'')+'">'+(r?tpEsc(r.kuerzel):'?')+'</div>'+
-      '<span>'+(r?tpEsc(r.label):'Ohne Angabe')+'</span><span class="dh-grp-n">'+g.list.length+'</span></div>'+g.list.map(person).join('')+'</div>';
+    return grp(r?r.color:'#9ca3af', r?tpEsc(r.kuerzel):'?', r?tpEsc(r.label):'Ohne Angabe', g.list.map(function(p){return person(p);}), r?'color:'+r.color+';background:'+r.color+'18':'');
   }).join('');
-  var gesList = m==='spiel' ? i.pl.filter(isGesperrt) : [];
-  if(gesList.length) body+='<div class="dh-grp"><div class="dh-grp-h"><div class="dh-grp-ico" style="background:#fee2e2">⛔</div><span>Gesperrt</span><span class="dh-grp-n">'+gesList.length+'</span></div>'+gesList.map(person).join('')+'</div>';
-  if(i.staffAbs.length) body+='<div class="dh-grp"><div class="dh-grp-h"><div class="dh-grp-ico" style="color:#7c3aed">SF</div><span>Staff</span><span class="dh-grp-n">'+i.staffAbs.length+'</span></div>'+i.staffAbs.map(person).join('')+'</div>';
-  var n=i.absent.length+gesList.length;
-  var z=dhZeit(e);
-  el.innerHTML='<div class="dh-side-h"><h3 class="dh-h">Abwesende</h3><span class="dh-count-pill">'+n+'</span></div>'+tabs+
-    '<div class="dh-muted" style="margin-bottom:12px">'+dhDateShort(e.date)+(z?' · '+z:'')+' · '+(e.type==='spiel'?tpEsc(e.name):'Training')+'</div>'+
-    (body||'<div class="dh-empty">✓ Alle verfügbar</div>');
+  var gesList=isG?i.pl.filter(isGesperrt):[];
+  if(gesList.length) body+=grp('#dc2626','⛔','Gesperrt (4 Gelbe)',gesList.map(function(p){return person(p);}),'background:#fee2e2');
+  if(i.staffAbs.length) body+=grp('#7c3aed','SF','Staff',i.staffAbs.map(function(p){return person(p);}),'color:#7c3aed');
+  var n=i.absent.length+gesList.length, ok=i.total-n;
+  var pct=i.total?Math.round(ok/i.total*100):0;
+  var nav='<div class="dh-sess-nav"><button onclick="dhAbsNav(-1)" '+(_dashAbsIdx===0?'disabled':'')+' title="Vorherige Einheit">‹</button><button onclick="dhAbsNav(1)" '+(_dashAbsIdx>=list.length-1?'disabled':'')+' title="Nächste Einheit">›</button></div>';
+  el.innerHTML=head+
+    '<div class="dh-sess"><div class="dh-sess-tile"><div class="d">'+DH_DAYS[d.getUTCDay()].slice(0,2)+'</div><div class="n">'+d.getUTCDate()+'</div></div>'+
+      '<div class="dh-sess-main"><div class="dh-sess-k">'+(isG?'Spiel':'Training')+(_dashAbsIdx===0?' · nächste Einheit':' · in '+(_dashAbsIdx+1)+'. Position')+'</div>'+
+        '<div class="dh-sess-t">'+tpEsc(isG?dhOpp(e):dhDateLong(e.date))+'</div>'+
+        '<div class="dh-sess-s">'+tpEsc(isG?dhDateLong(e.date):'')+(z?(isG?' · ':'')+z+' Uhr':'')+(o?' · '+tpEsc(o):'')+' · '+dhRel(e.date)+'</div></div>'+nav+'</div>'+
+    '<div class="dh-sum"><div class="dh-sum-n" style="color:'+(n?'#b91c1c':'#15803d')+'">'+n+'</div><div class="dh-sum-t"><b>abwesend</b><span>'+ok+' von '+i.total+' Spielern verfügbar</span></div>'+
+      '<div class="dh-sum-bar"><i style="width:'+pct+'%;background:'+(pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)')+'"></i></div></div>'+
+    (body||'<div class="dh-allok">✓ Alle Spieler verfügbar</div>');
 }
 
 // ── Wetter (Open-Meteo, ohne Schlüssel) ──
@@ -6052,137 +6064,14 @@ function renderResultate(){
 
   // Alle Spiele
   var tyLbl={meister:'<span class="typ-b m">Meisterschaft</span>',test:'<span class="typ-b t">Trainingsspiel</span>',unbekannt:'–'};
-  h+='<div class="card"><div class="card-header"><span class="card-title">Alle Spiele</span></div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Datum</th><th>H/A</th><th>Gegner</th><th class="r">Resultat</th><th>Typ</th></tr></thead><tbody>'+
+  h+='<div class="card"><div class="card-header"><span class="card-title">Alle Spiele</span></div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Datum</th><th>H/A</th><th>Gegner</th><th class="r">Resultat</th><th>Typ</th><th>Nr.</th></tr></thead><tbody>'+
     g.slice().reverse().map(function(x){
-      return '<tr><td style="font-family:monospace;font-size:12px">'+fmtDate(x.date)+'</td><td>'+(x.home?'Heim':'Auswärts')+'</td><td style="font-weight:500">'+tpEsc(x.opp)+'</td><td class="r">'+resChip(x)+'</td><td>'+tyLbl[x.ty]+'</td></tr>';
+      return '<tr><td style="font-family:monospace;font-size:12px">'+fmtDate(x.date)+'</td><td>'+(x.home?'Heim':'Auswärts')+'</td><td style="font-weight:500">'+tpEsc(x.opp)+'</td><td class="r">'+resChip(x)+'</td><td>'+tyLbl[x.ty]+'</td><td class="dh-muted" style="font-family:monospace;font-size:11px">'+(x.e.spielnr||'–')+'</td></tr>';
     }).join('')+'</tbody></table></div></div>';
   body.innerHTML=h;
 }
 
-// ═══════════════════════════════════════════════
-// KALENDER  (Monat / Woche, Tages-Panel rechts)
-// ═══════════════════════════════════════════════
-var _cal = {view:'month', anchor:null, sel:null};
-var _ftCache = {};
-var _einView = 'cal';
-function calInit(){ if(!_cal.anchor){ _cal.anchor=today(); _cal.sel=today(); } }
-function calMonday(iso){ return isoAddDays(iso, -((isoWeekday(iso)+6)%7)); }
-function calFeiertag(iso){
-  var y=+iso.slice(0,4);
-  if(!_ftCache[y]){ _ftCache[y]={}; getFeiertage(y).forEach(function(f){ _ftCache[y][f.date]=f.text; }); }
-  return _ftCache[y][iso]||'';
-}
-function calSetView(v){ _cal.view=v; calRender(); }
-function calToday(){ _cal.anchor=today(); _cal.sel=today(); calRender(); }
-function calSelect(iso){ _cal.sel=iso; calRender(); }
-function calNav(n){
-  var d=new Date(_cal.anchor+'T12:00:00Z');
-  if(_cal.view==='month'){ d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth()+n); }
-  else d.setUTCDate(d.getUTCDate()+7*n);
-  _cal.anchor=d.toISOString().slice(0,10);
-  var t=today(), a=_cal.anchor;
-  if(_cal.view==='month') _cal.sel = t.slice(0,7)===a.slice(0,7) ? t : a.slice(0,7)+'-01';
-  else { var mo=calMonday(a); _cal.sel = (t>=mo && t<=isoAddDays(mo,6)) ? t : mo; }
-  calRender();
-}
-function calChipsHtml(date,big,limit){
-  var items=[], t=today();
-  var ft=calFeiertag(date);
-  if(ft) items.push({cls:'ft',html:'<span class="nm">'+tpEsc(ft)+'</span>',title:ft});
-  events.filter(function(e){return e.date===date;})
-    .sort(function(a,b){return dhZeit(a).localeCompare(dhZeit(b));})
-    .forEach(function(e){
-      var z=dhZeit(e), i=dhInfo(e), sp=e.type==='spiel', rp=sp?resParse(e):null;
-      var label = sp ? dhOpp(e) : ((e.name&&e.name!=='Training')?e.name:'Training');
-      var ort=dhOrt(e);
-      var inner=(z?'<span class="t">'+z+'</span>':'')+'<span class="nm">'+tpEsc(label)+'</span>'+
-        (rp?'<b>'+rp.gf+':'+rp.ga+'</b>':'')+'<em>'+i.present+'/'+i.total+'</em>'+
-        (big&&ort?'<span class="sub">'+tpEsc(ort)+'</span>':'');
-      items.push({cls:sp?'sp':'tr',html:inner,title:label+(z?' · '+z:'')+' · '+i.present+'/'+i.total+' dabei'});
-    });
-  (tpData.extraEintraege||[]).filter(function(x){return x.date===date;}).forEach(function(x){
-    items.push({cls:'ex',html:(x.zeit?'<span class="t">'+tpEsc(x.zeit)+'</span>':'')+'<span class="nm">'+tpEsc(x.text)+'</span>',title:x.text});
-  });
-  var shown=limit?items.slice(0,limit):items, more=items.length-shown.length;
-  return shown.map(function(it){
-    return '<div class="cal-chip '+it.cls+(big?' big':'')+'" title="'+tpEsc(it.title)+'" onclick="event.stopPropagation();calSelect(\''+date+'\')">'+it.html+'</div>';
-  }).join('')+(more>0?'<div class="cal-more">+'+more+' weitere</div>':'');
-}
-function calGridHtml(){
-  var t=today(), a=_cal.anchor, h='';
-  if(_cal.view==='month'){
-    var y=+a.slice(0,4), m=+a.slice(5,7)-1;
-    var first=y+'-'+tp2(m+1)+'-01';
-    var offset=(isoWeekday(first)+6)%7, dim=new Date(Date.UTC(y,m+1,0)).getUTCDate();
-    var rows=Math.ceil((offset+dim)/7), cells='';
-    for(var i=0;i<rows*7;i++){
-      var dn=i-offset+1;
-      if(dn<1||dn>dim){ cells+='<div class="cal-cell out"></div>'; continue; }
-      var iso=y+'-'+tp2(m+1)+'-'+tp2(dn);
-      cells+='<div class="cal-cell'+(iso===t?' today':'')+(iso===_cal.sel?' sel':'')+(iso<t?' past':'')+'" onclick="calSelect(\''+iso+'\')">'+
-        '<span class="cal-num"><span>'+dn+'</span></span>'+calChipsHtml(iso,false,3)+'</div>';
-    }
-    h+='<div class="cal-wd">'+['Mo','Di','Mi','Do','Fr','Sa','So'].map(function(n){return '<div>'+n+'</div>';}).join('')+'</div><div class="cal-grid">'+cells+'</div>';
-  } else {
-    var mo=calMonday(a), cols='';
-    for(var k=0;k<7;k++){
-      var d=isoAddDays(mo,k);
-      cols+='<div class="cal-wcol'+(d===t?' today':'')+(d===_cal.sel?' sel':'')+(d<t?' past':'')+'" onclick="calSelect(\''+d+'\')">'+
-        '<div class="hd"><div class="d">'+['Mo','Di','Mi','Do','Fr','Sa','So'][k]+'</div><div class="n">'+parseInt(d.slice(8),10)+'</div></div>'+calChipsHtml(d,true,0)+'</div>';
-    }
-    h+='<div class="cal-wgrid">'+cols+'</div>';
-  }
-  return h;
-}
-function calPanelHtml(){
-  var d=_cal.sel, dt=new Date(d+'T12:00:00Z'), t=today();
-  var evs=events.filter(function(e){return e.date===d;}).sort(function(a,b){return dhZeit(a).localeCompare(dhZeit(b));});
-  var ex=(tpData.extraEintraege||[]).filter(function(x){return x.date===d;});
-  var ft=calFeiertag(d);
-  var h='<div class="cal-pcard"><div class="cal-ph"><h3>'+DH_DAYS[dt.getUTCDay()]+', '+dt.getUTCDate()+'. '+TP_MONATSNAMEN[dt.getUTCMonth()]+'</h3><span class="dh-muted">'+dhRel(d)+'</span></div>';
-  if(ft) h+='<div class="dh-chip" style="background:#fef3c7;color:#92400e;margin-bottom:10px">🎉 '+tpEsc(ft)+'</div>';
-  if(!evs.length&&!ex.length) h+='<div class="cal-empty">An diesem Tag stehen keine Einheiten oder Termine an.</div>';
-  evs.forEach(function(e){
-    var rp=e.type==='spiel'?resParse(e):null;
-    h+='<div style="margin-bottom:12px">'+dhEventCard(e)+'<div class="cal-act">'+
-      (rp?'<span class="res-chip '+rp.res+'" style="align-self:center">Resultat '+rp.gf+':'+rp.ga+'</span>':'')+
-      '<button class="dh-btn" onclick="tpOpenDay(\''+d+'\')">Bearbeiten</button><button class="dh-btn" onclick="showPage(\'uebersicht\')">Anwesenheit</button></div></div>';
-  });
-  ex.forEach(function(x){
-    h+='<div class="dh-card" style="margin-bottom:12px"><div class="dh-row"><div class="dh-row-main"><div class="dh-row-title">📌 '+tpEsc(x.text)+'</div><div class="dh-row-sub">'+[x.zeit,x.ort].filter(Boolean).map(tpEsc).join(' · ')+'</div></div></div></div>';
-  });
-  h+='<button class="dh-btn" style="width:100%;justify-content:center" onclick="tpOpenDay(\''+d+'\')">+ Termin hinzufügen / bearbeiten</button></div>';
-
-  var open=todos.filter(function(x){return (x.status||'offen')!=='erledigt'&&!x.done;});
-  var over=open.filter(function(x){return x.due&&x.due<t;}), prio=open.filter(function(x){return x.prio;});
-  var pill=function(n,l,bg,col){ return '<div class="cal-todo"><span class="n" style="background:'+bg+';color:'+col+'">'+n+'</span><span>'+l+'</span></div>'; };
-  h+='<div class="cal-pcard"><div class="cal-ph"><h3>Offene Aufgaben</h3><a class="dh-link" onclick="showPage(\'dashboard\')" style="cursor:pointer">Dashboard →</a></div>'+
-    (open.length ? pill(open.length,'offene Aufgaben','#fef3c7','#92400e')+(over.length?pill(over.length,'überfällig','#fee2e2','#b91c1c'):'')+(prio.length?pill(prio.length,'mit Priorität','#dbeafe','#1d4ed8'):'')+
-      '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">'+open.slice(0,4).map(function(x){return '<div class="dh-muted" style="padding:2px 0;color:#444">• '+tpEsc(x.text)+(x.due?' <span style="color:var(--muted)">('+fmtShort(x.due)+')</span>':'')+'</div>';}).join('')+'</div>'
-      : '<div class="dh-ok">✓ Keine offenen Aufgaben</div>')+'</div>';
-  return h;
-}
-function calRender(only){
-  calInit();
-  var ids=only?[only]:['cal-einheiten'];
-  var a=_cal.anchor, title;
-  if(_cal.view==='month') title=TP_MONATSNAMEN[+a.slice(5,7)-1]+' '+a.slice(0,4);
-  else { var mo=calMonday(a), su=isoAddDays(mo,6); title='KW '+dhIsoWeek(mo)+' · '+parseInt(mo.slice(8),10)+'. '+(mo.slice(5,7)!==su.slice(5,7)?TP_MONATSNAMEN[+mo.slice(5,7)-1]+' ':'')+'– '+parseInt(su.slice(8),10)+'. '+TP_MONATSNAMEN[+su.slice(5,7)-1]+' '+su.slice(0,4); }
-  var html='<div class="cal-wrap"><div class="cal-main"><div class="cal-head"><div class="cal-title">'+title+'</div>'+
-    '<div class="cal-seg"><button class="'+(_cal.view==='month'?'on':'')+'" onclick="calSetView(\'month\')">Monat</button><button class="'+(_cal.view==='week'?'on':'')+'" onclick="calSetView(\'week\')">Woche</button></div>'+
-    '<button class="cal-arrow" onclick="calNav(-1)" title="Zurück">‹</button><button class="cal-today" onclick="calToday()">Heute</button><button class="cal-arrow" onclick="calNav(1)" title="Weiter">›</button></div>'+
-    calGridHtml()+'</div><div class="cal-side">'+calPanelHtml()+'</div></div>';
-  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=html; });
-}
-function einView(v){
-  _einView=v;
-  var c=document.getElementById('cal-einheiten'), l=document.getElementById('ein-list');
-  if(c) c.style.display=v==='cal'?'block':'none';
-  if(l) l.style.display=v==='list'?'block':'none';
-  ['cal','list'].forEach(function(k){var b=document.getElementById('evw-'+k); if(b) b.classList.toggle('active',k===v);});
-}
 function renderEvents() {
-  calRender('cal-einheiten');
   var tbody=document.getElementById('events-tbody');
   if(!tbody) return;
   var fx=document.getElementById('events-fixbar');
@@ -6242,6 +6131,8 @@ function openEditEvent(id) {
         '<input type="text" class="inp" id="ee-ort-'+id+'" value="'+tpEsc(e.ort)+'" placeholder="Ort" style="flex:1;font-size:12px">'+
       '</div>'+
       '<input type="text" class="inp" id="ee-bem-'+id+'" value="'+tpEsc(e.bemerkung)+'" placeholder="Bemerkung" style="width:100%;font-size:12px;margin-top:6px">'+
+      '<div style="display:flex;gap:6px;margin-top:6px"><select class="inp" id="ee-typ-'+id+'" style="flex:1;font-size:12px"><option value="">Spieltyp: –</option><option value="Meisterschaft"'+(resTypOf(e)==='meister'?' selected':'')+'>Meisterschaft</option><option value="Trainingsspiele"'+(resTypOf(e)==='test'?' selected':'')+'>Trainingsspiel</option></select>'+
+      '<input type="text" class="inp" id="ee-res-'+id+'" value="'+tpEsc(e.resultat)+'" placeholder="Resultat Heim:Gast" style="width:140px;font-size:12px"></div>'+
     '</td>'+
     '<td></td><td></td>'+
     '<td style="display:flex;gap:4px">'+
@@ -6260,6 +6151,12 @@ function saveEditEvent(id) {
   e.zeit = g('zeit')||'';
   e.ort = (g('ort')||'').trim();
   e.bemerkung = (g('bem')||'').trim();
+  var typSel=g('typ');
+  if(typSel!==null){
+    var oldTyp=e.spieltyp||'';
+    if(typSel!==oldTyp){ e.spieltyp=typSel; e.manualTyp=!!typSel; }
+    var rr=(g('res')||'').match(/^\s*(\d+)\s*:\s*(\d+)\s*$/); e.resultat=rr?(+rr[1])+':'+(+rr[2]):'';
+  }
   events.sort(function(a,b){ return a.date.localeCompare(b.date); });
   saveData();
   renderEvents();
@@ -6392,6 +6289,29 @@ function showKaderQuoteInfo(btn, isStaff) {}
 
 
 
+function excusedReasonIds(){
+  if(Array.isArray(settings.excusedReasons)) return settings.excusedReasons;
+  return absenceReasons.filter(function(r){return /verletz/i.test(r.label);}).map(function(r){return r.id;});
+}
+function toggleExcused(id){
+  var cur=excusedReasonIds().slice(), i=cur.indexOf(id);
+  if(i>=0) cur.splice(i,1); else cur.push(id);
+  settings.excusedReasons=cur; saveData(); renderStatistik();
+}
+// Abwesenheiten eines Spielers nach Grund, nur vergangene Einheiten (wie die Quote)
+function playerAbsence(pid,type,runde){
+  var evs=runde?pastEvtsFiltered(type,runde):pastEvts(type), ex=excusedReasonIds();
+  var by={}, none=0, abs=0, excused=0;
+  evs.forEach(function(e){
+    var en=attendance[e.id]&&attendance[e.id][pid];
+    if(en && en.present) return;
+    abs++;
+    var r=en&&en.reason ? (absenceReasons.find(function(x){return x.id==en.reason;})||absenceReasons.find(function(x){return x.kuerzel===en.reason;})) : null;
+    if(r){ by[r.id]=(by[r.id]||0)+1; if(ex.indexOf(r.id)>=0) excused++; } else none++;
+  });
+  var base=evs.length-excused;
+  return {total:evs.length,abs:abs,by:by,none:none,excused:excused,adj:base>0?Math.round((evs.length-abs)/base*100):null};
+}
 function renderStatContent() {
   var runde=statRunde==='total'?null:statRunde;
   var pt=pastEvtsFiltered('training',runde), ps=pastEvtsFiltered('spiel',runde), pc=pastEvtsFiltered(null,runde);
@@ -6407,24 +6327,43 @@ function renderStatContent() {
     '<div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">'+ps.length+'</div><div class="stat-sub">absolviert</div></div>'+
     '<div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">'+pc.length+'</div><div class="stat-sub">Einheiten</div></div>';
 
+  var exEl=document.getElementById('stat-excused');
+  if(exEl){
+    var exIds=excusedReasonIds();
+    exEl.innerHTML='<div class="card" style="margin-bottom:1.1rem"><div style="padding:0.8rem 1.1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<b style="font-size:13px">Entschuldigt</b><span class="dh-muted">zählt nicht gegen die Quote («Bereinigt»):</span>'+
+      absenceReasons.map(function(r){
+        var on=exIds.indexOf(r.id)>=0;
+        return '<button onclick="toggleExcused('+r.id+')" style="cursor:pointer;font-size:12px;font-weight:600;padding:3px 11px;border-radius:99px;font-family:inherit;border:1.5px solid '+r.color+';'+(on?'background:'+r.color+';color:#fff':'background:#fff;color:#333')+'">'+(on?'✓ ':'')+tpEsc(r.label)+'</button>';
+      }).join('')+'</div></div>';
+  }
   function renderStatTbl(tbodyId, type) {
     var tbody=document.getElementById(tbodyId);
     if(!tbody) return;
-    var rows=pl.map(function(p){var r=playerRate(p.id,type,runde);return {p:p,r:r,pct:r?r.pct:0};}).sort(function(a,b){return b.pct-a.pct;});
+    var rows=pl.map(function(p){
+      var r=playerRate(p.id,type,runde), a=playerAbsence(p.id,type,runde);
+      return {p:p,r:r,a:a,adj:a.adj};
+    }).sort(function(x,y){ return (y.adj==null?-1:y.adj)-(x.adj==null?-1:x.adj) || (y.r?y.r.pct:0)-(x.r?x.r.pct:0); });
+    var exIds=excusedReasonIds();
     tbody.innerHTML=rows.map(function(item){
-      var p=item.p,r=item.r;
+      var p=item.p,r=item.r,a=item.a;
+      var chips=absenceReasons.filter(function(x){return a.by[x.id];}).map(function(x){
+        var ex=exIds.indexOf(x.id)>=0;
+        return '<span title="'+tpEsc(x.label)+': '+a.by[x.id]+'×'+(ex?' (entschuldigt)':'')+'" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:1px 8px;border-radius:99px;margin:1px 4px 1px 0;background:'+x.color+'22;color:#222;'+(ex?'border:1px dashed '+x.color:'border:1px solid transparent')+'"><b style="font-family:monospace;color:'+x.color+'">'+tpEsc(x.kuerzel)+'</b>'+a.by[x.id]+'</span>';
+      }).join('')+(a.none?'<span title="Ohne Angabe: '+a.none+'×" style="display:inline-flex;gap:4px;font-size:11px;padding:1px 8px;border-radius:99px;margin:1px 4px 1px 0;background:#f3f4f6;color:#6b7280"><b style="font-family:monospace">?</b>'+a.none+'</span>':'');
       return '<tr style="cursor:pointer" onclick="openPlayerDetail('+p.id+')">'+
-        '<td style="min-width:150px"><div class="pc">'+avHtml(p.name)+'<span style="font-size:13px">'+p.name+'</span></div></td>'+
-        '<td style="min-width:90px">'+zoneBadge(p.zone)+'</td>'+
-        '<td style="min-width:45px;text-align:right;font-family:monospace;font-size:12px;color:var(--green);font-weight:600">'+(r?r.att:0)+'</td>'+
-        '<td style="min-width:45px;text-align:right;font-family:monospace;font-size:12px;color:var(--red);font-weight:600">'+(r?(r.total-r.att):0)+'</td>'+
-        '<td style="min-width:110px">'+barHtml(r?r.pct:null,70)+'</td></tr>';
+        '<td><div class="pc">'+avHtml(p.name)+'<span style="font-size:13px">'+tpEsc(p.name)+'</span></div></td>'+
+        '<td>'+zoneBadge(p.zone)+'</td>'+
+        '<td style="text-align:right;font-family:monospace;font-size:12px;color:var(--green);font-weight:600">'+(r?r.att:0)+'</td>'+
+        '<td style="text-align:right;font-family:monospace;font-size:12px;color:var(--red);font-weight:600">'+(r?(r.total-r.att):0)+'</td>'+
+        '<td>'+(chips||'<span class="dh-muted">–</span>')+'</td>'+
+        '<td>'+barHtml(r?r.pct:null,60)+'</td>'+
+        '<td'+(a.excused?'':' style="opacity:.45"')+'>'+barHtml(a.adj,60)+'</td></tr>';
     }).join('');
-    // Clickable headers with sort
     var thead=tbody.previousElementSibling;
     if(thead) thead.querySelectorAll('th').forEach(function(th,i){
       th.style.cursor='pointer'; th.style.userSelect='none';
-      th.onclick=function(){sortTbody(tbodyId,i,i>=2);};
+      th.onclick=function(){sortTbody(tbodyId,i,i>=2&&i!==4);};
     });
   }
   renderStatTbl('stat-train-tbody','training');
@@ -8472,7 +8411,7 @@ function runSpielplanImport(matrix, input) {
         if(ort  && ex.ort!==ort){ ex.ort=ort; ch=true; }
         if(res  && ex.resultat!==res){ ex.resultat=res; ch=true; }
         if(stat && ex.status!==stat){ ex.status=stat; ch=true; }
-        if(typ  && ex.spieltyp!==typ){ ex.spieltyp=typ; ch=true; }
+        if(typ  && ex.spieltyp!==typ && !ex.manualTyp){ ex.spieltyp=typ; ch=true; }
         if(bem  && !ex.bemerkung){ ex.bemerkung=bem; ch=true; }
         if(ex.name===oldName && oldName!==name){ ex.name=name; ch=true; }
         if(ch) updated++; else unchanged++;
@@ -9016,6 +8955,7 @@ function renderTodos() {
     var sc = todoStatusConfig(t.status || (t.done ? 'erledigt' : 'offen'));
     var ownerName = '';
     if(t.owner) { var p = players.find(function(x){return x.id==t.owner;}); if(p) ownerName = p.name.split(' ')[0]; }
+    if(!ownerName && t.ownerName) ownerName = t.ownerName+' (extern)';
     var overdue = t.due && t.due < today && (t.status||'offen') !== 'erledigt' && !t.done;
     var dueStr = '';
     if(t.due) { var parts = t.due.split('-'); dueStr = parts[2]+'.'+parts[1]+'.'+parts[0]; }
@@ -9040,14 +8980,21 @@ function renderTodos() {
   }).join('');
 }
 
+function todoOwnerChanged(){
+  var sel=document.getElementById('todo-owner'), inp=document.getElementById('todo-owner-ext');
+  if(inp) inp.style.display=(sel&&sel.value==='__ext__')?'block':'none';
+}
 function openTodoModal(id) {
   var sel = document.getElementById('todo-owner');
   if(sel) {
     var all = players.slice().sort(function(a,b){return a.name.localeCompare(b.name);});
-    sel.innerHTML = '<option value="">\u2013 Niemand \u2013</option>' + all.map(function(p){
-      return '<option value="'+p.id+'">'+p.name+(p.isStaff?' (Staff)':'')+'</option>';
-    }).join('');
+    var ext=[]; todos.forEach(function(t){ if(t.ownerName && ext.indexOf(t.ownerName)<0) ext.push(t.ownerName); }); ext.sort();
+    sel.innerHTML = '<option value="">\u2013 Niemand \u2013</option>'+
+      '<optgroup label="Spieler &amp; Staff">'+all.map(function(p){ return '<option value="'+p.id+'">'+tpEsc(p.name)+(p.isStaff?' (Staff)':'')+'</option>'; }).join('')+'</optgroup>'+
+      (ext.length?'<optgroup label="Extern">'+ext.map(function(n){ return '<option value="ext:'+tpEsc(n)+'">'+tpEsc(n)+' (extern)</option>'; }).join('')+'</optgroup>':'')+
+      '<option value="__ext__">\uff0b Externe Person \u2026</option>';
   }
+  var extInp=document.getElementById('todo-owner-ext'); if(extInp) extInp.value='';
   var titleEl = document.getElementById('todo-modal-title');
   var editId = document.getElementById('todo-edit-id');
   if(id) {
@@ -9056,7 +9003,7 @@ function openTodoModal(id) {
     if(titleEl) titleEl.textContent = 'Aufgabe bearbeiten';
     if(editId) editId.value = id;
     document.getElementById('todo-text').value = t.text || '';
-    document.getElementById('todo-owner').value = t.owner || '';
+    document.getElementById('todo-owner').value = t.ownerName ? 'ext:'+t.ownerName : (t.owner || '');
     document.getElementById('todo-status').value = t.status || (t.done?'erledigt':'offen');
     document.getElementById('todo-due').value = t.due || '';
     document.getElementById('todo-prio').checked = !!t.prio;
@@ -9069,6 +9016,7 @@ function openTodoModal(id) {
     document.getElementById('todo-due').value = '';
     document.getElementById('todo-prio').checked = false;
   }
+  todoOwnerChanged();
   openModal('todo');
 }
 
@@ -9078,15 +9026,18 @@ function saveTodoModal() {
   var text = document.getElementById('todo-text').value.trim();
   if(!text) return;
   var editId = document.getElementById('todo-edit-id').value;
-  var owner = document.getElementById('todo-owner').value;
+  var ownerRaw = document.getElementById('todo-owner').value, owner = null, ownerName = null;
+  if(ownerRaw==='__ext__') ownerName = (document.getElementById('todo-owner-ext').value||'').trim() || null;
+  else if(ownerRaw.indexOf('ext:')===0) ownerName = ownerRaw.slice(4);
+  else owner = ownerRaw || null;
   var status = document.getElementById('todo-status').value;
   var due = document.getElementById('todo-due').value;
   var prio = document.getElementById('todo-prio').checked;
   if(editId) {
     var t = todos.find(function(x){return x.id==editId;});
-    if(t) { t.text=text; t.owner=owner||null; t.status=status; t.due=due||null; t.prio=prio; t.done=(status==='erledigt'); }
+    if(t) { t.text=text; t.owner=owner; t.ownerName=ownerName; t.status=status; t.due=due||null; t.prio=prio; t.done=(status==='erledigt'); }
   } else {
-    todos.push({id:nextTid++, text:text, owner:owner||null, status:status, due:due||null, prio:prio, done:(status==='erledigt')});
+    todos.push({id:nextTid++, text:text, owner:owner, ownerName:ownerName, status:status, due:due||null, prio:prio, done:(status==='erledigt')});
   }
   saveData();
   renderTodos();
