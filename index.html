@@ -154,9 +154,16 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-bar{height:4px;border-radius:2px}
 .dh-bar.tr{background:var(--green)}
 .dh-bar.sp{background:#1a1a1a}
-.dh-wx{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
-.dh-wx-row{padding:8px 0;border-top:1px solid var(--border)}
+.dh-wx{background:transparent;border:1px solid var(--border);border-radius:12px;padding:8px 12px}
+.dh-wx-row{padding:5px 0;border-top:1px solid var(--border)}
 .dh-wx-row:first-of-type{border-top:none}
+.dh-wxh{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:2px}
+.dh-wxc{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.35}
+.dh-wxc .wic{font-size:17px;line-height:1;flex-shrink:0}
+.dh-wxc .wtx{flex:1;min-width:0;color:#444}
+.dh-wxc .wtx b{color:var(--text);font-size:13px}
+.dh-wxc .wsub{color:var(--muted);font-size:11px}
+.dh-wxc .wlb{font-size:10.5px;color:var(--muted);text-align:right;flex-shrink:0}
 .dh-wx-l{font-size:11px;color:var(--muted);margin-bottom:4px}
 .dh-wx-b{display:flex;align-items:center;gap:12px}
 .dh-wx-ico{font-size:30px;line-height:1}
@@ -214,6 +221,10 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .tpx tbody td{cursor:pointer}
 .tpx tbody td:hover{filter:brightness(.95)}
 .tpx td.leer{background:#fff;cursor:default}
+#drop-ov{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,17,17,.74);pointer-events:none}
+#drop-ov>div{border:3px dashed rgba(255,255,255,.85);border-radius:20px;padding:48px 76px;text-align:center;color:#fff;display:flex;flex-direction:column;gap:8px}
+#drop-ov b{font-size:28px}
+#drop-ov span{font-size:14px;opacity:.8}
 /* ── Resultate ── */
 .res-chip{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;margin:1px 3px 1px 0}
 .res-chip i{font-style:normal;opacity:.6;font-size:9px;margin-left:3px}
@@ -493,11 +504,11 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               </div>
             </div>
             <div>
-              <div class="dh-wx" id="dh-weather"></div>
-              <div class="dh-sec" style="margin-top:1.5rem">
+              <div class="dh-sec">
                 <div class="dh-h-row"><h3 class="dh-h">To-do</h3><span id="dash-todo-count" class="dh-muted"></span><button class="btn sm" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
                 <div class="dh-card" id="dash-todos-list"></div>
               </div>
+              <div class="dh-wx" id="dh-weather"></div>
             </div>
           </div>
         </div>
@@ -730,7 +741,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     </div>
     <div class="page" id="pg-resultate">
       <div class="card">
-        <div class="card-header"><span class="card-title">Resultate &amp; Punkte</span><span class="dh-muted" id="res-sub"></span></div>
+        <div class="card-header"><span class="card-title">Resultate &amp; Punkte</span><span style="display:flex;align-items:center;gap:12px"><span class="dh-muted" id="res-sub"></span><label class="dh-btn" style="padding:5px 12px;font-size:12px;cursor:pointer" title="Datei wählen – oder einfach irgendwo auf die Seite ziehen">⬇ Spielplan einlesen<input type="file" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleSpielplanCSV(this)"></label></span></div>
         <div class="type-tabs">
           <button class="type-tab active" id="rt-meister" onclick="resSet('typ','meister')">Meisterschaft</button>
           <button class="type-tab" id="rt-test" onclick="resSet('typ','test')">Trainingsspiele</button>
@@ -4717,10 +4728,8 @@ function showSaveToast() {
   if(saveToastTimer) clearTimeout(saveToastTimer);
   saveToastTimer=setTimeout(function(){t.style.opacity='0';t.style.transform='translateY(20px)';},2000);
 }
-function sortTbody(tbodyId, colIdx, isNum) {
-  var key=tbodyId+'_'+colIdx;
-  sortState[key]=sortState[key]===1?-1:1;
-  var dir=sortState[key];
+var sortMem = {};   // gemerkte Sortierung je Tabelle: tbodyId -> {col, dir, isNum}
+function applySort(tbodyId, colIdx, dir, isNum) {
   var tbody=document.getElementById(tbodyId);
   if(!tbody) return;
   var rows=Array.from(tbody.querySelectorAll('tr'));
@@ -4736,6 +4745,29 @@ function sortTbody(tbodyId, colIdx, isNum) {
     th.textContent=th.textContent.replace(/[▲▼]/g,'').trim();
     if(i===colIdx) th.textContent+=' '+(dir>0?'▲':'▼');
   });
+}
+function sortTbody(tbodyId, colIdx, isNum) {
+  var key=tbodyId+'_'+colIdx;
+  sortState[key]=sortState[key]===1?-1:1;
+  var dir=sortState[key];
+  sortMem[tbodyId]={col:colIdx,dir:dir,isNum:isNum};
+  applySort(tbodyId,colIdx,dir,isNum);
+}
+// Nach jedem Neuaufbau (z.B. durch den automatischen Cloud-Abgleich) die gewählte Sortierung wiederherstellen
+function reapplySorts() {
+  Object.keys(sortMem).forEach(function(id){
+    var m=sortMem[id]; if(document.getElementById(id)) applySort(id,m.col,m.dir,m.isNum);
+  });
+}
+['renderStatContent','renderPlayers'].forEach(function(n){
+  var f=window[n];
+  if(typeof f==='function') window[n]=function(){ var r=f.apply(this,arguments); reapplySorts(); return r; };
+});
+// Läuft der Nutzer gerade in einer Eingabe oder ist ein Dialog offen, wird der Abgleich übersprungen
+function isUserEditing() {
+  var a=document.activeElement;
+  if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type!=='button' && a.type!=='checkbox' && a.type!=='file') return true;
+  return !!document.querySelector('.modal-bg.open, #tp-day-pop');
 }
 
 // ═══════════════════════════════════════════════
@@ -5403,18 +5435,17 @@ function dhWeatherPaint(){
   var evs=[], tr=dhNext('training'), sp=dhNext('spiel');
   if(tr) evs.push(tr); if(sp) evs.push(sp);
   var rows=evs.map(function(e){
-    var z=dhZeit(e), w=dhWxLookup(e), body;
+    var z=dhZeit(e), w=dhWxLookup(e), lb=(e.type==='spiel'?'Spiel':'Training')+' · '+dhDateShort(e.date)+(z?' · '+z:''), body;
     if(w && w.c!=null){
       var ic=dhWxInfo(w.c);
-      body='<div class="dh-wx-ico">'+ic[0]+'</div><div><div class="dh-wx-main">'+Math.round(w.t)+'°<span>'+ic[1]+'</span></div><div class="dh-wx-sub">Regen '+(w.p==null?'–':w.p+'%')+' · Wind '+(w.w==null?'–':Math.round(w.w))+' km/h</div></div>';
-    } else if(_wx.data) body='<div class="dh-wx-sub">Die Prognose gibt es erst ab 16 Tagen vor dem Termin.</div>';
-    else if(_wx.err) body='<div class="dh-wx-sub">Wetter nicht verfügbar (keine Verbindung).</div>';
-    else body='<div class="dh-wx-sub">Wetter wird geladen …</div>';
-    return '<div class="dh-wx-row"><div class="dh-wx-l">'+(e.type==='spiel'?'Spiel':'Training')+' · '+dhDateShort(e.date)+(z?' · '+z:'')+'</div><div class="dh-wx-b">'+body+'</div></div>';
+      body='<span class="wic">'+ic[0]+'</span><div class="wtx"><b>'+Math.round(w.t)+'°</b> '+ic[1]+'<div class="wsub">Regen '+(w.p==null?'–':w.p+'%')+' · Wind '+(w.w==null?'–':Math.round(w.w))+' km/h</div></div>';
+    } else if(_wx.data) body='<div class="wtx wsub">Prognose erst ab 16 Tagen vor dem Termin</div>';
+    else if(_wx.err)    body='<div class="wtx wsub">Wetter nicht verfügbar (keine Verbindung)</div>';
+    else                body='<div class="wtx wsub">Wetter wird geladen …</div>';
+    return '<div class="dh-wx-row"><div class="dh-wxc">'+body+'<span class="wlb">'+tpEsc(lb)+'</span></div></div>';
   }).join('');
-  el.innerHTML='<div class="dh-week-head"><h3 class="dh-h">Wetter</h3><span class="dh-muted">Wiesendangen</span></div>'+
-    (rows||'<div class="dh-empty">Keine kommenden Termine.</div>')+
-    '<div style="margin-top:8px;text-align:right"><a class="dh-link" href="https://www.windy.com/?rain,'+DH_LAT+','+DH_LON+',9" target="_blank" rel="noopener">Regenradar öffnen ↗</a></div>';
+  el.innerHTML='<div class="dh-wxh"><span>Wetter · Wiesendangen</span><a class="dh-link" style="font-size:11px" href="https://www.windy.com/?rain,'+DH_LAT+','+DH_LON+',9" target="_blank" rel="noopener">Radar ↗</a></div>'+
+    (rows||'<div class="dh-wxc"><div class="wtx wsub">Keine kommenden Termine.</div></div>');
 }
 function dhWeatherLoad(){
   dhWeatherPaint();
@@ -8157,14 +8188,17 @@ function handleCSVImport(input) {
     var reader=new FileReader();
     reader.onload=function(e){
       var sep=';';
-      var content=e.target.result;
+      var content;
+      try { content=new TextDecoder('utf-8',{fatal:true}).decode(e.target.result); }
+      catch(err) { content=new TextDecoder('windows-1252').decode(e.target.result); }
+      content=content.replace(/^\uFEFF/,'');
       var firstLine=content.split('\n')[0]||'';
       if((firstLine.match(/,/g)||[]).length>(firstLine.match(/;/g)||[]).length) sep=',';
       var rows=content.split('\n').filter(function(l){return l.trim();})
         .map(function(l){return l.split(sep).map(function(c){return c.trim().replace(/"/g,'').replace(/\r/g,'');});});
       processRows(rows);
     };
-    reader.readAsText(file,'latin1');
+    reader.readAsArrayBuffer(file);
   }
 }
 
@@ -8429,6 +8463,72 @@ function runSpielplanImport(matrix, input) {
     alert(added+' Spiele neu importiert, '+updated+' aktualisiert (Zeit/Ort/Resultat'+(moved?', '+moved+' verschoben':'')+'), '+unchanged+' unverändert'+(merged?', '+merged+' doppelte Spiele zusammengeführt':'')+(renamed?', bei '+renamed+' Spielen Bezeichnung/Heim-Auswärts nach dem Verband korrigiert':'')+'.');
 }
 
+// ═══════════════════════════════════════════════
+// DATEI PER DRAG & DROP EINLESEN (Spielplan oder Spielstatistik)
+// ═══════════════════════════════════════════════
+function classifyImportHeader(h){
+  h=String(h||'').toLowerCase();
+  if(/heimteam|gastteam|teamname a|spielnummer/.test(h)) return 'spielplan';
+  if(/einsatzminuten|eins(ä|ae)tze/.test(h)) return 'spielerstat';
+  return 'unbekannt';
+}
+function detectImportType(file, cb){
+  var isXl=/\.(xlsx|xls)$/i.test(file.name), r=new FileReader();
+  r.onerror=function(){ cb('unbekannt'); };
+  r.onload=function(ev){
+    try {
+      if(isXl){
+        loadXlsxLib(function(ok){
+          if(!ok){ cb('offline'); return; }
+          var wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}), ws=wb.Sheets[wb.SheetNames[0]];
+          var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+          cb(classifyImportHeader((rows[0]||[]).join(';')));
+        });
+        return;
+      }
+      var text;
+      try { text=new TextDecoder('utf-8',{fatal:true}).decode(ev.target.result); }
+      catch(e) { text=new TextDecoder('windows-1252').decode(ev.target.result); }
+      cb(classifyImportHeader(text.replace(/^\uFEFF/,'').split(/\r?\n/)[0]));
+    } catch(err) { cb('unbekannt'); }
+  };
+  r.readAsArrayBuffer(file);
+}
+function importDroppedFile(file){
+  detectImportType(file,function(t){
+    if(t==='spielplan'){
+      if(confirm('«'+file.name+'» als Spielplan einlesen?\n\nBestehende Spiele werden mit den Daten des Verbands aktualisiert.')) handleSpielplanCSV({files:[file],value:''});
+    } else if(t==='spielerstat'){
+      if(confirm('«'+file.name+'» als Spielstatistik einlesen?\n\nEinsätze, Minuten und Tore werden durch die Werte aus der Datei ersetzt.')) handleCSVImport({files:[file],value:''});
+    } else if(t==='offline'){
+      alert('Die Excel-Bibliothek konnte nicht geladen werden (Internetverbindung?). Bitte die Datei als CSV speichern.');
+    } else {
+      alert('Die Datei «'+file.name+'» wurde nicht erkannt.\n\nErwartet wird der Spielplan des Verbands (Spalten Heimteam/Gastteam) oder die Spielstatistik (Spalten Einsätze/Einsatzminuten).');
+    }
+  });
+}
+(function setupFileDrop(){
+  var ov=null, depth=0;
+  function hasFiles(e){ var t=e.dataTransfer&&e.dataTransfer.types; return !!t && Array.prototype.indexOf.call(t,'Files')>=0; }
+  function show(on){
+    if(!ov){
+      ov=document.createElement('div'); ov.id='drop-ov';
+      ov.innerHTML='<div><b>Datei hier loslassen</b><span>Spielplan (Verband) oder Spielstatistik · CSV oder Excel</span></div>';
+      document.body.appendChild(ov);
+    }
+    ov.style.display=on?'flex':'none';
+  }
+  window.addEventListener('dragenter',function(e){ if(!hasFiles(e)) return; e.preventDefault(); depth++; show(true); });
+  window.addEventListener('dragover', function(e){ if(!hasFiles(e)) return; e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(x){} });
+  window.addEventListener('dragleave',function(e){ if(!hasFiles(e)) return; depth=Math.max(0,depth-1); if(!depth) show(false); });
+  window.addEventListener('drop',     function(e){
+    if(!hasFiles(e)) return;
+    e.preventDefault(); depth=0; show(false);
+    var f=e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f) importDroppedFile(f);
+  });
+})();
+
 
 // ═══════════════════════════════════════════════
 // GOOGLE SHEETS SYNC
@@ -8576,6 +8676,7 @@ function supabaseInit() {
 
 function syncToSupabase() {
   showSyncStatus('\u2191 Speichern...', '#f59e0b');
+  var stamp = new Date();
   var payload = {
     id:   _currentSeasonId,
     data: JSON.stringify({
@@ -8583,7 +8684,7 @@ function syncToSupabase() {
       seasons: seasons, settings: settings, absenceReasons: absenceReasons,
       nextEid: nextEid, nextPid: nextPid, nextSid: nextSid, nextRid: nextRid,
       todos: todos, nextTid: nextTid, positions: positions, kpData: kpData, tpData: tpData,
-      lastModified: new Date().toISOString(),
+      lastModified: stamp.toISOString(),
       lastModifiedBy: settings.userName || settings.clubName || ''
     })
   };
@@ -8598,6 +8699,8 @@ function syncToSupabase() {
     _syncTimer = null;
     if(r.ok || r.status === 201) {
       _syncOk = true;
+      // Die eigene Speicherung ist kein «neuer Stand von aussen» – sonst baut der nächste Abgleich alles neu auf
+      _lastModifiedLocal = Math.max(_lastModifiedLocal||0, stamp.getTime());
       var t = new Date().toLocaleTimeString('de-CH', {hour:'2-digit',minute:'2-digit'});
       showSyncStatus('\u2713 Gespeichert ' + t, 'var(--green)');
     } else {
@@ -8657,7 +8760,7 @@ function loadFromSupabase(silent) {
       if(d.nextRid) nextRid = d.nextRid;
       _lastModifiedLocal = remoteTime;
       saveDataLocal();
-      if(hasNew && silent) { setUebersichtType(currentRunde()); renderAll(); }  // new data found silently
+      if(hasNew && silent) { renderAll(); }  // new data found silently (gewählte Filter bleiben bestehen)
       else if(!silent) { setUebersichtType(currentRunde()); renderAll(); updateSeasonUI(); }
     }
     var when = d.lastModified
@@ -8708,7 +8811,7 @@ function startAutoRefresh() {
   // Refresh from Supabase every 30 seconds silently
   // BUT only if no local sync is pending (don't overwrite unsaved local changes)
   _autoRefreshTimer = setInterval(function() {
-    if(SUPABASE_URL && SUPABASE_KEY && !_syncTimer) loadFromSupabase(true);
+    if(SUPABASE_URL && SUPABASE_KEY && !_syncTimer && !isUserEditing()) loadFromSupabase(true);
   }, 30000);
 }
 
