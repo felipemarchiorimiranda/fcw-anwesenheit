@@ -63,7 +63,7 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 /* ── Dashboard-Layout ── */
 .dh-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:1.5rem;align-items:start}
 .dh-main{min-width:0}
-.dh-hero{position:relative;overflow:hidden;border-radius:16px;margin-bottom:1.5rem;padding:22px 26px 18px;color:#fff;background:linear-gradient(120deg,#0e0e0f 0%,#1c1f1d 55%,#133a24 100%);background-size:cover;background-position:center;box-shadow:0 2px 12px rgba(0,0,0,.14)}
+.dh-hero{position:relative;overflow:hidden;border-radius:16px;padding:22px 26px 18px;color:#fff;background:linear-gradient(120deg,#0e0e0f 0%,#1c1f1d 55%,#133a24 100%);background-size:cover;background-position:center;box-shadow:0 2px 12px rgba(0,0,0,.14)}
 .dh-hero::after{content:'';position:absolute;right:-70px;top:-70px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(34,160,90,.38),transparent 70%);pointer-events:none}
 .dh-hero-top{display:flex;align-items:center;gap:20px;position:relative;z-index:1;flex-wrap:wrap}
 .dh-logo{width:84px;height:84px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,.45)}
@@ -73,6 +73,7 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-pill{font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;padding:1px 10px;border-radius:99px;background:rgba(34,160,90,.25);color:#7ee2a8;border:1px solid rgba(126,226,168,.35)}
 .dh-title{font-size:30px;font-weight:700;line-height:1.15;margin:0;letter-spacing:-.2px}
 .dh-actions{display:flex;gap:8px;flex-shrink:0}
+.dh-kpis .dh-actions{margin-left:auto;align-self:center}
 .dh-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:inherit}
 .dh-btn:hover{background:var(--surface)}
 .dh-hero .dh-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28);color:#fff}
@@ -154,14 +155,17 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-bar{height:4px;border-radius:2px}
 .dh-bar.tr{background:var(--green)}
 .dh-bar.sp{background:#1a1a1a}
-.dh-wx{background:transparent;border:1px solid var(--border);border-radius:12px;padding:8px 12px}
-.dh-wx-row{padding:5px 0;border-top:1px solid var(--border)}
+.dh-top{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem;align-items:stretch;margin-bottom:1.5rem}
+.dh-wx{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;min-width:0}
+.dh-wx-row{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:6px 0;border-top:1px solid var(--border)}
+.dh-wx-row .wlb2{font-size:11px;font-weight:500;color:var(--muted)}
+.dh-wx-row .dh-wxc{width:100%}
 .dh-wx-row:first-of-type{border-top:none}
-.dh-wxh{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:2px}
+.dh-wxh{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px}
 .dh-wxc{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.35}
-.dh-wxc .wic{font-size:17px;line-height:1;flex-shrink:0}
+.dh-wxc .wic{font-size:26px;line-height:1;flex-shrink:0}
 .dh-wxc .wtx{flex:1;min-width:0;color:#444}
-.dh-wxc .wtx b{color:var(--text);font-size:13px}
+.dh-wxc .wtx b{color:var(--text);font-size:18px}
 .dh-wxc .wsub{color:var(--muted);font-size:11px}
 .dh-wxc .wlb{font-size:10.5px;color:var(--muted);text-align:right;flex-shrink:0}
 .dh-wx-l{font-size:11px;color:var(--muted);margin-bottom:4px}
@@ -171,6 +175,7 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-wx-main span{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px}
 .dh-wx-sub{font-size:12px;color:var(--muted)}
 .dh-side{position:sticky;top:0;min-width:0}
+.dh-todo{position:sticky;top:0;min-width:0}
 .dh-side-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .dh-side-h .dh-h{margin:0}
 .dh-count-pill{font-size:12px;font-weight:600;padding:1px 9px;border-radius:99px;background:var(--surface);color:var(--muted)}
@@ -203,9 +208,13 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-person{display:flex;align-items:center;gap:10px;padding:5px 0 5px 4px;font-size:13.5px}
 .dh-person .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dh-badge{width:26px;height:26px;border-radius:7px;background:#5b6472;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media (max-width:1500px){.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
-@media (max-width:1180px){.dh-grid{grid-template-columns:minmax(0,1fr)}.dh-two{grid-template-columns:minmax(0,1fr)}.dh-side{position:static}}
+@media (max-width:1500px){.dh-top{grid-template-columns:minmax(0,1fr) 250px}.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
+@media (max-width:1180px){.dh-grid{grid-template-columns:minmax(0,1fr)}.dh-top{grid-template-columns:minmax(0,1fr)}.dh-two{grid-template-columns:minmax(0,1fr)}.dh-side,.dh-todo{position:static}}
 @media (max-width:900px){.dh-next{grid-template-columns:minmax(0,1fr)}.dh-title{font-size:24px}}
+.st-bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:1rem}
+.st-seg{margin:0;padding:3px}
+.st-seg button{padding:7px 18px;font-size:13px}
+#stat-top .type-tabs{margin:0;border:none;padding:0;background:none}
 /* ── Terminplanung: Raster wie im Excel ── */
 .tpx{border-collapse:collapse;width:100%;min-width:1740px;table-layout:fixed;font-family:'Arial Narrow','Barlow Condensed',Arial,sans-serif;font-size:13.5px;color:#000;background:#fff}
 .tpx th,.tpx td{border:1px solid #000;padding:0 6px;height:24px;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -493,26 +502,28 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     <div class="page" id="pg-dashboard">
       <div class="dh-grid">
         <div class="dh-main">
-          <div class="dh-hero" id="dh-hero"></div>
+          <div class="dh-top">
+            <div class="dh-hero" id="dh-hero"></div>
+            <div class="dh-wx" id="dh-weather"></div>
+          </div>
           <div class="dh-two">
             <div>
               <div class="dh-sec"><h3 class="dh-h">Nächste Einheit</h3><div id="dh-next-train"></div></div>
               <div class="dh-sec"><h3 class="dh-h">Nächstes Spiel</h3><div id="dh-next-game"></div></div>
               <div class="dh-sec">
-                <div class="dh-h-row"><h3 class="dh-h">Gelbe Karten &amp; Sperren</h3><button class="dh-link" onclick="showPage('minuten')">Karten erfassen →</button></div>
+                <div class="dh-h-row"><h3 class="dh-h">Gelbe Karten &amp; Sperren</h3><button class="dh-link" onclick="statGo('minuten')">Karten erfassen →</button></div>
                 <div id="dash-karten"></div>
               </div>
             </div>
-            <div>
-              <div class="dh-sec">
-                <div class="dh-h-row"><h3 class="dh-h">To-do</h3><span id="dash-todo-count" class="dh-muted"></span><button class="btn sm" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
-                <div class="dh-card" id="dash-todos-list"></div>
-              </div>
-              <div class="dh-wx" id="dh-weather"></div>
-            </div>
+            <aside class="dh-side" id="dh-side"></aside>
           </div>
         </div>
-        <aside class="dh-side" id="dh-side"></aside>
+        <aside class="dh-todo">
+          <div class="dh-sec">
+            <div class="dh-h-row"><h3 class="dh-h">To-do</h3><span id="dash-todo-count" class="dh-muted"></span><button class="btn sm" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
+            <div class="dh-card" id="dash-todos-list"></div>
+          </div>
+        </aside>
       </div>
     </div>
     <div class="page" id="pg-training">
@@ -707,38 +718,6 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
         <table class="tbl"><thead><tr><th>Datum</th><th>Typ</th><th>Bezeichnung</th><th>Anwesend</th><th>Quote</th><th></th></tr></thead><tbody id="events-tbody"></tbody></table>
       </div>
     </div>
-    <div class="page" id="pg-minuten">
-      <div class="card">
-        <div class="card-header"><span class="card-title">Spielstatistik</span>
-          <button class="btn" onclick="openModal('import')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            CSV aktualisieren
-          </button>
-        </div>
-        <div id="sperren-box" style="padding:0 1.1rem"></div>
-        <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
-          <colgroup>
-            <col style="min-width:140px;width:24%">
-            <col style="min-width:90px;width:12%">
-            <col style="min-width:70px;width:9%;text-align:right">
-            <col style="min-width:70px;width:9%;text-align:right">
-            <col style="min-width:50px;width:7%;text-align:right">
-            <col style="min-width:190px;width:21%">
-            <col style="min-width:110px;width:18%">
-          </colgroup>
-          <thead><tr>
-            <th>Spieler</th>
-            <th>Zone</th>
-            <th style="text-align:right">Einsätze</th>
-            <th style="text-align:right">Minuten</th>
-            <th style="text-align:right">Tore</th>
-            <th style="text-align:right">Gelbe Karten</th>
-            <th>Anteil</th>
-          </tr></thead>
-          <tbody id="minuten-tbody"></tbody>
-        </table></div>
-      </div>
-    </div>
     <div class="page" id="pg-resultate">
       <div class="card">
         <div class="card-header"><span class="card-title">Resultate &amp; Punkte</span><span style="display:flex;align-items:center;gap:12px"><span class="dh-muted" id="res-sub"></span><label class="dh-btn" style="padding:5px 12px;font-size:12px;cursor:pointer" title="Datei wählen – oder einfach irgendwo auf die Seite ziehen">⬇ Spielplan einlesen<input type="file" accept=".csv,.txt,.xlsx,.xls" style="display:none" onchange="handleSpielplanCSV(this)"></label></span></div>
@@ -768,9 +747,11 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       </div>
     </div>
     <div class="page" id="pg-statistik">
-      <div id="stat-top"></div><div class="stat-row" id="stat-kpis" style="padding:0 0 1rem"></div>
+      <div class="st-bar"><div class="dh-tabs st-seg" id="st-viewtabs"></div><div id="stat-top"></div></div>
+      <div class="stat-row" id="stat-kpis" style="padding:0 0 1rem"></div>
+      <div id="st-sperren-wrap" style="display:none"><div id="sperren-box" style="margin-bottom:1rem"></div></div>
       <div class="grid2" style="grid-template-columns:minmax(0,1fr)">
-        <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Trainings</span></div>
+        <div class="card" id="sv-train"><div class="card-header"><span class="card-title">Anwesenheit Training</span><span class="dh-muted">«Ohne Verletzung» rechnet Verletzte heraus</span></div>
           <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
             <colgroup><col style="width:21%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:30%"><col style="width:13%"><col style="width:13%"></colgroup>
             <thead><tr>
@@ -782,7 +763,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
               <th title="Quote ohne die Abwesenheiten wegen Verletzung">Ohne Verletzung</th>
             </tr></thead><tbody id="stat-train-tbody"></tbody></table></div>
         </div>
-        <div class="card"><div class="card-header"><span class="card-title">Anwesenheit Spiele</span></div>
+        <div class="card" id="sv-spiel" style="display:none"><div class="card-header"><span class="card-title">Anwesenheit Spiele</span><span class="dh-muted">«Ohne Verletzung» rechnet Verletzte heraus</span></div>
           <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
             <colgroup><col style="width:21%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:30%"><col style="width:13%"><col style="width:13%"></colgroup>
             <thead><tr>
@@ -795,13 +776,36 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
             </tr></thead><tbody id="stat-spiel-tbody"></tbody></table></div>
         </div>
       </div>
-      <div class="grid2">
+      <div class="card" id="sv-minuten" style="display:none"><div class="card-header"><span class="card-title">Spielstatistik</span><span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="dh-muted">Saisonwerte vom Verband · Datei kann auch einfach auf die Seite gezogen werden</span><button class="btn" onclick="openModal('import')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> CSV / Excel aktualisieren</button></span></div>
+        <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="min-width:140px;width:24%">
+            <col style="min-width:90px;width:12%">
+            <col style="min-width:70px;width:9%;text-align:right">
+            <col style="min-width:70px;width:9%;text-align:right">
+            <col style="min-width:50px;width:7%;text-align:right">
+            <col style="min-width:190px;width:21%">
+            <col style="min-width:110px;width:18%">
+          </colgroup>
+          <thead><tr>
+            <th>Spieler</th>
+            <th>Zone</th>
+            <th style="text-align:right">Einsätze</th>
+            <th style="text-align:right">Minuten</th>
+            <th style="text-align:right">Tore</th>
+            <th style="text-align:right">Gelbe Karten</th>
+            <th>Anteil</th>
+          </tr></thead>
+          <tbody id="minuten-tbody"></tbody>
+        </table></div>
+      </div>
+      <div class="grid2" id="sv-abs">
         <div class="card"><div class="card-header"><span class="card-title">Abwesenheitsgründe — Detail</span></div><div id="stat-absence-detail" style="padding:0.75rem 1.1rem"></div></div>
         <div class="card"><div class="card-header"><span class="card-title">Abwesenheitsgründe — Anteil</span></div><div style="padding:1rem 1.1rem"><div id="absence-donut"></div></div></div>
       </div>
 
       <!-- KADERBERICHT -->
-      <div class="card" style="margin-top:1.1rem">
+      <div class="card" id="sv-kb" style="margin-top:1.1rem">
         <div class="card-header">
           <span class="card-title">Kaderbericht — Anwesenheit pro Training</span>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -4759,7 +4763,7 @@ function reapplySorts() {
     var m=sortMem[id]; if(document.getElementById(id)) applySort(id,m.col,m.dir,m.isNum);
   });
 }
-['renderStatContent','renderPlayers'].forEach(function(n){
+['renderStatContent','renderPlayers','renderMinuten'].forEach(function(n){
   var f=window[n];
   if(typeof f==='function') window[n]=function(){ var r=f.apply(this,arguments); reapplySorts(); return r; };
 });
@@ -4780,7 +4784,6 @@ var PAGES = [
   {id:'kader',         label:'Spiele'},
   {id:'einheiten',     label:'Einheiten'},
   {id:'statistik',     label:'Statistik'},
-  {id:'minuten',       label:'Spielstatistik'},
   {id:'resultate',     label:'Resultate'},
   {id:'terminplanung', label:'Terminplanung'},
   {id:'spieler',       label:'Kader'},
@@ -5319,12 +5322,12 @@ function dhRenderHero(){
       (settings.vereinLogo?'<div class="dh-logo"><img src="'+settings.vereinLogo+'" alt=""></div>':'')+
       '<div class="dh-hero-id"><div class="dh-eyebrow"><span>'+tpEsc(settings.seasonName||'')+'</span><span class="dh-pill">'+rLabel+'</span></div>'+
         '<h1 class="dh-title">'+tpEsc((settings.clubName||'')+' '+(settings.teamName||''))+'</h1></div>'+
-      '<div class="dh-actions"><button class="dh-btn" onclick="showPage(\'einheiten\')">Einheiten</button><button class="dh-btn green" onclick="showPage(\'uebersicht\')">Zur Anwesenheit →</button></div>'+
     '</div>'+
     '<div class="dh-next">'+tile('cal','Nächste Einheit',tr,false)+tile('ball','Nächstes Spiel',sp,true)+'</div>'+
     '<div class="dh-kpis">'+kpi('Kader',pl.length)+
       kpi('Ø Training '+(curR==='vorrunde'?'VR':'RR'),avg==null?'–':avg+'%',avg==null?'':avg>=75?'#4ade80':avg>=50?'#fbbf24':'#f87171')+
-      kpi('Gesperrt',ges,ges?'#f87171':'')+kpi('Offene To-dos',open)+'</div>';
+      kpi('Gesperrt',ges,ges?'#f87171':'')+kpi('Offene To-dos',open)+
+      '<div class="dh-actions"><button class="dh-btn" onclick="showPage(\'einheiten\')">Einheiten</button><button class="dh-btn green" onclick="showPage(\'uebersicht\')">Zur Anwesenheit →</button></div></div>';
 }
 
 function dhRenderLeft(){
@@ -5442,7 +5445,7 @@ function dhWeatherPaint(){
     } else if(_wx.data) body='<div class="wtx wsub">Prognose erst ab 16 Tagen vor dem Termin</div>';
     else if(_wx.err)    body='<div class="wtx wsub">Wetter nicht verfügbar (keine Verbindung)</div>';
     else                body='<div class="wtx wsub">Wetter wird geladen …</div>';
-    return '<div class="dh-wx-row"><div class="dh-wxc">'+body+'<span class="wlb">'+tpEsc(lb)+'</span></div></div>';
+    return '<div class="dh-wx-row"><div class="wlb2">'+tpEsc(lb)+'</div><div class="dh-wxc">'+body+'</div></div>';
   }).join('');
   el.innerHTML='<div class="dh-wxh"><span>Wetter · Wiesendangen</span><a class="dh-link" style="font-size:11px" href="https://www.windy.com/?rain,'+DH_LAT+','+DH_LON+',9" target="_blank" rel="noopener">Radar ↗</a></div>'+
     (rows||'<div class="dh-wxc"><div class="wtx wsub">Keine kommenden Termine.</div></div>');
@@ -6339,18 +6342,33 @@ function playerAbsence(pid,type,runde){
 }
 function renderStatContent() {
   var runde=statRunde==='total'?null:statRunde;
-  var pt=pastEvtsFiltered('training',runde), ps=pastEvtsFiltered('spiel',runde), pc=pastEvtsFiltered(null,runde);
   var pl=players.filter(function(x){return !x.isStaff;});
-  var sumPct=0,cnt=0;
-  pl.forEach(function(p){var r=playerRate(p.id,null,runde);if(r){sumPct+=r.pct;cnt++;}});
-  var avg=cnt?Math.round(sumPct/cnt):null;
   var kEl=document.getElementById('stat-kpis');
-  if(kEl) kEl.innerHTML=
-    '<div class="stat-card acc"><div class="stat-label">Ø Anwesenheit </div><div class="stat-value" style="color:'+(avg!=null?(avg>=75?'var(--green)':avg>=50?'var(--amber)':'var(--red)'):'var(--muted)')+'">'+( avg!=null?avg+'%':'—')+'</div><div class="stat-sub">'+(runde||'Gesamt')+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Spieler</div><div class="stat-value">'+pl.length+'</div><div class="stat-sub">im Kader</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Trainings</div><div class="stat-value">'+pt.length+'</div><div class="stat-sub">absolviert</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">'+ps.length+'</div><div class="stat-sub">absolviert</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">'+pc.length+'</div><div class="stat-sub">Einheiten</div></div>';
+  var card=function(l,v,sub,col,acc){ return '<div class="stat-card'+(acc?' acc':'')+'"><div class="stat-label">'+l+'</div><div class="stat-value"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div><div class="stat-sub">'+sub+'</div></div>'; };
+  var colP=function(v){ return v==null?'var(--muted)':v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)'; };
+  if(kEl){
+    if(_statView==='minuten'){
+      var einsatz=pl.filter(function(p){return (p.einsaetze||0)>0;}).length;
+      var tore=pl.reduce(function(sm,p){return sm+(p.tore||0);},0), min=pl.reduce(function(sm,p){return sm+(p.minuten||0);},0);
+      var gelb=pl.reduce(function(sm,p){return sm+(p.gelb||0);},0);
+      var ges=pl.filter(isGesperrt).length, warn=pl.filter(function(p){return (p.gelb||0)===3;}).length;
+      kEl.innerHTML=card('Spieler im Einsatz',einsatz,'von '+pl.length+' im Kader',null,true)+card('Tore',tore,'alle Spieler','var(--green)')+card('Minuten',min,'alle Spieler')+
+        card('Gesperrt',ges,warn+' mit 3 Gelben',ges?'var(--red)':null)+card('Gelbe Karten',gelb,'aktueller Stand');
+    } else {
+      var type=_statView==='spiel'?'spiel':'training', evs=pastEvtsFiltered(type,runde);
+      var sP=0,nP=0,sA=0,nA=0,absT=0,exT=0;
+      pl.forEach(function(p){
+        var r=playerRate(p.id,type,runde); if(r){ sP+=r.pct; nP++; }
+        var a=playerAbsence(p.id,type,runde); if(a.adj!=null){ sA+=a.adj; nA++; } absT+=a.abs; exT+=a.excused;
+      });
+      var avg=nP?Math.round(sP/nP):null, avgAdj=nA?Math.round(sA/nA):null;
+      kEl.innerHTML=card('Ø Anwesenheit',avg==null?'—':avg+'%',type==='spiel'?'bei Spielen':'bei Trainings',colP(avg),true)+
+        card(type==='spiel'?'Spiele':'Trainings',evs.length,'absolviert')+
+        card('Ø ohne Verletzung',avgAdj==null?'—':avgAdj+'%','Verletzte herausgerechnet',colP(avgAdj))+
+        card('Abwesenheiten',absT,'davon '+exT+' wegen Verletzung')+
+        card('Spieler',pl.length,'im Kader');
+    }
+  }
 
   function renderStatTbl(tbodyId, type) {
     var tbody=document.getElementById(tbodyId);
@@ -6373,7 +6391,7 @@ function renderStatContent() {
         '<td style="text-align:right;font-family:monospace;font-size:12px;color:var(--red);font-weight:600">'+(r?(r.total-r.att):0)+'</td>'+
         '<td>'+(chips||'<span class="dh-muted">–</span>')+'</td>'+
         '<td>'+barHtml(r?r.pct:null,60)+'</td>'+
-        '<td'+(a.excused?'':' style="opacity:.45"')+'>'+barHtml(a.adj,60)+'</td></tr>';
+        '<td>'+(a.adj==null?'<span class="dh-muted">–</span>':'<span style="font-family:monospace;font-size:13px;font-weight:700;color:'+(a.adj>=75?'var(--green)':a.adj>=50?'var(--amber)':'var(--red)')+'">'+a.adj+'%</span>')+'</td></tr>';
     }).join('');
     var thead=tbody.previousElementSibling;
     if(thead) thead.querySelectorAll('th').forEach(function(th,i){
@@ -8165,6 +8183,7 @@ function handleCSVImport(input) {
       (zeroed.length?'<br><span style="color:var(--muted)">Nicht in der Datei (Werte auf 0): '+zeroed.map(tpEsc).join(', ')+'</span>':'');
     if(updated+added===0 && prev) prev.innerHTML='<span style="color:var(--red)">Keine Spieler erkannt – bitte Spaltennamen prüfen (Vorname, Name, Einsätze, Einsatzminuten, Tore).</span>';
     saveData(); renderAll();
+    if(input && input.notify) alert(updated+added===0 ? 'Keine Spieler erkannt – bitte Spaltennamen prüfen (Vorname, Name, Einsätze, Einsatzminuten, Tore).' : 'Spielstatistik aktualisiert: '+updated+' Spieler aktualisiert, '+added+' neu'+(zeroed.length?', '+zeroed.length+' nicht in der Datei (auf 0 gesetzt)':'')+'.');
   }
 
   if(isExcel) {
@@ -8499,7 +8518,7 @@ function importDroppedFile(file){
     if(t==='spielplan'){
       if(confirm('«'+file.name+'» als Spielplan einlesen?\n\nBestehende Spiele werden mit den Daten des Verbands aktualisiert.')) handleSpielplanCSV({files:[file],value:''});
     } else if(t==='spielerstat'){
-      if(confirm('«'+file.name+'» als Spielstatistik einlesen?\n\nEinsätze, Minuten und Tore werden durch die Werte aus der Datei ersetzt.')) handleCSVImport({files:[file],value:''});
+      if(confirm('«'+file.name+'» als Spielstatistik einlesen?\n\nEinsätze, Minuten und Tore werden durch die Werte aus der Datei ersetzt.')) handleCSVImport({files:[file],value:'',notify:true});
     } else if(t==='offline'){
       alert('Die Excel-Bibliothek konnte nicht geladen werden (Internetverbindung?). Bitte die Datei als CSV speichern.');
     } else {
@@ -8926,7 +8945,7 @@ function sperreMark(p,eid){
   return '';
 }
 function sperrenRefresh(){
-  renderMinuten(); renderSperrenBox(); renderDashboard(); renderTraining(); renderKader(); mobInit();
+  renderMinuten(); renderStatistik(); renderSperrenBox(); renderDashboard(); renderTraining(); renderKader(); mobInit();
 }
 function setGelb(pid,delta){
   var p=players.find(function(x){return x.id===pid;}); if(!p) return;
@@ -8986,6 +9005,12 @@ function renderMinuten() {
       '<div class="min-bar"><div class="min-fill" style="width:'+pct+'%"></div></div>'+
       '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'+pct+'%</span></div></td></tr>';
   }).join('');
+  var thead=tbody.previousElementSibling;
+  if(thead) thead.querySelectorAll('th').forEach(function(th,i){
+    if(i===5) return;
+    th.style.cursor='pointer'; th.style.userSelect='none';
+    th.onclick=function(){ sortTbody('minuten-tbody',i,i>=2); };
+  });
 }
 
 function sortKaderZone(thEl, colIdx, isNum) {
@@ -9311,7 +9336,20 @@ function exportKaderberichtCSV() {
   a.click(); URL.revokeObjectURL(url);
 }
 
+var _statView = 'train';
+function statSetView(v){ _statView=v; renderStatistik(); }
+function statGo(v){ _statView=v; showPage('statistik'); }
+function statApplyView(){
+  var v=_statView, show=function(id,on){ var el=document.getElementById(id); if(el) el.style.display=on?'':'none'; };
+  show('sv-train',v==='train'); show('sv-spiel',v==='spiel'); show('sv-minuten',v==='minuten');
+  show('sv-abs',v!=='minuten'); show('sv-kb',v==='train');
+  show('st-sperren-wrap',v!=='train'); show('stat-top',v!=='minuten');
+}
 function renderStatistik() {
+  var vt=document.getElementById('st-viewtabs');
+  if(vt) vt.innerHTML=[['train','Training'],['spiel','Spiele'],['minuten','Spielstatistik']].map(function(x){
+    return '<button class="'+(_statView===x[0]?'on':'')+'" onclick="statSetView(\''+x[0]+'\')">'+x[1]+'</button>';
+  }).join('');
   var topEl=document.getElementById('stat-top');
   if(topEl) {
     topEl.innerHTML='<div class="type-tabs">'+
@@ -9324,6 +9362,7 @@ function renderStatistik() {
   }
   renderStatContent();
   renderKaderbericht();
+  statApplyView();
 }
 
 function setStatRunde(r) {
