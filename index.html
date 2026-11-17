@@ -91,7 +91,7 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-kpis{display:flex;gap:30px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);flex-wrap:wrap;position:relative;z-index:1}
 .dh-kpi .v{display:block;font-size:24px;font-weight:700;line-height:1.1}
 .dh-kpi .l{font-size:11px;color:rgba(255,255,255,.62)}
-.dh-two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:1.5rem;align-items:start}
+.dh-two{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:1.5rem;align-items:start}
 .dh-sec{margin-bottom:1.5rem}
 .dh-h{font-size:17px;font-weight:600;margin:0 0 10px}
 .dh-h-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -155,7 +155,7 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-bar{height:4px;border-radius:2px}
 .dh-bar.tr{background:var(--green)}
 .dh-bar.sp{background:#1a1a1a}
-.dh-top{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem;align-items:stretch;margin-bottom:1.5rem}
+.dh-main>.dh-hero{margin-bottom:1.5rem}
 .dh-wx{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;min-width:0}
 .dh-wx-row{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:6px 0;border-top:1px solid var(--border)}
 .dh-wx-row .wlb2{font-size:11px;font-weight:500;color:var(--muted)}
@@ -175,7 +175,33 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-wx-main span{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px}
 .dh-wx-sub{font-size:12px;color:var(--muted)}
 .dh-side{position:sticky;top:0;min-width:0}
-.dh-todo{position:sticky;top:0;min-width:0}
+.dh-wxcol{position:sticky;top:0;min-width:0}
+.dh-col2{min-width:0}
+.dh-col2 .dh-side{position:static}
+.dh-col2 .dh-todo2{margin-top:1.5rem;margin-bottom:0}
+.td-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.td-head .dh-h{font-size:20px;margin:0}
+.td-pill{font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#1a1a1a;color:#fff}
+.td-pill.red{background:#fee2e2;color:#b91c1c}
+.td-card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.td-row{display:flex;align-items:flex-start;gap:13px;padding:14px 16px;border-bottom:1px solid var(--border);border-left:4px solid transparent}
+.td-row:last-child{border-bottom:none}
+.td-row.over{background:#fff7f7;border-left-color:#dc2626}
+.td-row.prio{border-left-color:#f59e0b}
+.td-row.done{opacity:.55}
+.td-chk{width:24px;height:24px;border-radius:50%;border:2px solid #c4c4be;background:#fff;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;color:transparent;padding:0}
+.td-chk:hover{border-color:var(--green);color:var(--green)}
+.td-row.done .td-chk{background:var(--green);border-color:var(--green);color:#fff}
+.td-body{flex:1;min-width:0}
+.td-title{font-size:15px;font-weight:600;line-height:1.35}
+.td-row.done .td-title{text-decoration:line-through;font-weight:500;color:var(--muted)}
+.td-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:12.5px;color:var(--muted)}
+.td-st{font-size:11px;padding:2px 9px;border-radius:99px;font-weight:600}
+.td-prio{font-size:10px;background:#fee2e2;color:#dc2626;border-radius:5px;padding:2px 6px;font-weight:700;margin-right:6px;vertical-align:1px}
+.td-act{display:flex;gap:2px;flex-shrink:0}
+.td-act button{border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;padding:3px 7px;border-radius:6px;line-height:1}
+.td-act button:hover{background:var(--surface);color:var(--text)}
+.td-empty{padding:22px 16px;text-align:center;font-size:14px;color:var(--muted)}
 .dh-side-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .dh-side-h .dh-h{margin:0}
 .dh-count-pill{font-size:12px;font-weight:600;padding:1px 9px;border-radius:99px;background:var(--surface);color:var(--muted)}
@@ -208,8 +234,8 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 .dh-person{display:flex;align-items:center;gap:10px;padding:5px 0 5px 4px;font-size:13.5px}
 .dh-person .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dh-badge{width:26px;height:26px;border-radius:7px;background:#5b6472;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media (max-width:1500px){.dh-top{grid-template-columns:minmax(0,1fr) 250px}.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
-@media (max-width:1180px){.dh-grid{grid-template-columns:minmax(0,1fr)}.dh-top{grid-template-columns:minmax(0,1fr)}.dh-two{grid-template-columns:minmax(0,1fr)}.dh-side,.dh-todo{position:static}}
+@media (max-width:1500px){.dh-grid{grid-template-columns:minmax(0,1fr) 290px;gap:1.25rem}.dh-two{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.25rem}.dh-zone{padding:9px 10px}}
+@media (max-width:1180px){.dh-grid{grid-template-columns:minmax(0,1fr)}.dh-two{grid-template-columns:minmax(0,1fr)}.dh-side,.dh-wxcol{position:static}}
 @media (max-width:900px){.dh-next{grid-template-columns:minmax(0,1fr)}.dh-title{font-size:24px}}
 .st-bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:1rem}
 .st-seg{margin:0;padding:3px}
@@ -502,10 +528,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     <div class="page" id="pg-dashboard">
       <div class="dh-grid">
         <div class="dh-main">
-          <div class="dh-top">
-            <div class="dh-hero" id="dh-hero"></div>
-            <div class="dh-wx" id="dh-weather"></div>
-          </div>
+          <div class="dh-hero" id="dh-hero"></div>
           <div class="dh-two">
             <div>
               <div class="dh-sec"><h3 class="dh-h">Nächste Einheit</h3><div id="dh-next-train"></div></div>
@@ -515,15 +538,16 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
                 <div id="dash-karten"></div>
               </div>
             </div>
-            <aside class="dh-side" id="dh-side"></aside>
+            <div class="dh-col2">
+              <aside class="dh-side" id="dh-side"></aside>
+              <div class="dh-sec dh-todo2">
+                <div class="td-head"><h3 class="dh-h">To-do</h3><span id="dash-todo-count"></span><button class="btn pri" style="margin-left:auto" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
+                <div class="td-card" id="dash-todos-list"></div>
+              </div>
+            </div>
           </div>
         </div>
-        <aside class="dh-todo">
-          <div class="dh-sec">
-            <div class="dh-h-row"><h3 class="dh-h">To-do</h3><span id="dash-todo-count" class="dh-muted"></span><button class="btn sm" onclick="openTodoModal()">+ Neue Aufgabe</button></div>
-            <div class="dh-card" id="dash-todos-list"></div>
-          </div>
-        </aside>
+        <aside class="dh-wxcol"><div class="dh-wx" id="dh-weather"></div></aside>
       </div>
     </div>
     <div class="page" id="pg-training">
@@ -9241,48 +9265,46 @@ function renderTodos() {
   var el = document.getElementById('dash-todos-list');
   if(!el) return;
   var count = document.getElementById('dash-todo-count');
-  var open = todos.filter(function(t){return (t.status||'offen') !== 'erledigt' && !t.done;}).length;
-  if(count) count.textContent = open ? open + ' offen' : '';
+  var todayIso = today();
+  var isOpenT = function(t){ return (t.status||'offen') !== 'erledigt' && !t.done; };
+  var open = todos.filter(isOpenT).length;
+  var over = todos.filter(function(t){ return isOpenT(t) && t.due && t.due < todayIso; }).length;
+  if(count) count.innerHTML = (open?'<span class="td-pill">'+open+' offen</span>':'')+(over?' <span class="td-pill red">'+over+' überfällig</span>':'');
   if(!todos.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:12px;text-align:center">Keine Aufgaben \u2013 gut gemacht! \u2705</div>';
+    el.innerHTML = '<div class="td-empty">Keine Aufgaben \u2013 gut gemacht! \u2705</div>';
+    if(typeof dhRenderHero==='function') dhRenderHero();
     return;
   }
   var sorted = todos.slice().sort(function(a,b) {
-    var aD = (a.status||'offen')==='erledigt'?1:0;
-    var bD = (b.status||'offen')==='erledigt'?1:0;
+    var aD = isOpenT(a)?0:1, bD = isOpenT(b)?0:1;
     if(aD !== bD) return aD - bD;
     if(a.due && b.due) return a.due.localeCompare(b.due);
     if(a.due) return -1; if(b.due) return 1;
     return 0;
   });
-  var today = new Date().toISOString().slice(0,10);
   el.innerHTML = sorted.map(function(t) {
+    var isDone = !isOpenT(t);
     var sc = todoStatusConfig(t.status || (t.done ? 'erledigt' : 'offen'));
     var ownerName = '';
     if(t.owner) { var p = players.find(function(x){return x.id==t.owner;}); if(p) ownerName = p.name.split(' ')[0]; }
     if(!ownerName && t.ownerName) ownerName = t.ownerName+' (extern)';
-    var overdue = t.due && t.due < today && (t.status||'offen') !== 'erledigt' && !t.done;
+    var overdue = !isDone && t.due && t.due < todayIso;
     var dueStr = '';
     if(t.due) { var parts = t.due.split('-'); dueStr = parts[2]+'.'+parts[1]+'.'+parts[0]; }
-    var isDone = (t.status === 'erledigt') || t.done;
-    return '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border)'+(overdue?';background:#fff7f7':'')+(isDone?';opacity:0.55':'')+'">' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
-          (t.prio?'<span style="font-size:9px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;font-weight:700">PRIO</span>':'') +
-          '<span style="font-size:13px;'+(isDone?'text-decoration:line-through;color:var(--muted)':'font-weight:500')+'">'+t.text+'</span>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-          '<span style="font-size:10px;padding:1px 7px;border-radius:99px;font-weight:600;background:'+sc.bg+';color:'+sc.color+'">'+sc.label+'</span>' +
-          (ownerName?'<span style="font-size:11px;color:var(--muted)">\ud83d\udc64 '+ownerName+'</span>':'') +
-          (dueStr?'<span style="font-size:11px;color:'+(overdue?'var(--red)':'var(--muted)')+'">\ud83d\udcc5 '+dueStr+(overdue?' \u26a0\ufe0f':'')+'</span>':'') +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:4px;flex-shrink:0">' +
-        '<button onclick="editTodo('+t.id+')" style="color:var(--muted);font-size:12px;border:none;background:none;cursor:pointer;padding:2px 4px" title="Bearbeiten">&#9998;</button>' +
-        '<button onclick="deleteTodo('+t.id+')" style="color:var(--muted);font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;line-height:1">&#215;</button>' +
-      '</div>' +
+    return '<div class="td-row'+(isDone?' done':'')+(overdue?' over':(t.prio&&!isDone?' prio':''))+'">'+
+      '<button class="td-chk" onclick="toggleTodo('+t.id+')" title="'+(isDone?'Wieder öffnen':'Als erledigt markieren')+'">✓</button>'+
+      '<div class="td-body">'+
+        '<div class="td-title">'+(t.prio?'<span class="td-prio">PRIO</span>':'')+tpEsc(t.text)+'</div>'+
+        '<div class="td-meta">'+
+          '<span class="td-st" style="background:'+sc.bg+';color:'+sc.color+'">'+sc.label+'</span>'+
+          (ownerName?'<span>\ud83d\udc64 '+tpEsc(ownerName)+'</span>':'')+
+          (dueStr?'<span style="color:'+(overdue?'var(--red)':'inherit')+';font-weight:'+(overdue?'700':'400')+'">\ud83d\udcc5 '+dueStr+(overdue?' \u00b7 überfällig':'')+'</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div class="td-act"><button onclick="editTodo('+t.id+')" title="Bearbeiten">&#9998;</button><button onclick="deleteTodo('+t.id+')" title="Löschen">&#215;</button></div>'+
     '</div>';
   }).join('');
+  if(typeof dhRenderHero==='function') dhRenderHero();
 }
 
 function todoOwnerChanged(){
@@ -9351,10 +9373,12 @@ function saveTodoModal() {
 
 function toggleTodo(id) {
   var t = todos.find(function(x){return x.id===id;});
-  if(t) { t.done = !t.done; t.status = t.done?'erledigt':'offen'; saveData(); renderTodos(); }
+  if(t) { var wasDone=(t.status==='erledigt')||!!t.done; t.done=!wasDone; t.status=t.done?'erledigt':'offen'; saveData(); renderTodos(); }
 }
 
 function deleteTodo(id) {
+  var t=todos.find(function(x){return x.id===id;});
+  if(t && !confirm('Aufgabe «'+t.text+'» löschen?')) return;
   todos = todos.filter(function(x){return x.id!==id;});
   saveData(); renderTodos();
 }
