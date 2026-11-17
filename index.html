@@ -337,6 +337,18 @@ body{font-family:'Barlow',sans-serif;background:var(--surface);color:var(--text)
 }
 
 /* ── MOBILE ABSENZ APP ─────────────────────────── */
+.td-more{padding:13px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;border-top:1px solid var(--border)}
+.td-more:hover{background:var(--surface)}
+@media(max-width:900px){
+  .modal{max-height:92vh;overflow-y:auto}
+  #modal-todo .inp{font-size:16px;height:46px}
+  #modal-todo .td-grid2{grid-template-columns:1fr!important}
+  #mob-app .td-row{padding:14px 12px;gap:12px}
+  #mob-app .td-chk{width:30px;height:30px;font-size:15px}
+  #mob-app .td-title{font-size:16px}
+  #mob-app .td-meta{font-size:13px}
+  #mob-app .td-act button{width:40px;height:40px;font-size:18px}
+}
 #mob-app{display:none;flex-direction:column;min-height:100vh;background:#f4f4f4}
 @media(max-width:900px){
   #mob-app{display:flex}
@@ -426,6 +438,20 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     </div>
 
     <div id="mob-sperren"></div>
+
+    <!-- To-do -->
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem">
+        <div class="mob-section-title" style="margin-bottom:0">To-do</div>
+        <span id="mob-todo-count"></span>
+        <button onclick="openTodoModal()" style="margin-left:auto;border:1.5px solid rgba(0,0,0,0.12);background:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer">Mit Details …</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="mob-todo-input" class="mob-select" style="flex:1;min-width:0;background-image:none" placeholder="Neue Aufgabe eintippen …" enterkeyhint="done" onkeydown="if(event.key==='Enter')mobAddTodo()">
+        <button class="mob-btn mob-btn-save" style="width:64px;height:52px;font-size:26px;flex-shrink:0" onclick="mobAddTodo()" aria-label="Aufgabe hinzufügen">+</button>
+      </div>
+      <div class="td-card" id="mob-todos-list"></div>
+    </div>
 
     <!-- Trainings Anwesenheitsübersicht -->
     <div>
@@ -993,7 +1019,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
     <div class="modal-body">
       <input type="hidden" id="todo-edit-id">
       <div class="field"><label>Aufgabe</label><input type="text" id="todo-text" class="inp" style="width:100%" placeholder="Was muss erledigt werden?"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="td-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div class="field"><label>Verantwortlich</label>
           <select id="todo-owner" class="inp" style="width:100%" onchange="todoOwnerChanged()">
             <option value="">– Niemand –</option>
@@ -1008,7 +1034,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
           </select>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="td-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div class="field"><label>Fällig bis</label><input type="date" id="todo-due" class="inp" style="width:100%"></div>
         <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="todo-prio"> <span>Priorität</span></label>
@@ -9261,20 +9287,43 @@ function todoStatusConfig(status) {
   return {label:'Offen', bg:'#f3f4f6', color:'#374151'};
 }
 
+var _mobShowDone = false;
+function mobToggleDone(){ _mobShowDone=!_mobShowDone; renderTodos(); }
+function mobAddTodo(){
+  var inp=document.getElementById('mob-todo-input'); if(!inp) return;
+  var txt=(inp.value||'').trim(); if(!txt) return;
+  todos.push({id:nextTid++, text:txt, owner:null, ownerName:null, status:'offen', due:null, prio:false, done:false});
+  inp.value='';
+  saveData(); showSaveToast(); renderTodos();
+}
+function todoRowHtml(t, todayIso){
+  var isDone = !((t.status||'offen') !== 'erledigt' && !t.done);
+  var sc = todoStatusConfig(t.status || (t.done ? 'erledigt' : 'offen'));
+  var ownerName = '';
+  if(t.owner) { var p = players.find(function(x){return x.id==t.owner;}); if(p) ownerName = p.name.split(' ')[0]; }
+  if(!ownerName && t.ownerName) ownerName = t.ownerName+' (extern)';
+  var overdue = !isDone && t.due && t.due < todayIso;
+  var dueStr = '';
+  if(t.due) { var parts = t.due.split('-'); dueStr = parts[2]+'.'+parts[1]+'.'+parts[0]; }
+  return '<div class="td-row'+(isDone?' done':'')+(overdue?' over':(t.prio&&!isDone?' prio':''))+'">'+
+    '<button class="td-chk" onclick="toggleTodo('+t.id+')" title="'+(isDone?'Wieder öffnen':'Als erledigt markieren')+'">✓</button>'+
+    '<div class="td-body">'+
+      '<div class="td-title">'+(t.prio?'<span class="td-prio">PRIO</span>':'')+tpEsc(t.text)+'</div>'+
+      '<div class="td-meta">'+
+        '<span class="td-st" style="background:'+sc.bg+';color:'+sc.color+'">'+sc.label+'</span>'+
+        (ownerName?'<span>\ud83d\udc64 '+tpEsc(ownerName)+'</span>':'')+
+        (dueStr?'<span style="color:'+(overdue?'var(--red)':'inherit')+';font-weight:'+(overdue?'700':'400')+'">\ud83d\udcc5 '+dueStr+(overdue?' \u00b7 überfällig':'')+'</span>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="td-act"><button onclick="editTodo('+t.id+')" title="Bearbeiten">&#9998;</button><button onclick="deleteTodo('+t.id+')" title="Löschen">&#215;</button></div>'+
+  '</div>';
+}
 function renderTodos() {
-  var el = document.getElementById('dash-todos-list');
-  if(!el) return;
-  var count = document.getElementById('dash-todo-count');
   var todayIso = today();
   var isOpenT = function(t){ return (t.status||'offen') !== 'erledigt' && !t.done; };
   var open = todos.filter(isOpenT).length;
   var over = todos.filter(function(t){ return isOpenT(t) && t.due && t.due < todayIso; }).length;
-  if(count) count.innerHTML = (open?'<span class="td-pill">'+open+' offen</span>':'')+(over?' <span class="td-pill red">'+over+' überfällig</span>':'');
-  if(!todos.length) {
-    el.innerHTML = '<div class="td-empty">Keine Aufgaben \u2013 gut gemacht! \u2705</div>';
-    if(typeof dhRenderHero==='function') dhRenderHero();
-    return;
-  }
+  var pills = (open?'<span class="td-pill">'+open+' offen</span>':'')+(over?' <span class="td-pill red">'+over+' überfällig</span>':'');
   var sorted = todos.slice().sort(function(a,b) {
     var aD = isOpenT(a)?0:1, bD = isOpenT(b)?0:1;
     if(aD !== bD) return aD - bD;
@@ -9282,28 +9331,19 @@ function renderTodos() {
     if(a.due) return -1; if(b.due) return 1;
     return 0;
   });
-  el.innerHTML = sorted.map(function(t) {
-    var isDone = !isOpenT(t);
-    var sc = todoStatusConfig(t.status || (t.done ? 'erledigt' : 'offen'));
-    var ownerName = '';
-    if(t.owner) { var p = players.find(function(x){return x.id==t.owner;}); if(p) ownerName = p.name.split(' ')[0]; }
-    if(!ownerName && t.ownerName) ownerName = t.ownerName+' (extern)';
-    var overdue = !isDone && t.due && t.due < todayIso;
-    var dueStr = '';
-    if(t.due) { var parts = t.due.split('-'); dueStr = parts[2]+'.'+parts[1]+'.'+parts[0]; }
-    return '<div class="td-row'+(isDone?' done':'')+(overdue?' over':(t.prio&&!isDone?' prio':''))+'">'+
-      '<button class="td-chk" onclick="toggleTodo('+t.id+')" title="'+(isDone?'Wieder öffnen':'Als erledigt markieren')+'">✓</button>'+
-      '<div class="td-body">'+
-        '<div class="td-title">'+(t.prio?'<span class="td-prio">PRIO</span>':'')+tpEsc(t.text)+'</div>'+
-        '<div class="td-meta">'+
-          '<span class="td-st" style="background:'+sc.bg+';color:'+sc.color+'">'+sc.label+'</span>'+
-          (ownerName?'<span>\ud83d\udc64 '+tpEsc(ownerName)+'</span>':'')+
-          (dueStr?'<span style="color:'+(overdue?'var(--red)':'inherit')+';font-weight:'+(overdue?'700':'400')+'">\ud83d\udcc5 '+dueStr+(overdue?' \u00b7 überfällig':'')+'</span>':'')+
-        '</div>'+
-      '</div>'+
-      '<div class="td-act"><button onclick="editTodo('+t.id+')" title="Bearbeiten">&#9998;</button><button onclick="deleteTodo('+t.id+')" title="Löschen">&#215;</button></div>'+
-    '</div>';
-  }).join('');
+  var doneN = sorted.filter(function(t){return !isOpenT(t);}).length;
+  // Dashboard (alle Aufgaben) und Handy (offene, Erledigte auf Wunsch)
+  [['dash-todos-list','dash-todo-count',false],['mob-todos-list','mob-todo-count',true]].forEach(function(cfg){
+    var el = document.getElementById(cfg[0]); if(!el) return;
+    var cnt = document.getElementById(cfg[1]); if(cnt) cnt.innerHTML = pills;
+    var list = (cfg[2] && !_mobShowDone) ? sorted.filter(isOpenT) : sorted;
+    var html;
+    if(!todos.length) html = '<div class="td-empty">Keine Aufgaben \u2013 gut gemacht! \u2705</div>';
+    else if(!list.length) html = '<div class="td-empty">Keine offenen Aufgaben \u2705</div>';
+    else html = list.map(function(t){ return todoRowHtml(t, todayIso); }).join('');
+    if(cfg[2] && doneN) html += '<div class="td-more" onclick="mobToggleDone()">'+(_mobShowDone?'Erledigte ausblenden':'Erledigte anzeigen ('+doneN+')')+'</div>';
+    el.innerHTML = html;
+  });
   if(typeof dhRenderHero==='function') dhRenderHero();
 }
 
