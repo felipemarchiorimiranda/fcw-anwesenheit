@@ -779,13 +779,14 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
       <div class="card" id="sv-minuten" style="display:none"><div class="card-header"><span class="card-title">Spielstatistik</span><span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="dh-muted">Saisonwerte vom Verband · Datei kann auch einfach auf die Seite gezogen werden</span><button class="btn" onclick="openModal('import')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> CSV / Excel aktualisieren</button></span></div>
         <div style="overflow-x:auto"><table class="tbl" style="table-layout:fixed;width:100%">
           <colgroup>
-            <col style="min-width:140px;width:24%">
-            <col style="min-width:90px;width:12%">
-            <col style="min-width:70px;width:9%;text-align:right">
-            <col style="min-width:70px;width:9%;text-align:right">
-            <col style="min-width:50px;width:7%;text-align:right">
-            <col style="min-width:190px;width:21%">
-            <col style="min-width:110px;width:18%">
+            <col style="min-width:140px;width:20%">
+            <col style="min-width:90px;width:10%">
+            <col style="min-width:60px;width:7%">
+            <col style="min-width:70px;width:8%">
+            <col style="min-width:50px;width:6%">
+            <col style="min-width:120px;width:13%">
+            <col style="min-width:190px;width:20%">
+            <col style="min-width:110px;width:16%">
           </colgroup>
           <thead><tr>
             <th>Spieler</th>
@@ -793,6 +794,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
             <th style="text-align:right">Einsätze</th>
             <th style="text-align:right">Minuten</th>
             <th style="text-align:right">Tore</th>
+            <th style="text-align:right" title="Assists pflegst du von Hand – der Verband führt sie nicht nach">Assists</th>
             <th style="text-align:right">Gelbe Karten</th>
             <th>Anteil</th>
           </tr></thead>
@@ -1031,7 +1033,7 @@ body, .tbl td, .tbl th, .btn, .inp, select, input, .modal-body {
   <div class="modal">
     <div class="modal-header"><span class="modal-title">CSV importieren</span><button class="btn" onclick="closeModal('import')" style="border:none;font-size:17px;padding:2px 6px">x</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Importiere eine CSV- oder Excel-Datei vom FVRZ. Spielminuten, Einsätze, Tore und Assists werden automatisch aktualisiert.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Importiere eine CSV- oder Excel-Datei vom FVRZ. Einsätze, Spielminuten und Tore werden automatisch aktualisiert. Assists und Gelbe Karten pflegst du von Hand (Statistik → Spielstatistik).</p>
       <div class="import-drop" onclick="document.getElementById('csv-file').click()">
         <div style="font-size:28px;margin-bottom:8px">📂</div>
         <div style="font-size:14px;font-weight:500;margin-bottom:4px">CSV oder Excel klicken zum Auswählen</div>
@@ -4738,8 +4740,9 @@ function applySort(tbodyId, colIdx, dir, isNum) {
   if(!tbody) return;
   var rows=Array.from(tbody.querySelectorAll('tr'));
   rows.sort(function(a,b){
-    var ac=((a.cells[colIdx]||{}).textContent||'').replace('%','').replace('Min','').trim();
-    var bc=((b.cells[colIdx]||{}).textContent||'').replace('%','').replace('Min','').trim();
+    var ca=a.cells[colIdx], cb=b.cells[colIdx];
+    var ac=(ca&&ca.getAttribute('data-v')!=null?ca.getAttribute('data-v'):((ca||{}).textContent||'')).replace('%','').replace('Min','').trim();
+    var bc=(cb&&cb.getAttribute('data-v')!=null?cb.getAttribute('data-v'):((cb||{}).textContent||'')).replace('%','').replace('Min','').trim();
     if(isNum) return ((parseFloat(ac)||0)-(parseFloat(bc)||0))*dir;
     return ac.localeCompare(bc,'de')*dir;
   });
@@ -6350,9 +6353,9 @@ function renderStatContent() {
     if(_statView==='minuten'){
       var einsatz=pl.filter(function(p){return (p.einsaetze||0)>0;}).length;
       var tore=pl.reduce(function(sm,p){return sm+(p.tore||0);},0), min=pl.reduce(function(sm,p){return sm+(p.minuten||0);},0);
-      var gelb=pl.reduce(function(sm,p){return sm+(p.gelb||0);},0);
+      var gelb=pl.reduce(function(sm,p){return sm+(p.gelb||0);},0), ass=pl.reduce(function(sm,p){return sm+(p.assists||0);},0);
       var ges=pl.filter(isGesperrt).length, warn=pl.filter(function(p){return (p.gelb||0)===3;}).length;
-      kEl.innerHTML=card('Spieler im Einsatz',einsatz,'von '+pl.length+' im Kader',null,true)+card('Tore',tore,'alle Spieler','var(--green)')+card('Minuten',min,'alle Spieler')+
+      kEl.innerHTML=card('Spieler im Einsatz',einsatz,'von '+pl.length+' im Kader',null,true)+card('Tore',tore,'dazu '+ass+' Assists','var(--green)')+card('Minuten',min,'alle Spieler')+
         card('Gesperrt',ges,warn+' mit 3 Gelben',ges?'var(--red)':null)+card('Gelbe Karten',gelb,'aktueller Stand');
     } else {
       var type=_statView==='spiel'?'spiel':'training', evs=pastEvtsFiltered(type,runde);
@@ -6406,6 +6409,165 @@ function renderStatContent() {
 }
 
 
+// ═══════════════════════════════════════════════
+// EXCEL PRO SPIELER (für das Spielergespräch)
+// ═══════════════════════════════════════════════
+function loadExcelJs(cb){
+  if(window.ExcelJS){ cb(true); return; }
+  var sc=document.createElement('script');
+  sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+  sc.onload=function(){ cb(!!window.ExcelJS); }; sc.onerror=function(){ cb(false); };
+  document.head.appendChild(sc);
+}
+function exportPlayerXlsxFromModal(){ if(_currentDetailPid) exportPlayerXlsx(_currentDetailPid); }
+function exportPlayerXlsx(pid){
+  loadExcelJs(function(ok){
+    if(!ok){ alert('Die Excel-Bibliothek konnte nicht geladen werden (Internetverbindung?).'); return; }
+    try { buildPlayerWorkbook(pid); } catch(e) { alert('Excel-Export fehlgeschlagen: '+e.message); }
+  });
+}
+// Alle Zahlen für das Spielerprofil
+function playerReport(pid){
+  var p=players.find(function(x){return x.id===pid;}); if(!p) return null;
+  var pl=players.filter(function(x){return !x.isStaff;});
+  function agg(type,runde){
+    var r=playerRate(pid,type,runde), a=playerAbsence(pid,type,runde);
+    return {att:r?r.att:0, total:r?r.total:0, abs:r?(r.total-r.att):0, pct:r?r.pct:null, adj:a.adj, by:a.by, none:a.none};
+  }
+  var per={train:{vr:agg('training','vorrunde'),rr:agg('training','rueckrunde'),tot:agg('training',null)},
+           spiel:{vr:agg('spiel','vorrunde'),rr:agg('spiel','rueckrunde'),tot:agg('spiel',null)}};
+  function cmp(label,fn,isPct){
+    var vals=pl.map(function(x){ return {id:x.id,v:fn(x)}; }).filter(function(o){return o.v!=null;});
+    var mine=fn(p), n=vals.length;
+    var avg=n?vals.reduce(function(sm,o){return sm+o.v;},0)/n:null;
+    var rank=mine==null?null:1+vals.filter(function(o){return o.v>mine;}).length;
+    return {label:label,mine:mine,avg:avg==null?null:(isPct?Math.round(avg):Math.round(avg*10)/10),rank:rank,of:n};
+  }
+  var einsatz=p.einsaetze||0, min=p.minuten||0;
+  return {
+    p:p, per:per, skorer:(p.tore||0)+(p.assists||0), minPerEins:einsatz?Math.round(min/einsatz):null,
+    compare:[
+      cmp('Training: Anwesenheit total (%)',function(x){var r=playerRate(x.id,'training',null);return r?r.pct:null;},true),
+      cmp('Spiele: Anwesenheit total (%)',function(x){var r=playerRate(x.id,'spiel',null);return r?r.pct:null;},true),
+      cmp('Einsätze',function(x){return x.einsaetze||0;}),
+      cmp('Minuten',function(x){return x.minuten||0;}),
+      cmp('Tore',function(x){return x.tore||0;}),
+      cmp('Assists',function(x){return x.assists||0;})
+    ]
+  };
+}
+function buildPlayerWorkbook(pid){
+  var R=playerReport(pid); if(!R) return;
+  var p=R.p, t=today();
+  var wb=new ExcelJS.Workbook(); wb.creator=settings.clubName||'FCW'; wb.created=new Date();
+  var DARK='FF1A1A1A', GREY='FFF0F0F0', GREEN='FFDCFCE7', RED='FFFEE2E2', AMBER='FFFEF9C3', BLUE='FFE0E7FF';
+  var thin={style:'thin',color:{argb:'FFBFBFBF'}}, box={top:thin,bottom:thin,left:thin,right:thin};
+  var NC=9;
+
+  // ───────── Blatt 1: Profil
+  var ws=wb.addWorksheet('Spielerprofil',{views:[{showGridLines:false}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});
+  ws.columns=[{width:44}].concat([1,2,3,4,5,6,7,8].map(function(){return {width:13};}));
+  function put(r,c,v,o){ o=o||{}; var cell=ws.getCell(r,c); cell.value=v;
+    cell.font={name:'Arial',size:o.size||10,bold:!!o.bold,color:o.color?{argb:o.color}:undefined};
+    if(o.fill) cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.fill}};
+    cell.alignment={vertical:'middle',horizontal:o.align||(c>1?'center':'left'),wrapText:!!o.wrap};
+    if(o.border!==false && o.border!==undefined || o.border===true) cell.border=box;
+    if(o.fmt) cell.numFmt=o.fmt;
+    return cell; }
+  var row=1;
+  ws.mergeCells(row,1,row,6); put(row,1,'Spielerprofil – '+p.name,{size:18,bold:true,border:false}); ws.getRow(row).height=30; row++;
+  ws.mergeCells(row,1,row,6); put(row,1,(settings.clubName||'')+' · '+(settings.teamName||'')+' · Saison '+(settings.seasonName||'')+' · Stand '+fmtDate(t),{color:'FF666666',border:false}); row+=2;
+  // Logo
+  try {
+    var m=(settings.vereinLogo||'').match(/^data:image\/(png|jpeg|jpg|gif);base64,(.+)$/);
+    if(m){ var imgId=wb.addImage({base64:m[2],extension:m[1]==='jpg'?'jpeg':m[1]}); ws.addImage(imgId,{tl:{col:7.4,row:0.15},ext:{width:64,height:64}}); }
+  } catch(e) {}
+  function section(title){ ws.mergeCells(row,1,row,NC); put(row,1,title,{bold:true,color:'FFFFFFFF',fill:DARK,size:11}); ws.getRow(row).height=20; row++; }
+  function header(labels,startCol){ labels.forEach(function(l,i){ put(row,(startCol||1)+i,l,{bold:true,fill:GREY,border:true,align:i===0&&!startCol?'left':'center',wrap:true}); }); row++; }
+  function kv(k,v){ put(row,1,k,{bold:true,fill:GREY,border:true}); ws.mergeCells(row,2,row,4); put(row,2,v,{border:true,align:'left'}); ws.getCell(row,3).border=box; ws.getCell(row,4).border=box; row++; }
+  var ges=isGesperrt(p);
+  section('Persönliches');
+  kv('Rückennummer','#'+(p.nr||'–')); kv('Zone',p.zone||'–'); kv('Position(en)',[p.pos1,p.pos2].filter(Boolean).join(', ')||'–');
+  kv('Gelbe Karten',(p.gelb||0)+(ges?'  –  GESPERRT':((p.gelb||0)===3?'  –  nächste Karte = Sperre':'')));
+  row++;
+  section('Spielstatistik (Saison, Verband)');
+  header(['Einsätze','Minuten','Ø Min. pro Einsatz','Tore','Assists','Skorerpunkte','Gelbe Karten'],2);
+  put(row,1,'Saison total',{bold:true,border:true});
+  [p.einsaetze||0,p.minuten||0,R.minPerEins==null?'–':R.minPerEins,p.tore||0,p.assists||0,R.skorer,p.gelb||0].forEach(function(v,i){ put(row,2+i,v,{border:true,align:'center',bold:i===1||i===3}); });
+  row+=2;
+  section('Vergleich mit dem Team');
+  header(['Kennzahl','Spieler','Team-Ø','Rang'],1);
+  R.compare.forEach(function(c){
+    var pct=/%/.test(c.label);
+    put(row,1,c.label,{border:true}); put(row,2,c.mine==null?'–':c.mine,{border:true,bold:true,fmt:pct?'0"%"':undefined});
+    put(row,3,c.avg==null?'–':c.avg,{border:true,fmt:pct?'0"%"':undefined});
+    put(row,4,c.rank==null?'–':c.rank+' von '+c.of,{border:true}); row++; });
+  row++;
+  section('Anwesenheit');
+  ws.mergeCells(row,2,row,5); put(row,2,'Training',{bold:true,fill:GREEN,border:true,align:'center'}); ['3','4','5'].forEach(function(c){ws.getCell(row,+c).border=box;});
+  ws.mergeCells(row,6,row,9); put(row,6,'Spiele',{bold:true,fill:BLUE,border:true,align:'center'}); [7,8,9].forEach(function(c){ws.getCell(row,c).border=box;});
+  put(row,1,'',{border:true,fill:GREY}); row++;
+  header(['Periode','Anw.','Abs.','Quote','Ohne Verl.','Anw.','Abs.','Quote','Ohne Verl.'],1);
+  [['Vorrunde','vr'],['Rückrunde','rr'],['Total','tot']].forEach(function(pp){
+    var a=R.per.train[pp[1]], b=R.per.spiel[pp[1]], bold=pp[1]==='tot';
+    put(row,1,pp[0],{border:true,bold:bold});
+    [[a,2],[b,6]].forEach(function(x){ var d=x[0], c0=x[1];
+      put(row,c0,d.total?d.att:'–',{border:true,bold:bold});
+      put(row,c0+1,d.total?d.abs:'–',{border:true,bold:bold,color:d.abs?'FFB91C1C':undefined});
+      put(row,c0+2,d.pct==null?'–':d.pct,{border:true,bold:bold,fmt:'0"%"'});
+      put(row,c0+3,d.adj==null?'–':d.adj,{border:true,bold:bold,fmt:'0"%"'}); });
+    row++; });
+  row++;
+  section('Abwesenheitsgründe (Anzahl)');
+  header(['Grund','Training','Spiele','Total'],1);
+  var anyReason=false;
+  absenceReasons.forEach(function(r){
+    var a=R.per.train.tot.by[r.id]||0, b=R.per.spiel.tot.by[r.id]||0; if(!a&&!b) return; anyReason=true;
+    put(row,1,r.label+(/verletz/i.test(r.label)?'  (zählt nicht gegen «Ohne Verl.»)':''),{border:true}); put(row,2,a,{border:true}); put(row,3,b,{border:true}); put(row,4,a+b,{border:true,bold:true}); row++; });
+  var na=R.per.train.tot.none, nb=R.per.spiel.tot.none;
+  if(na||nb){ anyReason=true; put(row,1,'Ohne Angabe',{border:true}); put(row,2,na,{border:true}); put(row,3,nb,{border:true}); put(row,4,na+nb,{border:true,bold:true}); row++; }
+  if(!anyReason){ ws.mergeCells(row,1,row,4); put(row,1,'Keine Abwesenheiten erfasst',{border:true,color:'FF15803D'}); row++; }
+  row++;
+  section('Notizen für das Gespräch');
+  ['Stärken','Entwicklungsfelder','Ziele / Vereinbarungen'].forEach(function(l){
+    put(row,1,l,{bold:true,fill:GREY,border:true}); ws.mergeCells(row,2,row,NC); put(row,2,'',{border:true}); for(var c=3;c<=NC;c++) ws.getCell(row,c).border=box; ws.getRow(row).height=46; row++; });
+
+  // ───────── Blatt 2: Trainings
+  var wt=wb.addWorksheet('Trainings',{views:[{state:'frozen',ySplit:1}]});
+  wt.columns=[{header:'Datum',width:13},{header:'Tag',width:7},{header:'Bezeichnung',width:30},{header:'Anwesenheit',width:16},{header:'Grund',width:24}];
+  var DAYS=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  function statusOf(e){
+    var en=attendance[e.id]&&attendance[e.id][pid];
+    if(!en) return {txt:'keine Angabe',fill:AMBER,color:'FF92400E',reason:''};
+    if(en.present) return {txt:'anwesend',fill:GREEN,color:'FF15803D',reason:''};
+    var r=en.reason?(absenceReasons.find(function(x){return x.id==en.reason;})||absenceReasons.find(function(x){return x.kuerzel===en.reason;})):null;
+    return {txt:'abwesend',fill:RED,color:'FFB91C1C',reason:r?r.label:''};
+  }
+  pastEvts('training').forEach(function(e){
+    var st=statusOf(e), rw=wt.addRow([fmtDate(e.date),DAYS[isoWeekday(e.date)],e.name||'Training',st.txt,st.reason]);
+    rw.getCell(4).fill={type:'pattern',pattern:'solid',fgColor:{argb:st.fill}}; rw.getCell(4).font={color:{argb:st.color},bold:true}; });
+  wt.autoFilter={from:{row:1,column:1},to:{row:1,column:5}};
+  // ───────── Blatt 3: Spiele
+  var wsp=wb.addWorksheet('Spiele',{views:[{state:'frozen',ySplit:1}]});
+  wsp.columns=[{header:'Datum',width:13},{header:'Tag',width:7},{header:'Gegner',width:30},{header:'H/A',width:9},{header:'Resultat',width:11},{header:'Typ',width:17},{header:'Aufgebot',width:16},{header:'Grund',width:24}];
+  pastEvts('spiel').forEach(function(e){
+    var st=statusOf(e), rp=resParse(e), ty=resTypOf(e);
+    var home=rp?rp.home:/^Heim/i.test(e.name||''), away=/^Ausw[aä]rts/i.test(e.name||'');
+    var rw=wsp.addRow([fmtDate(e.date),DAYS[isoWeekday(e.date)],resOpp(e),(home||away)?(home?'Heim':'Auswärts'):'–',rp?rp.gf+':'+rp.ga:'–',ty==='meister'?'Meisterschaft':ty==='test'?'Trainingsspiel':'–',st.txt,st.reason]);
+    rw.getCell(7).fill={type:'pattern',pattern:'solid',fgColor:{argb:st.fill}}; rw.getCell(7).font={color:{argb:st.color},bold:true};
+    if(rp){ rw.getCell(5).fill={type:'pattern',pattern:'solid',fgColor:{argb:rp.res==='S'?GREEN:rp.res==='N'?RED:GREY}}; rw.getCell(5).font={bold:true}; rw.getCell(5).alignment={horizontal:'center'}; } });
+  wsp.autoFilter={from:{row:1,column:1},to:{row:1,column:8}};
+  [wt,wsp].forEach(function(w){ w.eachRow(function(rw){ rw.eachCell(function(c){ c.font=Object.assign({name:'Arial',size:10},c.font||{}); }); }); });
+  [wt,wsp].forEach(function(w){ var h=w.getRow(1); h.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}}; h.eachCell(function(c){ c.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}}; c.alignment={vertical:'middle'}; }); h.height=22; });
+
+  wb.xlsx.writeBuffer().then(function(buf){
+    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Spielergespraech_'+p.name.replace(/[^a-zA-Z0-9]/g,'_')+'_'+t+'.xlsx';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+  });
+}
+
 function exportPlayerDocx(pid) {
   var p=players.find(function(x){return x.id===pid;}); if(!p) return;
   var all=playerRateAll(pid), t=today(), logo=settings.vereinLogo||'';
@@ -6441,7 +6603,9 @@ function exportPlayerDocx(pid) {
     '<div class="boxes">',
     '<div class="box"><div class="num">'+(p.einsaetze||0)+'<\/div><div class="lbl">Einst\u00e4tze<\/div><\/div>',
     '<div class="box"><div class="num">'+(p.minuten||0)+'<\/div><div class="lbl">Minuten<\/div><\/div>',
-    '<div class="box"><div class="num">'+(p.tore||0)+'<\/div><div class="lbl">Tore<\/div><\/div><\/div>',
+    '<div class="box"><div class="num">'+(p.tore||0)+'<\/div><div class="lbl">Tore<\/div><\/div>',
+    '<div class="box"><div class="num">'+(p.assists||0)+'<\/div><div class="lbl">Assists<\/div><\/div>',
+    '<div class="box"><div class="num">'+(p.gelb||0)+'<\/div><div class="lbl">Gelbe Karten<\/div><\/div><\/div>',
     '<div class="sec">Anwesenheitsquoten<\/div>',
     '<table><tr><th>Periode<\/th><th>Training %<\/th><th>T-Anw.<\/th><th>Spiele %<\/th><th>S-Anw.<\/th><\/tr>'+attHtml+'<\/table>',
     '<div class="sec">Letzte 10 Einheiten<\/div>',
@@ -6505,7 +6669,9 @@ function openPlayerDetail(pid) {
     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:8px">Spielstatistik</div>'+
     '<div style="font-size:13px">Einsätze: <strong>'+(p.einsaetze||0)+'</strong></div>'+
     '<div style="font-size:13px">Minuten: <strong>'+(p.minuten||0)+'</strong></div>'+
-    '<div style="font-size:13px">Tore: <strong style="color:var(--green)">'+(p.tore||0)+'</strong></div></div>'+
+    '<div style="font-size:13px">Tore: <strong style="color:var(--green)">'+(p.tore||0)+'</strong></div>'+
+    '<div style="font-size:13px">Assists: <strong>'+(p.assists||0)+'</strong></div>'+
+    '<div style="font-size:13px">Gelbe Karten: <strong>'+(p.gelb||0)+'</strong></div></div>'+
     '<div style="background:var(--surface);border-radius:8px;padding:0.75rem">'+
     '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:8px">Anwesenheit</div>'+
     '<table style="width:100%;border-collapse:collapse">'+
@@ -7846,10 +8012,10 @@ function exportAttendanceCSV() {
   downloadCSV(rows,'FCW_Anwesenheit_'+today()+'.csv');
 }
 function exportPlayersCSV() {
-  var rows=[['Name','Nr','Zone','Position 1','Position 2','Einsätze','Minuten','Tore','Training VR%','Training RR%','Training Total%','Spiele VR%','Spiele RR%','Spiele Total%']];
+  var rows=[['Name','Nr','Zone','Position 1','Position 2','Einsätze','Minuten','Tore','Assists','Gelbe Karten','Training VR%','Training RR%','Training Total%','Spiele VR%','Spiele RR%','Spiele Total%']];
   players.forEach(function(p){
     var all=playerRateAll(p.id);
-    rows.push([p.name,p.nr,p.zone,p.pos1,p.pos2,p.einsaetze||0,p.minuten||0,p.tore||0,
+    rows.push([p.name,p.nr,p.zone,p.pos1,p.pos2,p.einsaetze||0,p.minuten||0,p.tore||0,p.assists||0,p.gelb||0,
       all.train_vr?all.train_vr.pct:'',all.train_rr?all.train_rr.pct:'',all.train_tot?all.train_tot.pct:'',
       all.spiel_vr?all.spiel_vr.pct:'',all.spiel_rr?all.spiel_rr.pct:'',all.spiel_tot?all.spiel_tot.pct:'']);
   });
@@ -8979,35 +9145,45 @@ function renderSperrenBox(){
   });
 }
 
+function setAssist(pid,delta){
+  var p=players.find(function(x){return x.id===pid;}); if(!p) return;
+  p.assists=Math.max(0,(p.assists||0)+delta);
+  saveData(); renderMinuten(); renderStatistik();
+}
 function renderMinuten() {
   var tbody=document.getElementById('minuten-tbody');
   if(!tbody) return;
   var mx=maxMinutes();
   var sorted=[].concat(players).filter(function(p){return !p.isStaff;}).sort(function(a,b){return (b.minuten||0)-(a.minuten||0);});
+  var btn='padding:1px 8px;line-height:1.3';
   tbody.innerHTML=sorted.map(function(p){
     var pct=Math.round((p.minuten||0)/mx*100);
-    var g=p.gelb||0, gesp=g>=4, gbg=gesp?'#fee2e2':(g===3?'#fef9c3':'transparent');
+    var g=p.gelb||0, gesp=g>=4, gbg=gesp?'#fee2e2':(g===3?'#fef9c3':'transparent'), as=p.assists||0;
     return '<tr>'+
-      '<td style="min-width:140px"><div class="pc">'+avHtml(p.name)+'<div>'+
-      '<div style="font-size:13px;font-weight:500">'+p.name+'</div>'+
-      '<div style="font-size:10px;color:var(--muted)">#'+p.nr+'</div></div></div></td>'+
+      '<td style="min-width:140px;cursor:pointer" onclick="openPlayerDetail('+p.id+')" title="Spielerprofil öffnen (mit Excel-Export für das Gespräch)"><div class="pc">'+avHtml(p.name)+'<div>'+
+      '<div style="font-size:13px;font-weight:500">'+tpEsc(p.name)+'</div>'+
+      '<div style="font-size:10px;color:var(--muted)">#'+tpEsc(p.nr)+'</div></div></div></td>'+
       '<td style="min-width:90px">'+zoneBadge(p.zone)+'</td>'+
-      '<td style="min-width:70px;text-align:right;font-family:monospace;font-size:13px">'+(p.einsaetze||0)+'</td>'+
+      '<td style="min-width:60px;text-align:right;font-family:monospace;font-size:13px">'+(p.einsaetze||0)+'</td>'+
       '<td style="min-width:70px;text-align:right;font-family:monospace;font-size:14px;font-weight:700">'+(p.minuten||0)+'</td>'+
       '<td style="min-width:50px;text-align:right;font-family:monospace;font-size:13px;color:var(--green)">'+(p.tore||0)+'</td>'+
-      '<td style="min-width:190px"><div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap">'+
-        '<button class="btn sm" onclick="setGelb('+p.id+',-1)" style="padding:1px 8px;line-height:1.3">−</button>'+
+      '<td data-v="'+as+'" style="min-width:120px"><div style="display:flex;align-items:center;justify-content:flex-end;gap:4px">'+
+        '<button class="btn sm" onclick="setAssist('+p.id+',-1)" style="'+btn+'">−</button>'+
+        '<span style="min-width:30px;text-align:center;font-family:monospace;font-size:13px;font-weight:700">'+as+'</span>'+
+        '<button class="btn sm" onclick="setAssist('+p.id+',1)" style="'+btn+'">+</button>'+
+      '</div></td>'+
+      '<td data-v="'+g+'" style="min-width:190px"><div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap">'+
+        '<button class="btn sm" onclick="setGelb('+p.id+',-1)" style="'+btn+'">−</button>'+
         '<span style="min-width:46px;text-align:center;font-family:monospace;font-size:13px;font-weight:700;padding:2px 6px;border-radius:6px;background:'+gbg+'">🟨 '+g+'</span>'+
-        '<button class="btn sm" onclick="setGelb('+p.id+',1)" style="padding:1px 8px;line-height:1.3">+</button>'+
+        '<button class="btn sm" onclick="setGelb('+p.id+',1)" style="'+btn+'">+</button>'+
         (gesp?'<span style="font-size:10px;font-weight:700;color:#dc2626">GESPERRT</span><button class="btn sm" onclick="sperreAbgesessen('+p.id+')" style="font-size:10px;padding:1px 8px">abgesessen</button>':'')+
       '</div></td>'+
-      '<td style="min-width:120px"><div style="display:flex;align-items:center;gap:6px">'+
+      '<td style="min-width:110px"><div style="display:flex;align-items:center;gap:6px">'+
       '<div class="min-bar"><div class="min-fill" style="width:'+pct+'%"></div></div>'+
       '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'+pct+'%</span></div></td></tr>';
   }).join('');
   var thead=tbody.previousElementSibling;
   if(thead) thead.querySelectorAll('th').forEach(function(th,i){
-    if(i===5) return;
     th.style.cursor='pointer'; th.style.userSelect='none';
     th.onclick=function(){ sortTbody('minuten-tbody',i,i>=2); };
   });
@@ -9582,7 +9758,8 @@ startAutoRefresh();
   <div class="modal" style="width:680px;max-width:96vw;max-height:90vh;overflow-y:auto">
     <div class="modal-header" style="display:flex;align-items:center;gap:8px">
       <span class="modal-title">Spieler-Detail</span>
-      <button class="btn sm" onclick="exportPlayerDocxFromModal()" style="margin-left:auto" title="Als Word exportieren">&#128462; Word Export</button>
+      <button class="btn sm" onclick="exportPlayerXlsxFromModal()" style="margin-left:auto" title="Gesamte Statistik dieses Spielers als Excel – für das Spielergespräch">⬇ Excel (Gespräch)</button>
+      <button class="btn sm" onclick="exportPlayerDocxFromModal()" title="Als Word exportieren">&#128462; Word Export</button>
       <button class="btn" onclick="closeModal('player-detail')" style="border:none;font-size:17px;padding:2px 8px">×</button>
     </div>
     <div class="modal-body" id="player-detail-body"></div>
